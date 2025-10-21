@@ -24661,39 +24661,8 @@ var require_r = __commonJS({
 // src/webview-src/main.ts
 var import_easymde = __toESM(require_easymde());
 var import_gfm = __toESM(require_gfm());
-var import_python = __toESM(require_python());
-var import_javascript = __toESM(require_javascript());
-var import_markdown = __toESM(require_markdown());
-var import_meta = __toESM(require_meta());
-var import_python2 = __toESM(require_python());
-var import_xml = __toESM(require_xml());
-var import_htmlmixed = __toESM(require_htmlmixed());
-var import_css = __toESM(require_css());
-var import_shell = __toESM(require_shell());
-var import_sql = __toESM(require_sql());
-var import_yaml = __toESM(require_yaml());
-var import_properties = __toESM(require_properties());
-var import_toml = __toESM(require_toml());
-var import_rust = __toESM(require_rust());
-var import_go = __toESM(require_go());
-var import_php = __toESM(require_php());
-var import_clike = __toESM(require_clike());
-var import_lua = __toESM(require_lua());
-var import_r = __toESM(require_r());
-var vscode = acquireVsCodeApi();
-var isUpdatingFromExtension = false;
-var textarea = document.getElementById("markdown-editor");
-var easyMDE = new import_easymde.default({
-  element: textarea,
-  mode: {
-    name: "gfm",
-    fencedCodeBlockHighlighting: true
-  },
-  toolbar: false,
-  status: false,
-  spellChecker: false,
-  maxHeight: "none"
-});
+
+// src/modules/highlightCodeBlocks.ts
 function highlightCodeBlocks(cm) {
   const doc = cm.getDoc();
   const totalLines = doc.lineCount();
@@ -24720,6 +24689,46 @@ function highlightCodeBlocks(cm) {
     }
   }
 }
+
+// src/webview-src/main.ts
+var import_python = __toESM(require_python());
+var import_javascript = __toESM(require_javascript());
+var import_markdown = __toESM(require_markdown());
+var import_meta = __toESM(require_meta());
+var import_xml = __toESM(require_xml());
+var import_htmlmixed = __toESM(require_htmlmixed());
+var import_css = __toESM(require_css());
+var import_shell = __toESM(require_shell());
+var import_sql = __toESM(require_sql());
+var import_yaml = __toESM(require_yaml());
+var import_properties = __toESM(require_properties());
+var import_toml = __toESM(require_toml());
+var import_rust = __toESM(require_rust());
+var import_go = __toESM(require_go());
+var import_php = __toESM(require_php());
+var import_clike = __toESM(require_clike());
+var import_lua = __toESM(require_lua());
+var import_r = __toESM(require_r());
+var vscode = acquireVsCodeApi();
+var isUpdatingFromExtension = false;
+var textarea = document.getElementById("markdown-editor");
+var easyMDE = new import_easymde.default({
+  element: textarea,
+  mode: {
+    name: "gfm",
+    fencedCodeBlockHighlighting: true
+  },
+  toolbar: false,
+  status: false,
+  spellChecker: false,
+  maxHeight: "none",
+  autoDownloadFontAwesome: false,
+  previewImagesInEditor: true,
+  renderingConfig: {
+    codeSyntaxHighlighting: true
+  },
+  placeholder: "Type here..."
+});
 highlightCodeBlocks(easyMDE.codemirror);
 var highlightTimeout;
 easyMDE.codemirror.on("change", () => {
@@ -24743,9 +24752,8 @@ window.addEventListener("message", (event) => {
       isUpdatingFromExtension = true;
       const cursor = easyMDE.codemirror.getCursor();
       easyMDE.value(message.text);
-      easyMDE.codemirror.setCursor(cursor);
+      easyMDE.codemirror.setCursor(cursor, void 0, { scroll: false });
       isUpdatingFromExtension = false;
-      highlightCodeBlocks(easyMDE.codemirror);
     }
   }
 });

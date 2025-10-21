@@ -21,7 +21,7 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
     constructor(private readonly context: vscode.ExtensionContext) { }
 
     /**
-     * This is the core method, called by VS Code when a user opens a file with our editor.
+     * Core method, called by VS Code when a user opens a file with the editor.
      */
     public async resolveCustomTextEditor(
         document: vscode.TextDocument,
@@ -29,7 +29,7 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
         _token: vscode.CancellationToken
     ): Promise<void> {
 
-        // Setup the webview options
+        // Webview options setup
         webviewPanel.webview.options = {
             enableScripts: true,
             // Restrict the webview to only loading resources from our extension's 'media' and 'node_modules' directories
@@ -42,7 +42,7 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
         // Set the initial HTML content
         webviewPanel.webview.html = this.getWebviewContent(webviewPanel.webview, document.getText());
 
-        // --- Two-way communication setup ---
+        // Two-way communication setup
         const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.uri.toString() === document.uri.toString()) {
                 webviewPanel.webview.postMessage({
@@ -52,7 +52,7 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
             }
         });
 
-        // When the webview panel is disposed, we must clean up the subscription
+        // When the webview panel is disposed, clean up the subscription
         webviewPanel.onDidDispose(() => {
             changeDocumentSubscription.dispose();
         });
@@ -70,8 +70,8 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
         });
     }
 
-    /**sure
-     * A helper function to apply changes from the webview to the VS Code document.
+    /**
+     * Gelper function to apply changes from the webview to the VS Code document.
      */
     private updateTextDocument(document: vscode.TextDocument, text: string) {
         const edit = new vscode.WorkspaceEdit();
@@ -85,13 +85,13 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
     }
 
     /**
-     * Generates the HTML content for our webview.
+     * Generate the HTML content for the webview.
      */
     private getWebviewContent(webview: vscode.Webview, initialContent: string): string {
-        // We only need URIs for the CSS and our single, bundled script
+        // Only need URIs for the CSS and the single bundled script
         const easyMDECssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'easymde', 'dist', 'easymde.min.css'));
         const customCssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'style.css'));
-        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'webview.dist.js')); // Point to the bundled file
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'webview.dist.js')); 
     
         const nonce = getNonce();
     
