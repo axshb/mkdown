@@ -6,6 +6,7 @@ body {
   color: var(--vscode-editor-foreground);
   padding: 2rem;
   font-size: large;
+  font-family: var(--vscode-editor-font-family);
 }
 .EasyMDEContainer {
   max-width: 66vw;
@@ -24,70 +25,57 @@ body {
 .CodeMirror-cursor {
   border-left: 1px solid var(--vscode-editorCursor-foreground) !important;
 }
-
-/* --- THE NEW CODE BLOCK STYLES --- */
-
-/* 1. Style the code lines to create the container effect */
-.CodeMirror-line[class*=" cm-"] {
-  background-color: #282c34 !important; /* A slightly different dark background */
-  padding: 0 1em; /* Horizontal padding */
-  box-sizing: border-box;
-}
-
-/* 2. Style the first line of the block for top padding and corners */
-.CodeMirror-line.first-line-of-code {
-  padding-top: 1em;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-}
-
-/* 3. Style the last line for bottom padding and corners */
-
-/* A simpler approach: apply bottom styles to all code lines. It only matters on the last one. */
-.CodeMirror-line[class*=" cm-"] {
-  padding-bottom: 0.2em; /* Give a little space at the bottom */
-}
-/* Let's refine this. We'll use JS to add a 'last-line-of-code' class for precision. */
-/* (For now, let's keep it simple and omit the bottom radius as it's tricky with pure CSS) */
-
-
-/* 4. The Language Tag (using the data-lang attribute from Step 1) */
-.CodeMirror-line.first-line-of-code {
-  position: relative; /* Make it a positioning context */
-}
-.CodeMirror-line.first-line-of-code::after {
-  content: attr(data-lang); /* Display the language name */
-  position: absolute;
-  top: 0.5em;
-  right: 1em;
-  font-size: 0.8em;
-  color: #abb2bf;
-  opacity: 0.6;
+.CodeMirror .cm-formatting-code-block {
+  color: #999;          /* muted text for backticks */
 }
 
 
-/* --- Syntax Highlighting Colors from your Image --- */
+/**
+* ====== CODE BLOCK STYLING ======
+*/
 
-/* Keywords (if) */
-.cm-keyword { color: #e06c75; }
+/* Backtick fences */
+.CodeMirror .cm-formatting-code-block {
+  color: #999 !important; /* subtle grey for ``` */
+  font-style: italic;
+}
 
-/* Variables, Properties, and default text inside block */
-.cm-variable, .cm-property { color: #abb2bf; }
+span.cm-formatting.cm-formatting-code-block.cm-comment {
+  background-color: #161616;
+  display: inline-block;
+  width: 100%;
+  padding: 2px 4px;
+  margin-left: -4px;
+}
 
-/* Strings ("Hello World!") */
-.cm-string { color: #98c379; }
+/* Lines inside a fenced code block */
+.CodeMirror .cm-code-block {
+  background: #161616;   /* VS Code dark background */
+  color: #d4d4d4;        /* default text color */
+  padding: 2px 6px;
+  display: block;        /* ensures full line width */
+  border-radius: 0;      /* remove rounded corners for flat block */
+}
 
-/* Numbers (1) */
-.cm-number { color: #d19a66; }
+.CodeMirror .cm-code-block .CodeMirror-cursor {
+  margin-left: -6px; /* adjust to match your code-block padding */
+}
 
-/* Comments (and the ``` fences) */
-.cm-comment { color: #5c6370; }
+/* Optional: maintain horizontal scroll for long lines */
+.CodeMirror pre {
+  overflow-x: auto;
+}
 
-/* Operators (==) */
-.cm-operator { color: #c678dd; }
+/* Editor padding */
+.CodeMirror .CodeMirror-lines {
+  padding: 4px;
+}
 
-/* Built-in functions (print) */
-.cm-builtin { color: #e5c07b; }
-
-/* Brackets, punctuation */
-.cm-bracket { color: #abb2bf; }
+.CodeMirror .cm-keyword { color: #c586c0; }
+.CodeMirror .cm-number { color: #b5cea8; }
+.CodeMirror .cm-string { color: #ce9178; }
+.CodeMirror .cm-comment { color: #6a9955; font-style: italic; }
+.CodeMirror .cm-builtin { color: #dcdcaa; }
+.CodeMirror .cm-operator { color: #d4d4d4; }
+.CodeMirror .cm-variable { color: #9cdcfe; }
+.CodeMirror .cm-def { color: #dcdcaa; } /* function definitions */

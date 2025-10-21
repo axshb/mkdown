@@ -193,17 +193,17 @@ var require_codemirror = __commonJS({
           }
         };
       }
-      function doc(cm2) {
-        return cm2.display.wrapper.ownerDocument;
+      function doc(cm) {
+        return cm.display.wrapper.ownerDocument;
       }
-      function root(cm2) {
-        return rootNode(cm2.display.wrapper);
+      function root(cm) {
+        return rootNode(cm.display.wrapper);
       }
       function rootNode(element) {
         return element.getRootNode ? element.getRootNode() : element.ownerDocument;
       }
-      function win(cm2) {
-        return doc(cm2).defaultView;
+      function win(cm) {
+        return doc(cm).defaultView;
       }
       function bind(f) {
         var args = Array.prototype.slice.call(arguments, 1);
@@ -614,21 +614,21 @@ var require_codemirror = __commonJS({
           handlers[i2].apply(null, args);
         }
       }
-      function signalDOMEvent(cm2, e, override) {
+      function signalDOMEvent(cm, e, override) {
         if (typeof e == "string") {
           e = { type: e, preventDefault: function() {
             this.defaultPrevented = true;
           } };
         }
-        signal(cm2, override || e.type, cm2, e);
+        signal(cm, override || e.type, cm, e);
         return e_defaultPrevented(e) || e.codemirrorIgnore;
       }
-      function signalCursorActivity(cm2) {
-        var arr = cm2._handlers && cm2._handlers.cursorActivity;
+      function signalCursorActivity(cm) {
+        var arr = cm._handlers && cm._handlers.cursorActivity;
         if (!arr) {
           return;
         }
-        var set = cm2.curOp.cursorActivityHandlers || (cm2.curOp.cursorActivityHandlers = []);
+        var set = cm.curOp.cursorActivityHandlers || (cm.curOp.cursorActivityHandlers = []);
         for (var i2 = 0; i2 < arr.length; ++i2) {
           if (indexOf(set, arr[i2]) == -1) {
             set.push(arr[i2]);
@@ -807,11 +807,11 @@ var require_codemirror = __commonJS({
           return spec || { name: "null" };
         }
       }
-      function getMode2(options, spec) {
+      function getMode(options, spec) {
         spec = resolveMode(spec);
         var mfactory = modes[spec.name];
         if (!mfactory) {
-          return getMode2(options, "text/plain");
+          return getMode(options, "text/plain");
         }
         var modeObj = mfactory(options, spec);
         if (modeExtensions.hasOwnProperty(spec.name)) {
@@ -871,10 +871,10 @@ var require_codemirror = __commonJS({
         }
         return info || { mode, state };
       }
-      function startState2(mode, a1, a2) {
+      function startState(mode, a1, a2) {
         return mode.startState ? mode.startState(a1, a2) : true;
       }
-      var StringStream2 = function(string, tabSize, lineOracle) {
+      var StringStream = function(string, tabSize, lineOracle) {
         this.pos = this.start = 0;
         this.string = string;
         this.tabSize = tabSize || 8;
@@ -882,21 +882,21 @@ var require_codemirror = __commonJS({
         this.lineStart = 0;
         this.lineOracle = lineOracle;
       };
-      StringStream2.prototype.eol = function() {
+      StringStream.prototype.eol = function() {
         return this.pos >= this.string.length;
       };
-      StringStream2.prototype.sol = function() {
+      StringStream.prototype.sol = function() {
         return this.pos == this.lineStart;
       };
-      StringStream2.prototype.peek = function() {
+      StringStream.prototype.peek = function() {
         return this.string.charAt(this.pos) || void 0;
       };
-      StringStream2.prototype.next = function() {
+      StringStream.prototype.next = function() {
         if (this.pos < this.string.length) {
           return this.string.charAt(this.pos++);
         }
       };
-      StringStream2.prototype.eat = function(match) {
+      StringStream.prototype.eat = function(match) {
         var ch = this.string.charAt(this.pos);
         var ok;
         if (typeof match == "string") {
@@ -909,43 +909,43 @@ var require_codemirror = __commonJS({
           return ch;
         }
       };
-      StringStream2.prototype.eatWhile = function(match) {
+      StringStream.prototype.eatWhile = function(match) {
         var start = this.pos;
         while (this.eat(match)) {
         }
         return this.pos > start;
       };
-      StringStream2.prototype.eatSpace = function() {
+      StringStream.prototype.eatSpace = function() {
         var start = this.pos;
         while (/[\s\u00a0]/.test(this.string.charAt(this.pos))) {
           ++this.pos;
         }
         return this.pos > start;
       };
-      StringStream2.prototype.skipToEnd = function() {
+      StringStream.prototype.skipToEnd = function() {
         this.pos = this.string.length;
       };
-      StringStream2.prototype.skipTo = function(ch) {
+      StringStream.prototype.skipTo = function(ch) {
         var found = this.string.indexOf(ch, this.pos);
         if (found > -1) {
           this.pos = found;
           return true;
         }
       };
-      StringStream2.prototype.backUp = function(n) {
+      StringStream.prototype.backUp = function(n) {
         this.pos -= n;
       };
-      StringStream2.prototype.column = function() {
+      StringStream.prototype.column = function() {
         if (this.lastColumnPos < this.start) {
           this.lastColumnValue = countColumn(this.string, this.start, this.tabSize, this.lastColumnPos, this.lastColumnValue);
           this.lastColumnPos = this.start;
         }
         return this.lastColumnValue - (this.lineStart ? countColumn(this.string, this.lineStart, this.tabSize) : 0);
       };
-      StringStream2.prototype.indentation = function() {
+      StringStream.prototype.indentation = function() {
         return countColumn(this.string, null, this.tabSize) - (this.lineStart ? countColumn(this.string, this.lineStart, this.tabSize) : 0);
       };
-      StringStream2.prototype.match = function(pattern, consume, caseInsensitive) {
+      StringStream.prototype.match = function(pattern, consume, caseInsensitive) {
         if (typeof pattern == "string") {
           var cased = function(str) {
             return caseInsensitive ? str.toLowerCase() : str;
@@ -968,10 +968,10 @@ var require_codemirror = __commonJS({
           return match;
         }
       };
-      StringStream2.prototype.current = function() {
+      StringStream.prototype.current = function() {
         return this.string.slice(this.start, this.pos);
       };
-      StringStream2.prototype.hideFirstChars = function(n, inner) {
+      StringStream.prototype.hideFirstChars = function(n, inner) {
         this.lineStart += n;
         try {
           return inner();
@@ -979,11 +979,11 @@ var require_codemirror = __commonJS({
           this.lineStart -= n;
         }
       };
-      StringStream2.prototype.lookAhead = function(n) {
+      StringStream.prototype.lookAhead = function(n) {
         var oracle = this.lineOracle;
         return oracle && oracle.lookAhead(n);
       };
-      StringStream2.prototype.baseToken = function() {
+      StringStream.prototype.baseToken = function() {
         var oracle = this.lineOracle;
         return oracle && oracle.baseToken(this.pos);
       };
@@ -1183,12 +1183,12 @@ var require_codemirror = __commonJS({
         var state = copy !== false ? copyState(this.doc.mode, this.state) : this.state;
         return this.maxLookAhead > 0 ? new SavedContext(state, this.maxLookAhead) : state;
       };
-      function highlightLine(cm2, line, context, forceToEnd) {
-        var st = [cm2.state.modeGen], lineClasses = {};
+      function highlightLine(cm, line, context, forceToEnd) {
+        var st = [cm.state.modeGen], lineClasses = {};
         runMode(
-          cm2,
+          cm,
           line.text,
-          cm2.doc.mode,
+          cm.doc.mode,
           context,
           function(end, style) {
             return st.push(end, style);
@@ -1199,9 +1199,9 @@ var require_codemirror = __commonJS({
         var state = context.state;
         var loop = function(o2) {
           context.baseTokens = st;
-          var overlay = cm2.state.overlays[o2], i2 = 1, at = 0;
+          var overlay = cm.state.overlays[o2], i2 = 1, at = 0;
           context.state = true;
-          runMode(cm2, line.text, overlay.mode, context, function(end, style) {
+          runMode(cm, line.text, overlay.mode, context, function(end, style) {
             var start = i2;
             while (at < end) {
               var i_end = st[i2];
@@ -1228,14 +1228,14 @@ var require_codemirror = __commonJS({
           context.baseTokens = null;
           context.baseTokenPos = 1;
         };
-        for (var o = 0; o < cm2.state.overlays.length; ++o) loop(o);
+        for (var o = 0; o < cm.state.overlays.length; ++o) loop(o);
         return { styles: st, classes: lineClasses.bgClass || lineClasses.textClass ? lineClasses : null };
       }
-      function getLineStyles(cm2, line, updateFrontier) {
-        if (!line.styles || line.styles[0] != cm2.state.modeGen) {
-          var context = getContextBefore(cm2, lineNo(line));
-          var resetState = line.text.length > cm2.options.maxHighlightLength && copyState(cm2.doc.mode, context.state);
-          var result = highlightLine(cm2, line, context);
+      function getLineStyles(cm, line, updateFrontier) {
+        if (!line.styles || line.styles[0] != cm.state.modeGen) {
+          var context = getContextBefore(cm, lineNo(line));
+          var resetState = line.text.length > cm.options.maxHighlightLength && copyState(cm.doc.mode, context.state);
+          var result = highlightLine(cm, line, context);
           if (resetState) {
             context.state = resetState;
           }
@@ -1246,22 +1246,22 @@ var require_codemirror = __commonJS({
           } else if (line.styleClasses) {
             line.styleClasses = null;
           }
-          if (updateFrontier === cm2.doc.highlightFrontier) {
-            cm2.doc.modeFrontier = Math.max(cm2.doc.modeFrontier, ++cm2.doc.highlightFrontier);
+          if (updateFrontier === cm.doc.highlightFrontier) {
+            cm.doc.modeFrontier = Math.max(cm.doc.modeFrontier, ++cm.doc.highlightFrontier);
           }
         }
         return line.styles;
       }
-      function getContextBefore(cm2, n, precise) {
-        var doc2 = cm2.doc, display = cm2.display;
+      function getContextBefore(cm, n, precise) {
+        var doc2 = cm.doc, display = cm.display;
         if (!doc2.mode.startState) {
           return new Context(doc2, true, n);
         }
-        var start = findStartLine(cm2, n, precise);
+        var start = findStartLine(cm, n, precise);
         var saved = start > doc2.first && getLine(doc2, start - 1).stateAfter;
-        var context = saved ? Context.fromSaved(doc2, saved, start) : new Context(doc2, startState2(doc2.mode), start);
+        var context = saved ? Context.fromSaved(doc2, saved, start) : new Context(doc2, startState(doc2.mode), start);
         doc2.iter(start, n, function(line) {
-          processLine(cm2, line.text, context);
+          processLine(cm, line.text, context);
           var pos = context.line;
           line.stateAfter = pos == n - 1 || pos % 5 == 0 || pos >= display.viewFrom && pos < display.viewTo ? context.save() : null;
           context.nextLine();
@@ -1271,9 +1271,9 @@ var require_codemirror = __commonJS({
         }
         return context;
       }
-      function processLine(cm2, text, context, startAt) {
-        var mode = cm2.doc.mode;
-        var stream = new StringStream2(text, cm2.options.tabSize, context);
+      function processLine(cm, text, context, startAt) {
+        var mode = cm.doc.mode;
+        var stream = new StringStream(text, cm.options.tabSize, context);
         stream.start = stream.pos = startAt || 0;
         if (text == "") {
           callBlankLine(mode, context.state);
@@ -1314,11 +1314,11 @@ var require_codemirror = __commonJS({
         this.type = type || null;
         this.state = state;
       };
-      function takeToken(cm2, pos, precise, asArray) {
-        var doc2 = cm2.doc, mode = doc2.mode, style;
+      function takeToken(cm, pos, precise, asArray) {
+        var doc2 = cm.doc, mode = doc2.mode, style;
         pos = clipPos(doc2, pos);
-        var line = getLine(doc2, pos.line), context = getContextBefore(cm2, pos.line, precise);
-        var stream = new StringStream2(line.text, cm2.options.tabSize, context), tokens;
+        var line = getLine(doc2, pos.line), context = getContextBefore(cm, pos.line, precise);
+        var stream = new StringStream(line.text, cm.options.tabSize, context), tokens;
         if (asArray) {
           tokens = [];
         }
@@ -1349,22 +1349,22 @@ var require_codemirror = __commonJS({
         }
         return type;
       }
-      function runMode(cm2, text, mode, context, f, lineClasses, forceToEnd) {
+      function runMode(cm, text, mode, context, f, lineClasses, forceToEnd) {
         var flattenSpans = mode.flattenSpans;
         if (flattenSpans == null) {
-          flattenSpans = cm2.options.flattenSpans;
+          flattenSpans = cm.options.flattenSpans;
         }
         var curStart = 0, curStyle = null;
-        var stream = new StringStream2(text, cm2.options.tabSize, context), style;
-        var inner = cm2.options.addModeClass && [null];
+        var stream = new StringStream(text, cm.options.tabSize, context), style;
+        var inner = cm.options.addModeClass && [null];
         if (text == "") {
           extractLineClasses(callBlankLine(mode, context.state), lineClasses);
         }
         while (!stream.eol()) {
-          if (stream.pos > cm2.options.maxHighlightLength) {
+          if (stream.pos > cm.options.maxHighlightLength) {
             flattenSpans = false;
             if (forceToEnd) {
-              processLine(cm2, text, context, stream.pos);
+              processLine(cm, text, context, stream.pos);
             }
             stream.pos = text.length;
             style = null;
@@ -1392,9 +1392,9 @@ var require_codemirror = __commonJS({
           curStart = pos;
         }
       }
-      function findStartLine(cm2, n, precise) {
-        var minindent, minline, doc2 = cm2.doc;
-        var lim = precise ? -1 : n - (cm2.doc.mode.innerMode ? 1e3 : 100);
+      function findStartLine(cm, n, precise) {
+        var minindent, minline, doc2 = cm.doc;
+        var lim = precise ? -1 : n - (cm.doc.mode.innerMode ? 1e3 : 100);
         for (var search = n; search > lim; --search) {
           if (search <= doc2.first) {
             return doc2.first;
@@ -1403,7 +1403,7 @@ var require_codemirror = __commonJS({
           if (after && (!precise || search + (after instanceof SavedContext ? after.lookAhead : 0) <= doc2.modeFrontier)) {
             return search;
           }
-          var indented = countColumn(line.text, null, cm2.options.tabSize);
+          var indented = countColumn(line.text, null, cm.options.tabSize);
           if (minline == null || minindent > indented) {
             minline = search - 1;
             minindent = indented;
@@ -1831,8 +1831,8 @@ var require_codemirror = __commonJS({
         }
         return len;
       }
-      function findMaxLine(cm2) {
-        var d = cm2.display, doc2 = cm2.doc;
+      function findMaxLine(cm) {
+        var d = cm.display, doc2 = cm.doc;
         d.maxLine = getLine(doc2, doc2.first);
         d.maxLineLength = lineLength(d.maxLine);
         d.maxLineChanged = true;
@@ -1883,28 +1883,28 @@ var require_codemirror = __commonJS({
         var cache = options.addModeClass ? styleToClassCacheWithMode : styleToClassCache;
         return cache[style] || (cache[style] = style.replace(/\S+/g, "cm-$&"));
       }
-      function buildLineContent(cm2, lineView) {
+      function buildLineContent(cm, lineView) {
         var content = eltP("span", null, null, webkit ? "padding-right: .1px" : null);
         var builder = {
           pre: eltP("pre", [content], "CodeMirror-line"),
           content,
           col: 0,
           pos: 0,
-          cm: cm2,
+          cm,
           trailingSpace: false,
-          splitSpaces: cm2.getOption("lineWrapping")
+          splitSpaces: cm.getOption("lineWrapping")
         };
         lineView.measure = {};
         for (var i2 = 0; i2 <= (lineView.rest ? lineView.rest.length : 0); i2++) {
           var line = i2 ? lineView.rest[i2 - 1] : lineView.line, order = void 0;
           builder.pos = 0;
           builder.addToken = buildToken;
-          if (hasBadBidiRects(cm2.display.measure) && (order = getOrder(line, cm2.doc.direction))) {
+          if (hasBadBidiRects(cm.display.measure) && (order = getOrder(line, cm.doc.direction))) {
             builder.addToken = buildTokenBadBidi(builder.addToken, order);
           }
           builder.map = [];
-          var allowFrontierUpdate = lineView != cm2.display.externalMeasured && lineNo(line);
-          insertLineContent(line, builder, getLineStyles(cm2, line, allowFrontierUpdate));
+          var allowFrontierUpdate = lineView != cm.display.externalMeasured && lineNo(line);
+          insertLineContent(line, builder, getLineStyles(cm, line, allowFrontierUpdate));
           if (line.styleClasses) {
             if (line.styleClasses.bgClass) {
               builder.bgClass = joinClasses(line.styleClasses.bgClass, builder.bgClass || "");
@@ -1914,7 +1914,7 @@ var require_codemirror = __commonJS({
             }
           }
           if (builder.map.length == 0) {
-            builder.map.push(0, 0, builder.content.appendChild(zeroWidthElement(cm2.display.measure)));
+            builder.map.push(0, 0, builder.content.appendChild(zeroWidthElement(cm.display.measure)));
           }
           if (i2 == 0) {
             lineView.measure.map = builder.map;
@@ -1930,7 +1930,7 @@ var require_codemirror = __commonJS({
             builder.content.className = "cm-tab-wrap-hack";
           }
         }
-        signal(cm2, "renderLine", cm2, lineView.line, builder.pre);
+        signal(cm, "renderLine", cm, lineView.line, builder.pre);
         if (builder.pre.className) {
           builder.textClass = joinClasses(builder.pre.className, builder.textClass || "");
         }
@@ -2199,10 +2199,10 @@ var require_codemirror = __commonJS({
         this.node = this.text = null;
         this.hidden = lineIsHidden(doc2, line);
       }
-      function buildViewArray(cm2, from, to) {
+      function buildViewArray(cm, from, to) {
         var array = [], nextPos;
         for (var pos = from; pos < to; pos = nextPos) {
-          var view = new LineView(cm2.doc, getLine(cm2.doc, pos), pos);
+          var view = new LineView(cm.doc, getLine(cm.doc, pos), pos);
           nextPos = pos + view.size;
           array.push(view);
         }
@@ -2277,17 +2277,17 @@ var require_codemirror = __commonJS({
           delayed[i2]();
         }
       }
-      function updateLineForChanges(cm2, lineView, lineN, dims) {
+      function updateLineForChanges(cm, lineView, lineN, dims) {
         for (var j = 0; j < lineView.changes.length; j++) {
           var type = lineView.changes[j];
           if (type == "text") {
-            updateLineText(cm2, lineView);
+            updateLineText(cm, lineView);
           } else if (type == "gutter") {
-            updateLineGutter(cm2, lineView, lineN, dims);
+            updateLineGutter(cm, lineView, lineN, dims);
           } else if (type == "class") {
-            updateLineClasses(cm2, lineView);
+            updateLineClasses(cm, lineView);
           } else if (type == "widget") {
-            updateLineWidgets(cm2, lineView, dims);
+            updateLineWidgets(cm, lineView, dims);
           }
         }
         lineView.changes = null;
@@ -2305,7 +2305,7 @@ var require_codemirror = __commonJS({
         }
         return lineView.node;
       }
-      function updateLineBackground(cm2, lineView) {
+      function updateLineBackground(cm, lineView) {
         var cls = lineView.bgClass ? lineView.bgClass + " " + (lineView.line.bgClass || "") : lineView.line.bgClass;
         if (cls) {
           cls += " CodeMirror-linebackground";
@@ -2320,21 +2320,21 @@ var require_codemirror = __commonJS({
         } else if (cls) {
           var wrap = ensureLineWrapped(lineView);
           lineView.background = wrap.insertBefore(elt("div", null, cls), wrap.firstChild);
-          cm2.display.input.setUneditable(lineView.background);
+          cm.display.input.setUneditable(lineView.background);
         }
       }
-      function getLineContent(cm2, lineView) {
-        var ext = cm2.display.externalMeasured;
+      function getLineContent(cm, lineView) {
+        var ext = cm.display.externalMeasured;
         if (ext && ext.line == lineView.line) {
-          cm2.display.externalMeasured = null;
+          cm.display.externalMeasured = null;
           lineView.measure = ext.measure;
           return ext.built;
         }
-        return buildLineContent(cm2, lineView);
+        return buildLineContent(cm, lineView);
       }
-      function updateLineText(cm2, lineView) {
+      function updateLineText(cm, lineView) {
         var cls = lineView.text.className;
-        var built = getLineContent(cm2, lineView);
+        var built = getLineContent(cm, lineView);
         if (lineView.text == lineView.node) {
           lineView.node = built.pre;
         }
@@ -2343,13 +2343,13 @@ var require_codemirror = __commonJS({
         if (built.bgClass != lineView.bgClass || built.textClass != lineView.textClass) {
           lineView.bgClass = built.bgClass;
           lineView.textClass = built.textClass;
-          updateLineClasses(cm2, lineView);
+          updateLineClasses(cm, lineView);
         } else if (cls) {
           lineView.text.className = cls;
         }
       }
-      function updateLineClasses(cm2, lineView) {
-        updateLineBackground(cm2, lineView);
+      function updateLineClasses(cm, lineView) {
+        updateLineBackground(cm, lineView);
         if (lineView.line.wrapClass) {
           ensureLineWrapped(lineView).className = lineView.line.wrapClass;
         } else if (lineView.node != lineView.text) {
@@ -2358,7 +2358,7 @@ var require_codemirror = __commonJS({
         var textClass = lineView.textClass ? lineView.textClass + " " + (lineView.line.textClass || "") : lineView.line.textClass;
         lineView.text.className = textClass || "";
       }
-      function updateLineGutter(cm2, lineView, lineN, dims) {
+      function updateLineGutter(cm, lineView, lineN, dims) {
         if (lineView.gutter) {
           lineView.node.removeChild(lineView.gutter);
           lineView.gutter = null;
@@ -2373,34 +2373,34 @@ var require_codemirror = __commonJS({
             "div",
             null,
             "CodeMirror-gutter-background " + lineView.line.gutterClass,
-            "left: " + (cm2.options.fixedGutter ? dims.fixedPos : -dims.gutterTotalWidth) + "px; width: " + dims.gutterTotalWidth + "px"
+            "left: " + (cm.options.fixedGutter ? dims.fixedPos : -dims.gutterTotalWidth) + "px; width: " + dims.gutterTotalWidth + "px"
           );
-          cm2.display.input.setUneditable(lineView.gutterBackground);
+          cm.display.input.setUneditable(lineView.gutterBackground);
           wrap.insertBefore(lineView.gutterBackground, lineView.text);
         }
         var markers = lineView.line.gutterMarkers;
-        if (cm2.options.lineNumbers || markers) {
+        if (cm.options.lineNumbers || markers) {
           var wrap$1 = ensureLineWrapped(lineView);
-          var gutterWrap = lineView.gutter = elt("div", null, "CodeMirror-gutter-wrapper", "left: " + (cm2.options.fixedGutter ? dims.fixedPos : -dims.gutterTotalWidth) + "px");
+          var gutterWrap = lineView.gutter = elt("div", null, "CodeMirror-gutter-wrapper", "left: " + (cm.options.fixedGutter ? dims.fixedPos : -dims.gutterTotalWidth) + "px");
           gutterWrap.setAttribute("aria-hidden", "true");
-          cm2.display.input.setUneditable(gutterWrap);
+          cm.display.input.setUneditable(gutterWrap);
           wrap$1.insertBefore(gutterWrap, lineView.text);
           if (lineView.line.gutterClass) {
             gutterWrap.className += " " + lineView.line.gutterClass;
           }
-          if (cm2.options.lineNumbers && (!markers || !markers["CodeMirror-linenumbers"])) {
+          if (cm.options.lineNumbers && (!markers || !markers["CodeMirror-linenumbers"])) {
             lineView.lineNumber = gutterWrap.appendChild(
               elt(
                 "div",
-                lineNumberFor(cm2.options, lineN),
+                lineNumberFor(cm.options, lineN),
                 "CodeMirror-linenumber CodeMirror-gutter-elt",
-                "left: " + dims.gutterLeft["CodeMirror-linenumbers"] + "px; width: " + cm2.display.lineNumInnerWidth + "px"
+                "left: " + dims.gutterLeft["CodeMirror-linenumbers"] + "px; width: " + cm.display.lineNumInnerWidth + "px"
               )
             );
           }
           if (markers) {
-            for (var k = 0; k < cm2.display.gutterSpecs.length; ++k) {
-              var id = cm2.display.gutterSpecs[k].className, found = markers.hasOwnProperty(id) && markers[id];
+            for (var k = 0; k < cm.display.gutterSpecs.length; ++k) {
+              var id = cm.display.gutterSpecs[k].className, found = markers.hasOwnProperty(id) && markers[id];
               if (found) {
                 gutterWrap.appendChild(elt(
                   "div",
@@ -2413,7 +2413,7 @@ var require_codemirror = __commonJS({
           }
         }
       }
-      function updateLineWidgets(cm2, lineView, dims) {
+      function updateLineWidgets(cm, lineView, dims) {
         if (lineView.alignable) {
           lineView.alignable = null;
         }
@@ -2424,10 +2424,10 @@ var require_codemirror = __commonJS({
             lineView.node.removeChild(node);
           }
         }
-        insertLineWidgets(cm2, lineView, dims);
+        insertLineWidgets(cm, lineView, dims);
       }
-      function buildLineElement(cm2, lineView, lineN, dims) {
-        var built = getLineContent(cm2, lineView);
+      function buildLineElement(cm, lineView, lineN, dims) {
+        var built = getLineContent(cm, lineView);
         lineView.text = lineView.node = built.pre;
         if (built.bgClass) {
           lineView.bgClass = built.bgClass;
@@ -2435,20 +2435,20 @@ var require_codemirror = __commonJS({
         if (built.textClass) {
           lineView.textClass = built.textClass;
         }
-        updateLineClasses(cm2, lineView);
-        updateLineGutter(cm2, lineView, lineN, dims);
-        insertLineWidgets(cm2, lineView, dims);
+        updateLineClasses(cm, lineView);
+        updateLineGutter(cm, lineView, lineN, dims);
+        insertLineWidgets(cm, lineView, dims);
         return lineView.node;
       }
-      function insertLineWidgets(cm2, lineView, dims) {
-        insertLineWidgetsFor(cm2, lineView.line, lineView, dims, true);
+      function insertLineWidgets(cm, lineView, dims) {
+        insertLineWidgetsFor(cm, lineView.line, lineView, dims, true);
         if (lineView.rest) {
           for (var i2 = 0; i2 < lineView.rest.length; i2++) {
-            insertLineWidgetsFor(cm2, lineView.rest[i2], lineView, dims, false);
+            insertLineWidgetsFor(cm, lineView.rest[i2], lineView, dims, false);
           }
         }
       }
-      function insertLineWidgetsFor(cm2, line, lineView, dims, allowAbove) {
+      function insertLineWidgetsFor(cm, line, lineView, dims, allowAbove) {
         if (!line.widgets) {
           return;
         }
@@ -2459,7 +2459,7 @@ var require_codemirror = __commonJS({
             node.setAttribute("cm-ignore-events", "true");
           }
           positionLineWidget(widget, node, lineView, dims);
-          cm2.display.input.setUneditable(node);
+          cm.display.input.setUneditable(node);
           if (allowAbove && widget.above) {
             wrap.insertBefore(node, lineView.gutter || lineView.text);
           } else {
@@ -2491,19 +2491,19 @@ var require_codemirror = __commonJS({
         if (widget.height != null) {
           return widget.height;
         }
-        var cm2 = widget.doc.cm;
-        if (!cm2) {
+        var cm = widget.doc.cm;
+        if (!cm) {
           return 0;
         }
         if (!contains(document.body, widget.node)) {
           var parentStyle = "position: relative;";
           if (widget.coverGutter) {
-            parentStyle += "margin-left: -" + cm2.display.gutters.offsetWidth + "px;";
+            parentStyle += "margin-left: -" + cm.display.gutters.offsetWidth + "px;";
           }
           if (widget.noHScroll) {
-            parentStyle += "width: " + cm2.display.wrapper.clientWidth + "px;";
+            parentStyle += "width: " + cm.display.wrapper.clientWidth + "px;";
           }
-          removeChildrenAndAdd(cm2.display.measure, elt("div", [widget.node], null, parentStyle));
+          removeChildrenAndAdd(cm.display.measure, elt("div", [widget.node], null, parentStyle));
         }
         return widget.height = widget.node.parentNode.offsetHeight;
       }
@@ -2532,18 +2532,18 @@ var require_codemirror = __commonJS({
         }
         return data;
       }
-      function scrollGap(cm2) {
-        return scrollerGap - cm2.display.nativeBarWidth;
+      function scrollGap(cm) {
+        return scrollerGap - cm.display.nativeBarWidth;
       }
-      function displayWidth(cm2) {
-        return cm2.display.scroller.clientWidth - scrollGap(cm2) - cm2.display.barWidth;
+      function displayWidth(cm) {
+        return cm.display.scroller.clientWidth - scrollGap(cm) - cm.display.barWidth;
       }
-      function displayHeight(cm2) {
-        return cm2.display.scroller.clientHeight - scrollGap(cm2) - cm2.display.barHeight;
+      function displayHeight(cm) {
+        return cm.display.scroller.clientHeight - scrollGap(cm) - cm.display.barHeight;
       }
-      function ensureLineHeights(cm2, lineView, rect) {
-        var wrapping = cm2.options.lineWrapping;
-        var curWidth = wrapping && displayWidth(cm2);
+      function ensureLineHeights(cm, lineView, rect) {
+        var wrapping = cm.options.lineWrapping;
+        var curWidth = wrapping && displayWidth(cm);
         if (!lineView.measure.heights || wrapping && lineView.measure.width != curWidth) {
           var heights = lineView.measure.heights = [];
           if (wrapping) {
@@ -2576,39 +2576,39 @@ var require_codemirror = __commonJS({
           }
         }
       }
-      function updateExternalMeasurement(cm2, line) {
+      function updateExternalMeasurement(cm, line) {
         line = visualLine(line);
         var lineN = lineNo(line);
-        var view = cm2.display.externalMeasured = new LineView(cm2.doc, line, lineN);
+        var view = cm.display.externalMeasured = new LineView(cm.doc, line, lineN);
         view.lineN = lineN;
-        var built = view.built = buildLineContent(cm2, view);
+        var built = view.built = buildLineContent(cm, view);
         view.text = built.pre;
-        removeChildrenAndAdd(cm2.display.lineMeasure, built.pre);
+        removeChildrenAndAdd(cm.display.lineMeasure, built.pre);
         return view;
       }
-      function measureChar(cm2, line, ch, bias) {
-        return measureCharPrepared(cm2, prepareMeasureForLine(cm2, line), ch, bias);
+      function measureChar(cm, line, ch, bias) {
+        return measureCharPrepared(cm, prepareMeasureForLine(cm, line), ch, bias);
       }
-      function findViewForLine(cm2, lineN) {
-        if (lineN >= cm2.display.viewFrom && lineN < cm2.display.viewTo) {
-          return cm2.display.view[findViewIndex(cm2, lineN)];
+      function findViewForLine(cm, lineN) {
+        if (lineN >= cm.display.viewFrom && lineN < cm.display.viewTo) {
+          return cm.display.view[findViewIndex(cm, lineN)];
         }
-        var ext = cm2.display.externalMeasured;
+        var ext = cm.display.externalMeasured;
         if (ext && lineN >= ext.lineN && lineN < ext.lineN + ext.size) {
           return ext;
         }
       }
-      function prepareMeasureForLine(cm2, line) {
+      function prepareMeasureForLine(cm, line) {
         var lineN = lineNo(line);
-        var view = findViewForLine(cm2, lineN);
+        var view = findViewForLine(cm, lineN);
         if (view && !view.text) {
           view = null;
         } else if (view && view.changes) {
-          updateLineForChanges(cm2, view, lineN, getDimensions(cm2));
-          cm2.curOp.forceUpdate = true;
+          updateLineForChanges(cm, view, lineN, getDimensions(cm));
+          cm.curOp.forceUpdate = true;
         }
         if (!view) {
-          view = updateExternalMeasurement(cm2, line);
+          view = updateExternalMeasurement(cm, line);
         }
         var info = mapFromLineView(view, line, lineN);
         return {
@@ -2621,7 +2621,7 @@ var require_codemirror = __commonJS({
           hasHeights: false
         };
       }
-      function measureCharPrepared(cm2, prepared, ch, bias, varHeight) {
+      function measureCharPrepared(cm, prepared, ch, bias, varHeight) {
         if (prepared.before) {
           ch = -1;
         }
@@ -2633,10 +2633,10 @@ var require_codemirror = __commonJS({
             prepared.rect = prepared.view.text.getBoundingClientRect();
           }
           if (!prepared.hasHeights) {
-            ensureLineHeights(cm2, prepared.view, prepared.rect);
+            ensureLineHeights(cm, prepared.view, prepared.rect);
             prepared.hasHeights = true;
           }
-          found = measureCharInner(cm2, prepared, ch, bias);
+          found = measureCharInner(cm, prepared, ch, bias);
           if (!found.bogus) {
             prepared.cache[key] = found;
           }
@@ -2707,7 +2707,7 @@ var require_codemirror = __commonJS({
         }
         return rect;
       }
-      function measureCharInner(cm2, prepared, ch, bias) {
+      function measureCharInner(cm, prepared, ch, bias) {
         var place = nodeAndOffsetInLineMap(prepared.map, ch, bias);
         var node = place.node, start = place.start, end = place.end, collapse = place.collapse;
         var rect;
@@ -2732,14 +2732,14 @@ var require_codemirror = __commonJS({
             collapse = "right";
           }
           if (ie && ie_version < 11) {
-            rect = maybeUpdateRectForZooming(cm2.display.measure, rect);
+            rect = maybeUpdateRectForZooming(cm.display.measure, rect);
           }
         } else {
           if (start > 0) {
             collapse = bias = "right";
           }
           var rects;
-          if (cm2.options.lineWrapping && (rects = node.getClientRects()).length > 1) {
+          if (cm.options.lineWrapping && (rects = node.getClientRects()).length > 1) {
             rect = rects[bias == "right" ? rects.length - 1 : 0];
           } else {
             rect = node.getBoundingClientRect();
@@ -2748,7 +2748,7 @@ var require_codemirror = __commonJS({
         if (ie && ie_version < 9 && !start && (!rect || !rect.left && !rect.right)) {
           var rSpan = node.parentNode.getClientRects()[0];
           if (rSpan) {
-            rect = { left: rSpan.left, right: rSpan.left + charWidth(cm2.display), top: rSpan.top, bottom: rSpan.bottom };
+            rect = { left: rSpan.left, right: rSpan.left + charWidth(cm.display), top: rSpan.top, bottom: rSpan.bottom };
           } else {
             rect = nullRect;
           }
@@ -2772,7 +2772,7 @@ var require_codemirror = __commonJS({
         if (!rect.left && !rect.right) {
           result.bogus = true;
         }
-        if (!cm2.options.singleCursorHeightPerLine) {
+        if (!cm.options.singleCursorHeightPerLine) {
           result.rtop = rtop;
           result.rbottom = rbot;
         }
@@ -2802,20 +2802,20 @@ var require_codemirror = __commonJS({
           }
         }
       }
-      function clearLineMeasurementCache(cm2) {
-        cm2.display.externalMeasure = null;
-        removeChildren(cm2.display.lineMeasure);
-        for (var i2 = 0; i2 < cm2.display.view.length; i2++) {
-          clearLineMeasurementCacheFor(cm2.display.view[i2]);
+      function clearLineMeasurementCache(cm) {
+        cm.display.externalMeasure = null;
+        removeChildren(cm.display.lineMeasure);
+        for (var i2 = 0; i2 < cm.display.view.length; i2++) {
+          clearLineMeasurementCacheFor(cm.display.view[i2]);
         }
       }
-      function clearCaches(cm2) {
-        clearLineMeasurementCache(cm2);
-        cm2.display.cachedCharWidth = cm2.display.cachedTextHeight = cm2.display.cachedPaddingH = null;
-        if (!cm2.options.lineWrapping) {
-          cm2.display.maxLineChanged = true;
+      function clearCaches(cm) {
+        clearLineMeasurementCache(cm);
+        cm.display.cachedCharWidth = cm.display.cachedTextHeight = cm.display.cachedPaddingH = null;
+        if (!cm.options.lineWrapping) {
+          cm.display.maxLineChanged = true;
         }
-        cm2.display.lineNumChars = null;
+        cm.display.lineNumChars = null;
       }
       function pageScrollX(doc2) {
         if (chrome && android) {
@@ -2842,7 +2842,7 @@ var require_codemirror = __commonJS({
         }
         return height;
       }
-      function intoCoordSystem(cm2, lineObj, rect, context, includeWidgets) {
+      function intoCoordSystem(cm, lineObj, rect, context, includeWidgets) {
         if (!includeWidgets) {
           var height = widgetTopHeight(lineObj);
           rect.top += height;
@@ -2856,14 +2856,14 @@ var require_codemirror = __commonJS({
         }
         var yOff = heightAtLine(lineObj);
         if (context == "local") {
-          yOff += paddingTop(cm2.display);
+          yOff += paddingTop(cm.display);
         } else {
-          yOff -= cm2.display.viewOffset;
+          yOff -= cm.display.viewOffset;
         }
         if (context == "page" || context == "window") {
-          var lOff = cm2.display.lineSpace.getBoundingClientRect();
-          yOff += lOff.top + (context == "window" ? 0 : pageScrollY(doc(cm2)));
-          var xOff = lOff.left + (context == "window" ? 0 : pageScrollX(doc(cm2)));
+          var lOff = cm.display.lineSpace.getBoundingClientRect();
+          yOff += lOff.top + (context == "window" ? 0 : pageScrollY(doc(cm)));
+          var xOff = lOff.left + (context == "window" ? 0 : pageScrollX(doc(cm)));
           rect.left += xOff;
           rect.right += xOff;
         }
@@ -2871,43 +2871,43 @@ var require_codemirror = __commonJS({
         rect.bottom += yOff;
         return rect;
       }
-      function fromCoordSystem(cm2, coords, context) {
+      function fromCoordSystem(cm, coords, context) {
         if (context == "div") {
           return coords;
         }
         var left = coords.left, top = coords.top;
         if (context == "page") {
-          left -= pageScrollX(doc(cm2));
-          top -= pageScrollY(doc(cm2));
+          left -= pageScrollX(doc(cm));
+          top -= pageScrollY(doc(cm));
         } else if (context == "local" || !context) {
-          var localBox = cm2.display.sizer.getBoundingClientRect();
+          var localBox = cm.display.sizer.getBoundingClientRect();
           left += localBox.left;
           top += localBox.top;
         }
-        var lineSpaceBox = cm2.display.lineSpace.getBoundingClientRect();
+        var lineSpaceBox = cm.display.lineSpace.getBoundingClientRect();
         return { left: left - lineSpaceBox.left, top: top - lineSpaceBox.top };
       }
-      function charCoords(cm2, pos, context, lineObj, bias) {
+      function charCoords(cm, pos, context, lineObj, bias) {
         if (!lineObj) {
-          lineObj = getLine(cm2.doc, pos.line);
+          lineObj = getLine(cm.doc, pos.line);
         }
-        return intoCoordSystem(cm2, lineObj, measureChar(cm2, lineObj, pos.ch, bias), context);
+        return intoCoordSystem(cm, lineObj, measureChar(cm, lineObj, pos.ch, bias), context);
       }
-      function cursorCoords(cm2, pos, context, lineObj, preparedMeasure, varHeight) {
-        lineObj = lineObj || getLine(cm2.doc, pos.line);
+      function cursorCoords(cm, pos, context, lineObj, preparedMeasure, varHeight) {
+        lineObj = lineObj || getLine(cm.doc, pos.line);
         if (!preparedMeasure) {
-          preparedMeasure = prepareMeasureForLine(cm2, lineObj);
+          preparedMeasure = prepareMeasureForLine(cm, lineObj);
         }
         function get(ch2, right) {
-          var m = measureCharPrepared(cm2, preparedMeasure, ch2, right ? "right" : "left", varHeight);
+          var m = measureCharPrepared(cm, preparedMeasure, ch2, right ? "right" : "left", varHeight);
           if (right) {
             m.left = m.right;
           } else {
             m.right = m.left;
           }
-          return intoCoordSystem(cm2, lineObj, m, context);
+          return intoCoordSystem(cm, lineObj, m, context);
         }
-        var order = getOrder(lineObj, cm2.doc.direction), ch = pos.ch, sticky = pos.sticky;
+        var order = getOrder(lineObj, cm.doc.direction), ch = pos.ch, sticky = pos.sticky;
         if (ch >= lineObj.text.length) {
           ch = lineObj.text.length;
           sticky = "before";
@@ -2930,14 +2930,14 @@ var require_codemirror = __commonJS({
         }
         return val;
       }
-      function estimateCoords(cm2, pos) {
+      function estimateCoords(cm, pos) {
         var left = 0;
-        pos = clipPos(cm2.doc, pos);
-        if (!cm2.options.lineWrapping) {
-          left = charWidth(cm2.display) * pos.ch;
+        pos = clipPos(cm.doc, pos);
+        if (!cm.options.lineWrapping) {
+          left = charWidth(cm.display) * pos.ch;
         }
-        var lineObj = getLine(cm2.doc, pos.line);
-        var top = heightAtLine(lineObj) + paddingTop(cm2.display);
+        var lineObj = getLine(cm.doc, pos.line);
+        var top = heightAtLine(lineObj) + paddingTop(cm.display);
         return { left, right: left, top, bottom: top + lineObj.height };
       }
       function PosWithInfo(line, ch, sticky, outside, xRel) {
@@ -2948,9 +2948,9 @@ var require_codemirror = __commonJS({
         }
         return pos;
       }
-      function coordsChar(cm2, x, y) {
-        var doc2 = cm2.doc;
-        y += cm2.display.viewOffset;
+      function coordsChar(cm, x, y) {
+        var doc2 = cm.doc;
+        y += cm.display.viewOffset;
         if (y < 0) {
           return PosWithInfo(doc2.first, 0, null, -1, -1);
         }
@@ -2963,7 +2963,7 @@ var require_codemirror = __commonJS({
         }
         var lineObj = getLine(doc2, lineN);
         for (; ; ) {
-          var found = coordsCharInner(cm2, lineObj, lineN, x, y);
+          var found = coordsCharInner(cm, lineObj, lineN, x, y);
           var collapsed = collapsedSpanAround(lineObj, found.ch + (found.xRel > 0 || found.outside > 0 ? 1 : 0));
           if (!collapsed) {
             return found;
@@ -2975,42 +2975,42 @@ var require_codemirror = __commonJS({
           lineObj = getLine(doc2, lineN = rangeEnd.line);
         }
       }
-      function wrappedLineExtent(cm2, lineObj, preparedMeasure, y) {
+      function wrappedLineExtent(cm, lineObj, preparedMeasure, y) {
         y -= widgetTopHeight(lineObj);
         var end = lineObj.text.length;
         var begin = findFirst(function(ch) {
-          return measureCharPrepared(cm2, preparedMeasure, ch - 1).bottom <= y;
+          return measureCharPrepared(cm, preparedMeasure, ch - 1).bottom <= y;
         }, end, 0);
         end = findFirst(function(ch) {
-          return measureCharPrepared(cm2, preparedMeasure, ch).top > y;
+          return measureCharPrepared(cm, preparedMeasure, ch).top > y;
         }, begin, end);
         return { begin, end };
       }
-      function wrappedLineExtentChar(cm2, lineObj, preparedMeasure, target) {
+      function wrappedLineExtentChar(cm, lineObj, preparedMeasure, target) {
         if (!preparedMeasure) {
-          preparedMeasure = prepareMeasureForLine(cm2, lineObj);
+          preparedMeasure = prepareMeasureForLine(cm, lineObj);
         }
-        var targetTop = intoCoordSystem(cm2, lineObj, measureCharPrepared(cm2, preparedMeasure, target), "line").top;
-        return wrappedLineExtent(cm2, lineObj, preparedMeasure, targetTop);
+        var targetTop = intoCoordSystem(cm, lineObj, measureCharPrepared(cm, preparedMeasure, target), "line").top;
+        return wrappedLineExtent(cm, lineObj, preparedMeasure, targetTop);
       }
       function boxIsAfter(box, x, y, left) {
         return box.bottom <= y ? false : box.top > y ? true : (left ? box.left : box.right) > x;
       }
-      function coordsCharInner(cm2, lineObj, lineNo2, x, y) {
+      function coordsCharInner(cm, lineObj, lineNo2, x, y) {
         y -= heightAtLine(lineObj);
-        var preparedMeasure = prepareMeasureForLine(cm2, lineObj);
+        var preparedMeasure = prepareMeasureForLine(cm, lineObj);
         var widgetHeight2 = widgetTopHeight(lineObj);
         var begin = 0, end = lineObj.text.length, ltr = true;
-        var order = getOrder(lineObj, cm2.doc.direction);
+        var order = getOrder(lineObj, cm.doc.direction);
         if (order) {
-          var part = (cm2.options.lineWrapping ? coordsBidiPartWrapped : coordsBidiPart)(cm2, lineObj, lineNo2, preparedMeasure, order, x, y);
+          var part = (cm.options.lineWrapping ? coordsBidiPartWrapped : coordsBidiPart)(cm, lineObj, lineNo2, preparedMeasure, order, x, y);
           ltr = part.level != 1;
           begin = ltr ? part.from : part.to - 1;
           end = ltr ? part.to : part.from - 1;
         }
         var chAround = null, boxAround = null;
         var ch = findFirst(function(ch2) {
-          var box = measureCharPrepared(cm2, preparedMeasure, ch2);
+          var box = measureCharPrepared(cm, preparedMeasure, ch2);
           box.top += widgetHeight2;
           box.bottom += widgetHeight2;
           if (!boxIsAfter(box, x, y, false)) {
@@ -3032,19 +3032,19 @@ var require_codemirror = __commonJS({
           if (!ltr && (ch == end || ch == begin)) {
             ch++;
           }
-          sticky = ch == 0 ? "after" : ch == lineObj.text.length ? "before" : measureCharPrepared(cm2, preparedMeasure, ch - (ltr ? 1 : 0)).bottom + widgetHeight2 <= y == ltr ? "after" : "before";
-          var coords = cursorCoords(cm2, Pos(lineNo2, ch, sticky), "line", lineObj, preparedMeasure);
+          sticky = ch == 0 ? "after" : ch == lineObj.text.length ? "before" : measureCharPrepared(cm, preparedMeasure, ch - (ltr ? 1 : 0)).bottom + widgetHeight2 <= y == ltr ? "after" : "before";
+          var coords = cursorCoords(cm, Pos(lineNo2, ch, sticky), "line", lineObj, preparedMeasure);
           baseX = coords.left;
           outside = y < coords.top ? -1 : y >= coords.bottom ? 1 : 0;
         }
         ch = skipExtendingChars(lineObj.text, ch, 1);
         return PosWithInfo(lineNo2, ch, sticky, outside, x - baseX);
       }
-      function coordsBidiPart(cm2, lineObj, lineNo2, preparedMeasure, order, x, y) {
+      function coordsBidiPart(cm, lineObj, lineNo2, preparedMeasure, order, x, y) {
         var index = findFirst(function(i2) {
           var part2 = order[i2], ltr2 = part2.level != 1;
           return boxIsAfter(cursorCoords(
-            cm2,
+            cm,
             Pos(lineNo2, ltr2 ? part2.to : part2.from, ltr2 ? "before" : "after"),
             "line",
             lineObj,
@@ -3055,7 +3055,7 @@ var require_codemirror = __commonJS({
         if (index > 0) {
           var ltr = part.level != 1;
           var start = cursorCoords(
-            cm2,
+            cm,
             Pos(lineNo2, ltr ? part.from : part.to, ltr ? "after" : "before"),
             "line",
             lineObj,
@@ -3067,8 +3067,8 @@ var require_codemirror = __commonJS({
         }
         return part;
       }
-      function coordsBidiPartWrapped(cm2, lineObj, _lineNo, preparedMeasure, order, x, y) {
-        var ref = wrappedLineExtent(cm2, lineObj, preparedMeasure, y);
+      function coordsBidiPartWrapped(cm, lineObj, _lineNo, preparedMeasure, order, x, y) {
+        var ref = wrappedLineExtent(cm, lineObj, preparedMeasure, y);
         var begin = ref.begin;
         var end = ref.end;
         if (/\s/.test(lineObj.text.charAt(end - 1))) {
@@ -3081,7 +3081,7 @@ var require_codemirror = __commonJS({
             continue;
           }
           var ltr = p.level != 1;
-          var endX = measureCharPrepared(cm2, preparedMeasure, ltr ? Math.min(end, p.to) - 1 : Math.max(begin, p.from)).right;
+          var endX = measureCharPrepared(cm, preparedMeasure, ltr ? Math.min(end, p.to) - 1 : Math.max(begin, p.from)).right;
           var dist = endX < x ? x - endX + 1e9 : endX - x;
           if (!part || closestDist > dist) {
             part = p;
@@ -3133,11 +3133,11 @@ var require_codemirror = __commonJS({
         }
         return width || 10;
       }
-      function getDimensions(cm2) {
-        var d = cm2.display, left = {}, width = {};
+      function getDimensions(cm) {
+        var d = cm.display, left = {}, width = {};
         var gutterLeft = d.gutters.clientLeft;
         for (var n = d.gutters.firstChild, i2 = 0; n; n = n.nextSibling, ++i2) {
-          var id = cm2.display.gutterSpecs[i2].className;
+          var id = cm.display.gutterSpecs[i2].className;
           left[id] = n.offsetLeft + n.clientLeft + gutterLeft;
           width[id] = n.clientWidth;
         }
@@ -3152,11 +3152,11 @@ var require_codemirror = __commonJS({
       function compensateForHScroll(display) {
         return display.scroller.getBoundingClientRect().left - display.sizer.getBoundingClientRect().left;
       }
-      function estimateHeight(cm2) {
-        var th = textHeight(cm2.display), wrapping = cm2.options.lineWrapping;
-        var perLine = wrapping && Math.max(5, cm2.display.scroller.clientWidth / charWidth(cm2.display) - 3);
+      function estimateHeight(cm) {
+        var th = textHeight(cm.display), wrapping = cm.options.lineWrapping;
+        var perLine = wrapping && Math.max(5, cm.display.scroller.clientWidth / charWidth(cm.display) - 3);
         return function(line) {
-          if (lineIsHidden(cm2.doc, line)) {
+          if (lineIsHidden(cm.doc, line)) {
             return 0;
           }
           var widgetsHeight = 0;
@@ -3174,8 +3174,8 @@ var require_codemirror = __commonJS({
           }
         };
       }
-      function estimateLineHeights(cm2) {
-        var doc2 = cm2.doc, est = estimateHeight(cm2);
+      function estimateLineHeights(cm) {
+        var doc2 = cm.doc, est = estimateHeight(cm);
         doc2.iter(function(line) {
           var estHeight = est(line);
           if (estHeight != line.height) {
@@ -3183,8 +3183,8 @@ var require_codemirror = __commonJS({
           }
         });
       }
-      function posFromMouse(cm2, e, liberal, forRect) {
-        var display = cm2.display;
+      function posFromMouse(cm, e, liberal, forRect) {
+        var display = cm.display;
         if (!liberal && e_target(e).getAttribute("cm-not-content") == "true") {
           return null;
         }
@@ -3195,22 +3195,22 @@ var require_codemirror = __commonJS({
         } catch (e$1) {
           return null;
         }
-        var coords = coordsChar(cm2, x, y), line;
-        if (forRect && coords.xRel > 0 && (line = getLine(cm2.doc, coords.line).text).length == coords.ch) {
-          var colDiff = countColumn(line, line.length, cm2.options.tabSize) - line.length;
-          coords = Pos(coords.line, Math.max(0, Math.round((x - paddingH(cm2.display).left) / charWidth(cm2.display)) - colDiff));
+        var coords = coordsChar(cm, x, y), line;
+        if (forRect && coords.xRel > 0 && (line = getLine(cm.doc, coords.line).text).length == coords.ch) {
+          var colDiff = countColumn(line, line.length, cm.options.tabSize) - line.length;
+          coords = Pos(coords.line, Math.max(0, Math.round((x - paddingH(cm.display).left) / charWidth(cm.display)) - colDiff));
         }
         return coords;
       }
-      function findViewIndex(cm2, n) {
-        if (n >= cm2.display.viewTo) {
+      function findViewIndex(cm, n) {
+        if (n >= cm.display.viewTo) {
           return null;
         }
-        n -= cm2.display.viewFrom;
+        n -= cm.display.viewFrom;
         if (n < 0) {
           return null;
         }
-        var view = cm2.display.view;
+        var view = cm.display.view;
         for (var i2 = 0; i2 < view.length; i2++) {
           n -= view[i2].size;
           if (n < 0) {
@@ -3218,59 +3218,59 @@ var require_codemirror = __commonJS({
           }
         }
       }
-      function regChange(cm2, from, to, lendiff) {
+      function regChange(cm, from, to, lendiff) {
         if (from == null) {
-          from = cm2.doc.first;
+          from = cm.doc.first;
         }
         if (to == null) {
-          to = cm2.doc.first + cm2.doc.size;
+          to = cm.doc.first + cm.doc.size;
         }
         if (!lendiff) {
           lendiff = 0;
         }
-        var display = cm2.display;
+        var display = cm.display;
         if (lendiff && to < display.viewTo && (display.updateLineNumbers == null || display.updateLineNumbers > from)) {
           display.updateLineNumbers = from;
         }
-        cm2.curOp.viewChanged = true;
+        cm.curOp.viewChanged = true;
         if (from >= display.viewTo) {
-          if (sawCollapsedSpans && visualLineNo(cm2.doc, from) < display.viewTo) {
-            resetView(cm2);
+          if (sawCollapsedSpans && visualLineNo(cm.doc, from) < display.viewTo) {
+            resetView(cm);
           }
         } else if (to <= display.viewFrom) {
-          if (sawCollapsedSpans && visualLineEndNo(cm2.doc, to + lendiff) > display.viewFrom) {
-            resetView(cm2);
+          if (sawCollapsedSpans && visualLineEndNo(cm.doc, to + lendiff) > display.viewFrom) {
+            resetView(cm);
           } else {
             display.viewFrom += lendiff;
             display.viewTo += lendiff;
           }
         } else if (from <= display.viewFrom && to >= display.viewTo) {
-          resetView(cm2);
+          resetView(cm);
         } else if (from <= display.viewFrom) {
-          var cut = viewCuttingPoint(cm2, to, to + lendiff, 1);
+          var cut = viewCuttingPoint(cm, to, to + lendiff, 1);
           if (cut) {
             display.view = display.view.slice(cut.index);
             display.viewFrom = cut.lineN;
             display.viewTo += lendiff;
           } else {
-            resetView(cm2);
+            resetView(cm);
           }
         } else if (to >= display.viewTo) {
-          var cut$1 = viewCuttingPoint(cm2, from, from, -1);
+          var cut$1 = viewCuttingPoint(cm, from, from, -1);
           if (cut$1) {
             display.view = display.view.slice(0, cut$1.index);
             display.viewTo = cut$1.lineN;
           } else {
-            resetView(cm2);
+            resetView(cm);
           }
         } else {
-          var cutTop = viewCuttingPoint(cm2, from, from, -1);
-          var cutBot = viewCuttingPoint(cm2, to, to + lendiff, 1);
+          var cutTop = viewCuttingPoint(cm, from, from, -1);
+          var cutBot = viewCuttingPoint(cm, to, to + lendiff, 1);
           if (cutTop && cutBot) {
-            display.view = display.view.slice(0, cutTop.index).concat(buildViewArray(cm2, cutTop.lineN, cutBot.lineN)).concat(display.view.slice(cutBot.index));
+            display.view = display.view.slice(0, cutTop.index).concat(buildViewArray(cm, cutTop.lineN, cutBot.lineN)).concat(display.view.slice(cutBot.index));
             display.viewTo += lendiff;
           } else {
-            resetView(cm2);
+            resetView(cm);
           }
         }
         var ext = display.externalMeasured;
@@ -3282,16 +3282,16 @@ var require_codemirror = __commonJS({
           }
         }
       }
-      function regLineChange(cm2, line, type) {
-        cm2.curOp.viewChanged = true;
-        var display = cm2.display, ext = cm2.display.externalMeasured;
+      function regLineChange(cm, line, type) {
+        cm.curOp.viewChanged = true;
+        var display = cm.display, ext = cm.display.externalMeasured;
         if (ext && line >= ext.lineN && line < ext.lineN + ext.size) {
           display.externalMeasured = null;
         }
         if (line < display.viewFrom || line >= display.viewTo) {
           return;
         }
-        var lineView = display.view[findViewIndex(cm2, line)];
+        var lineView = display.view[findViewIndex(cm, line)];
         if (lineView.node == null) {
           return;
         }
@@ -3300,17 +3300,17 @@ var require_codemirror = __commonJS({
           arr.push(type);
         }
       }
-      function resetView(cm2) {
-        cm2.display.viewFrom = cm2.display.viewTo = cm2.doc.first;
-        cm2.display.view = [];
-        cm2.display.viewOffset = 0;
+      function resetView(cm) {
+        cm.display.viewFrom = cm.display.viewTo = cm.doc.first;
+        cm.display.view = [];
+        cm.display.viewOffset = 0;
       }
-      function viewCuttingPoint(cm2, oldN, newN, dir) {
-        var index = findViewIndex(cm2, oldN), diff, view = cm2.display.view;
-        if (!sawCollapsedSpans || newN == cm2.doc.first + cm2.doc.size) {
+      function viewCuttingPoint(cm, oldN, newN, dir) {
+        var index = findViewIndex(cm, oldN), diff, view = cm.display.view;
+        if (!sawCollapsedSpans || newN == cm.doc.first + cm.doc.size) {
           return { index, lineN: newN };
         }
-        var n = cm2.display.viewFrom;
+        var n = cm.display.viewFrom;
         for (var i2 = 0; i2 < index; i2++) {
           n += view[i2].size;
         }
@@ -3327,7 +3327,7 @@ var require_codemirror = __commonJS({
           oldN += diff;
           newN += diff;
         }
-        while (visualLineNo(cm2.doc, newN) != newN) {
+        while (visualLineNo(cm.doc, newN) != newN) {
           if (index == (dir < 0 ? 0 : view.length - 1)) {
             return null;
           }
@@ -3336,28 +3336,28 @@ var require_codemirror = __commonJS({
         }
         return { index, lineN: newN };
       }
-      function adjustView(cm2, from, to) {
-        var display = cm2.display, view = display.view;
+      function adjustView(cm, from, to) {
+        var display = cm.display, view = display.view;
         if (view.length == 0 || from >= display.viewTo || to <= display.viewFrom) {
-          display.view = buildViewArray(cm2, from, to);
+          display.view = buildViewArray(cm, from, to);
           display.viewFrom = from;
         } else {
           if (display.viewFrom > from) {
-            display.view = buildViewArray(cm2, from, display.viewFrom).concat(display.view);
+            display.view = buildViewArray(cm, from, display.viewFrom).concat(display.view);
           } else if (display.viewFrom < from) {
-            display.view = display.view.slice(findViewIndex(cm2, from));
+            display.view = display.view.slice(findViewIndex(cm, from));
           }
           display.viewFrom = from;
           if (display.viewTo < to) {
-            display.view = display.view.concat(buildViewArray(cm2, display.viewTo, to));
+            display.view = display.view.concat(buildViewArray(cm, display.viewTo, to));
           } else if (display.viewTo > to) {
-            display.view = display.view.slice(0, findViewIndex(cm2, to));
+            display.view = display.view.slice(0, findViewIndex(cm, to));
           }
         }
         display.viewTo = to;
       }
-      function countDirtyView(cm2) {
-        var view = cm2.display.view, dirty = 0;
+      function countDirtyView(cm) {
+        var view = cm.display.view, dirty = 0;
         for (var i2 = 0; i2 < view.length; i2++) {
           var lineView = view[i2];
           if (!lineView.hidden && (!lineView.node || lineView.changes)) {
@@ -3366,15 +3366,15 @@ var require_codemirror = __commonJS({
         }
         return dirty;
       }
-      function updateSelection(cm2) {
-        cm2.display.input.showSelection(cm2.display.input.prepareSelection());
+      function updateSelection(cm) {
+        cm.display.input.showSelection(cm.display.input.prepareSelection());
       }
-      function prepareSelection(cm2, primary) {
+      function prepareSelection(cm, primary) {
         if (primary === void 0) primary = true;
-        var doc2 = cm2.doc, result = {};
+        var doc2 = cm.doc, result = {};
         var curFragment = result.cursors = document.createDocumentFragment();
         var selFragment = result.selection = document.createDocumentFragment();
-        var customCursor = cm2.options.$customCursor;
+        var customCursor = cm.options.$customCursor;
         if (customCursor) {
           primary = true;
         }
@@ -3383,34 +3383,34 @@ var require_codemirror = __commonJS({
             continue;
           }
           var range2 = doc2.sel.ranges[i2];
-          if (range2.from().line >= cm2.display.viewTo || range2.to().line < cm2.display.viewFrom) {
+          if (range2.from().line >= cm.display.viewTo || range2.to().line < cm.display.viewFrom) {
             continue;
           }
           var collapsed = range2.empty();
           if (customCursor) {
-            var head = customCursor(cm2, range2);
+            var head = customCursor(cm, range2);
             if (head) {
-              drawSelectionCursor(cm2, head, curFragment);
+              drawSelectionCursor(cm, head, curFragment);
             }
-          } else if (collapsed || cm2.options.showCursorWhenSelecting) {
-            drawSelectionCursor(cm2, range2.head, curFragment);
+          } else if (collapsed || cm.options.showCursorWhenSelecting) {
+            drawSelectionCursor(cm, range2.head, curFragment);
           }
           if (!collapsed) {
-            drawSelectionRange(cm2, range2, selFragment);
+            drawSelectionRange(cm, range2, selFragment);
           }
         }
         return result;
       }
-      function drawSelectionCursor(cm2, head, output) {
-        var pos = cursorCoords(cm2, head, "div", null, null, !cm2.options.singleCursorHeightPerLine);
+      function drawSelectionCursor(cm, head, output) {
+        var pos = cursorCoords(cm, head, "div", null, null, !cm.options.singleCursorHeightPerLine);
         var cursor = output.appendChild(elt("div", "\xA0", "CodeMirror-cursor"));
         cursor.style.left = pos.left + "px";
         cursor.style.top = pos.top + "px";
-        cursor.style.height = Math.max(0, pos.bottom - pos.top) * cm2.options.cursorHeight + "px";
-        if (/\bcm-fat-cursor\b/.test(cm2.getWrapperElement().className)) {
-          var charPos = charCoords(cm2, head, "div", null, null);
+        cursor.style.height = Math.max(0, pos.bottom - pos.top) * cm.options.cursorHeight + "px";
+        if (/\bcm-fat-cursor\b/.test(cm.getWrapperElement().className)) {
+          var charPos = charCoords(cm, head, "div", null, null);
           var width = charPos.right - charPos.left;
-          cursor.style.width = (width > 0 ? width : cm2.defaultCharWidth()) + "px";
+          cursor.style.width = (width > 0 ? width : cm.defaultCharWidth()) + "px";
         }
         if (pos.other) {
           var otherCursor = output.appendChild(elt("div", "\xA0", "CodeMirror-cursor CodeMirror-secondarycursor"));
@@ -3423,11 +3423,11 @@ var require_codemirror = __commonJS({
       function cmpCoords(a, b) {
         return a.top - b.top || a.left - b.left;
       }
-      function drawSelectionRange(cm2, range2, output) {
-        var display = cm2.display, doc2 = cm2.doc;
+      function drawSelectionRange(cm, range2, output) {
+        var display = cm.display, doc2 = cm.doc;
         var fragment = document.createDocumentFragment();
-        var padding = paddingH(cm2.display), leftSide = padding.left;
-        var rightSide = Math.max(display.sizerWidth, displayWidth(cm2) - display.sizer.offsetLeft) - padding.right;
+        var padding = paddingH(cm.display), leftSide = padding.left;
+        var rightSide = Math.max(display.sizerWidth, displayWidth(cm) - display.sizer.offsetLeft) - padding.right;
         var docLTR = doc2.direction == "ltr";
         function add(left, top, width, bottom) {
           if (top < 0) {
@@ -3442,10 +3442,10 @@ var require_codemirror = __commonJS({
           var lineLen = lineObj.text.length;
           var start, end;
           function coords(ch, bias) {
-            return charCoords(cm2, Pos(line, ch), "div", lineObj, bias);
+            return charCoords(cm, Pos(line, ch), "div", lineObj, bias);
           }
           function wrapX(pos, dir, side) {
-            var extent = wrappedLineExtentChar(cm2, lineObj, null, pos);
+            var extent = wrappedLineExtentChar(cm, lineObj, null, pos);
             var prop2 = dir == "ltr" == (side == "after") ? "left" : "right";
             var ch = side == "after" ? extent.begin : extent.end - (/\s/.test(lineObj.text.charAt(extent.end - 1)) ? 2 : 1);
             return coords(ch, prop2)[prop2];
@@ -3519,91 +3519,91 @@ var require_codemirror = __commonJS({
         }
         output.appendChild(fragment);
       }
-      function restartBlink(cm2) {
-        if (!cm2.state.focused) {
+      function restartBlink(cm) {
+        if (!cm.state.focused) {
           return;
         }
-        var display = cm2.display;
+        var display = cm.display;
         clearInterval(display.blinker);
         var on2 = true;
         display.cursorDiv.style.visibility = "";
-        if (cm2.options.cursorBlinkRate > 0) {
+        if (cm.options.cursorBlinkRate > 0) {
           display.blinker = setInterval(function() {
-            if (!cm2.hasFocus()) {
-              onBlur(cm2);
+            if (!cm.hasFocus()) {
+              onBlur(cm);
             }
             display.cursorDiv.style.visibility = (on2 = !on2) ? "" : "hidden";
-          }, cm2.options.cursorBlinkRate);
-        } else if (cm2.options.cursorBlinkRate < 0) {
+          }, cm.options.cursorBlinkRate);
+        } else if (cm.options.cursorBlinkRate < 0) {
           display.cursorDiv.style.visibility = "hidden";
         }
       }
-      function ensureFocus(cm2) {
-        if (!cm2.hasFocus()) {
-          cm2.display.input.focus();
-          if (!cm2.state.focused) {
-            onFocus(cm2);
+      function ensureFocus(cm) {
+        if (!cm.hasFocus()) {
+          cm.display.input.focus();
+          if (!cm.state.focused) {
+            onFocus(cm);
           }
         }
       }
-      function delayBlurEvent(cm2) {
-        cm2.state.delayingBlurEvent = true;
+      function delayBlurEvent(cm) {
+        cm.state.delayingBlurEvent = true;
         setTimeout(function() {
-          if (cm2.state.delayingBlurEvent) {
-            cm2.state.delayingBlurEvent = false;
-            if (cm2.state.focused) {
-              onBlur(cm2);
+          if (cm.state.delayingBlurEvent) {
+            cm.state.delayingBlurEvent = false;
+            if (cm.state.focused) {
+              onBlur(cm);
             }
           }
         }, 100);
       }
-      function onFocus(cm2, e) {
-        if (cm2.state.delayingBlurEvent && !cm2.state.draggingText) {
-          cm2.state.delayingBlurEvent = false;
+      function onFocus(cm, e) {
+        if (cm.state.delayingBlurEvent && !cm.state.draggingText) {
+          cm.state.delayingBlurEvent = false;
         }
-        if (cm2.options.readOnly == "nocursor") {
+        if (cm.options.readOnly == "nocursor") {
           return;
         }
-        if (!cm2.state.focused) {
-          signal(cm2, "focus", cm2, e);
-          cm2.state.focused = true;
-          addClass(cm2.display.wrapper, "CodeMirror-focused");
-          if (!cm2.curOp && cm2.display.selForContextMenu != cm2.doc.sel) {
-            cm2.display.input.reset();
+        if (!cm.state.focused) {
+          signal(cm, "focus", cm, e);
+          cm.state.focused = true;
+          addClass(cm.display.wrapper, "CodeMirror-focused");
+          if (!cm.curOp && cm.display.selForContextMenu != cm.doc.sel) {
+            cm.display.input.reset();
             if (webkit) {
               setTimeout(function() {
-                return cm2.display.input.reset(true);
+                return cm.display.input.reset(true);
               }, 20);
             }
           }
-          cm2.display.input.receivedFocus();
+          cm.display.input.receivedFocus();
         }
-        restartBlink(cm2);
+        restartBlink(cm);
       }
-      function onBlur(cm2, e) {
-        if (cm2.state.delayingBlurEvent) {
+      function onBlur(cm, e) {
+        if (cm.state.delayingBlurEvent) {
           return;
         }
-        if (cm2.state.focused) {
-          signal(cm2, "blur", cm2, e);
-          cm2.state.focused = false;
-          rmClass(cm2.display.wrapper, "CodeMirror-focused");
+        if (cm.state.focused) {
+          signal(cm, "blur", cm, e);
+          cm.state.focused = false;
+          rmClass(cm.display.wrapper, "CodeMirror-focused");
         }
-        clearInterval(cm2.display.blinker);
+        clearInterval(cm.display.blinker);
         setTimeout(function() {
-          if (!cm2.state.focused) {
-            cm2.display.shift = false;
+          if (!cm.state.focused) {
+            cm.display.shift = false;
           }
         }, 150);
       }
-      function updateHeightsInViewport(cm2) {
-        var display = cm2.display;
+      function updateHeightsInViewport(cm) {
+        var display = cm.display;
         var prevBottom = display.lineDiv.offsetTop;
         var viewTop = Math.max(0, display.scroller.getBoundingClientRect().top);
         var oldHeight = display.lineDiv.getBoundingClientRect().top;
         var mustScroll = 0;
         for (var i2 = 0; i2 < display.view.length; i2++) {
-          var cur = display.view[i2], wrapping = cm2.options.lineWrapping;
+          var cur = display.view[i2], wrapping = cm.options.lineWrapping;
           var height = void 0, width = 0;
           if (cur.hidden) {
             continue;
@@ -3633,12 +3633,12 @@ var require_codemirror = __commonJS({
               }
             }
           }
-          if (width > cm2.display.sizerWidth) {
-            var chWidth = Math.ceil(width / charWidth(cm2.display));
-            if (chWidth > cm2.display.maxLineLength) {
-              cm2.display.maxLineLength = chWidth;
-              cm2.display.maxLine = cur.line;
-              cm2.display.maxLineChanged = true;
+          if (width > cm.display.sizerWidth) {
+            var chWidth = Math.ceil(width / charWidth(cm.display));
+            if (chWidth > cm.display.maxLineLength) {
+              cm.display.maxLineLength = chWidth;
+              cm.display.maxLine = cur.line;
+              cm.display.maxLineChanged = true;
             }
           }
         }
@@ -3673,11 +3673,11 @@ var require_codemirror = __commonJS({
         }
         return { from, to: Math.max(to, from + 1) };
       }
-      function maybeScrollWindow(cm2, rect) {
-        if (signalDOMEvent(cm2, "scrollCursorIntoView")) {
+      function maybeScrollWindow(cm, rect) {
+        if (signalDOMEvent(cm, "scrollCursorIntoView")) {
           return;
         }
-        var display = cm2.display, box = display.sizer.getBoundingClientRect(), doScroll = null;
+        var display = cm.display, box = display.sizer.getBoundingClientRect(), doScroll = null;
         var doc2 = display.wrapper.ownerDocument;
         if (rect.top + box.top < 0) {
           doScroll = true;
@@ -3685,42 +3685,42 @@ var require_codemirror = __commonJS({
           doScroll = false;
         }
         if (doScroll != null && !phantom) {
-          var scrollNode = elt("div", "\u200B", null, "position: absolute;\n                         top: " + (rect.top - display.viewOffset - paddingTop(cm2.display)) + "px;\n                         height: " + (rect.bottom - rect.top + scrollGap(cm2) + display.barHeight) + "px;\n                         left: " + rect.left + "px; width: " + Math.max(2, rect.right - rect.left) + "px;");
-          cm2.display.lineSpace.appendChild(scrollNode);
+          var scrollNode = elt("div", "\u200B", null, "position: absolute;\n                         top: " + (rect.top - display.viewOffset - paddingTop(cm.display)) + "px;\n                         height: " + (rect.bottom - rect.top + scrollGap(cm) + display.barHeight) + "px;\n                         left: " + rect.left + "px; width: " + Math.max(2, rect.right - rect.left) + "px;");
+          cm.display.lineSpace.appendChild(scrollNode);
           scrollNode.scrollIntoView(doScroll);
-          cm2.display.lineSpace.removeChild(scrollNode);
+          cm.display.lineSpace.removeChild(scrollNode);
         }
       }
-      function scrollPosIntoView(cm2, pos, end, margin) {
+      function scrollPosIntoView(cm, pos, end, margin) {
         if (margin == null) {
           margin = 0;
         }
         var rect;
-        if (!cm2.options.lineWrapping && pos == end) {
+        if (!cm.options.lineWrapping && pos == end) {
           end = pos.sticky == "before" ? Pos(pos.line, pos.ch + 1, "before") : pos;
           pos = pos.ch ? Pos(pos.line, pos.sticky == "before" ? pos.ch - 1 : pos.ch, "after") : pos;
         }
         for (var limit = 0; limit < 5; limit++) {
           var changed = false;
-          var coords = cursorCoords(cm2, pos);
-          var endCoords = !end || end == pos ? coords : cursorCoords(cm2, end);
+          var coords = cursorCoords(cm, pos);
+          var endCoords = !end || end == pos ? coords : cursorCoords(cm, end);
           rect = {
             left: Math.min(coords.left, endCoords.left),
             top: Math.min(coords.top, endCoords.top) - margin,
             right: Math.max(coords.left, endCoords.left),
             bottom: Math.max(coords.bottom, endCoords.bottom) + margin
           };
-          var scrollPos = calculateScrollPos(cm2, rect);
-          var startTop = cm2.doc.scrollTop, startLeft = cm2.doc.scrollLeft;
+          var scrollPos = calculateScrollPos(cm, rect);
+          var startTop = cm.doc.scrollTop, startLeft = cm.doc.scrollLeft;
           if (scrollPos.scrollTop != null) {
-            updateScrollTop(cm2, scrollPos.scrollTop);
-            if (Math.abs(cm2.doc.scrollTop - startTop) > 1) {
+            updateScrollTop(cm, scrollPos.scrollTop);
+            if (Math.abs(cm.doc.scrollTop - startTop) > 1) {
               changed = true;
             }
           }
           if (scrollPos.scrollLeft != null) {
-            setScrollLeft(cm2, scrollPos.scrollLeft);
-            if (Math.abs(cm2.doc.scrollLeft - startLeft) > 1) {
+            setScrollLeft(cm, scrollPos.scrollLeft);
+            if (Math.abs(cm.doc.scrollLeft - startLeft) > 1) {
               changed = true;
             }
           }
@@ -3730,26 +3730,26 @@ var require_codemirror = __commonJS({
         }
         return rect;
       }
-      function scrollIntoView(cm2, rect) {
-        var scrollPos = calculateScrollPos(cm2, rect);
+      function scrollIntoView(cm, rect) {
+        var scrollPos = calculateScrollPos(cm, rect);
         if (scrollPos.scrollTop != null) {
-          updateScrollTop(cm2, scrollPos.scrollTop);
+          updateScrollTop(cm, scrollPos.scrollTop);
         }
         if (scrollPos.scrollLeft != null) {
-          setScrollLeft(cm2, scrollPos.scrollLeft);
+          setScrollLeft(cm, scrollPos.scrollLeft);
         }
       }
-      function calculateScrollPos(cm2, rect) {
-        var display = cm2.display, snapMargin = textHeight(cm2.display);
+      function calculateScrollPos(cm, rect) {
+        var display = cm.display, snapMargin = textHeight(cm.display);
         if (rect.top < 0) {
           rect.top = 0;
         }
-        var screentop = cm2.curOp && cm2.curOp.scrollTop != null ? cm2.curOp.scrollTop : display.scroller.scrollTop;
-        var screen2 = displayHeight(cm2), result = {};
+        var screentop = cm.curOp && cm.curOp.scrollTop != null ? cm.curOp.scrollTop : display.scroller.scrollTop;
+        var screen2 = displayHeight(cm), result = {};
         if (rect.bottom - rect.top > screen2) {
           rect.bottom = rect.top + screen2;
         }
-        var docBottom = cm2.doc.height + paddingVert(display);
+        var docBottom = cm.doc.height + paddingVert(display);
         var atTop = rect.top < snapMargin, atBottom = rect.bottom > docBottom - snapMargin;
         if (rect.top < screentop) {
           result.scrollTop = atTop ? 0 : rect.top;
@@ -3759,9 +3759,9 @@ var require_codemirror = __commonJS({
             result.scrollTop = newTop;
           }
         }
-        var gutterSpace = cm2.options.fixedGutter ? 0 : display.gutters.offsetWidth;
-        var screenleft = cm2.curOp && cm2.curOp.scrollLeft != null ? cm2.curOp.scrollLeft : display.scroller.scrollLeft - gutterSpace;
-        var screenw = displayWidth(cm2) - display.gutters.offsetWidth;
+        var gutterSpace = cm.options.fixedGutter ? 0 : display.gutters.offsetWidth;
+        var screenleft = cm.curOp && cm.curOp.scrollLeft != null ? cm.curOp.scrollLeft : display.scroller.scrollLeft - gutterSpace;
+        var screenw = displayWidth(cm) - display.gutters.offsetWidth;
         var tooWide = rect.right - rect.left > screenw;
         if (tooWide) {
           rect.right = rect.left + screenw;
@@ -3775,104 +3775,104 @@ var require_codemirror = __commonJS({
         }
         return result;
       }
-      function addToScrollTop(cm2, top) {
+      function addToScrollTop(cm, top) {
         if (top == null) {
           return;
         }
-        resolveScrollToPos(cm2);
-        cm2.curOp.scrollTop = (cm2.curOp.scrollTop == null ? cm2.doc.scrollTop : cm2.curOp.scrollTop) + top;
+        resolveScrollToPos(cm);
+        cm.curOp.scrollTop = (cm.curOp.scrollTop == null ? cm.doc.scrollTop : cm.curOp.scrollTop) + top;
       }
-      function ensureCursorVisible(cm2) {
-        resolveScrollToPos(cm2);
-        var cur = cm2.getCursor();
-        cm2.curOp.scrollToPos = { from: cur, to: cur, margin: cm2.options.cursorScrollMargin };
+      function ensureCursorVisible(cm) {
+        resolveScrollToPos(cm);
+        var cur = cm.getCursor();
+        cm.curOp.scrollToPos = { from: cur, to: cur, margin: cm.options.cursorScrollMargin };
       }
-      function scrollToCoords(cm2, x, y) {
+      function scrollToCoords(cm, x, y) {
         if (x != null || y != null) {
-          resolveScrollToPos(cm2);
+          resolveScrollToPos(cm);
         }
         if (x != null) {
-          cm2.curOp.scrollLeft = x;
+          cm.curOp.scrollLeft = x;
         }
         if (y != null) {
-          cm2.curOp.scrollTop = y;
+          cm.curOp.scrollTop = y;
         }
       }
-      function scrollToRange(cm2, range2) {
-        resolveScrollToPos(cm2);
-        cm2.curOp.scrollToPos = range2;
+      function scrollToRange(cm, range2) {
+        resolveScrollToPos(cm);
+        cm.curOp.scrollToPos = range2;
       }
-      function resolveScrollToPos(cm2) {
-        var range2 = cm2.curOp.scrollToPos;
+      function resolveScrollToPos(cm) {
+        var range2 = cm.curOp.scrollToPos;
         if (range2) {
-          cm2.curOp.scrollToPos = null;
-          var from = estimateCoords(cm2, range2.from), to = estimateCoords(cm2, range2.to);
-          scrollToCoordsRange(cm2, from, to, range2.margin);
+          cm.curOp.scrollToPos = null;
+          var from = estimateCoords(cm, range2.from), to = estimateCoords(cm, range2.to);
+          scrollToCoordsRange(cm, from, to, range2.margin);
         }
       }
-      function scrollToCoordsRange(cm2, from, to, margin) {
-        var sPos = calculateScrollPos(cm2, {
+      function scrollToCoordsRange(cm, from, to, margin) {
+        var sPos = calculateScrollPos(cm, {
           left: Math.min(from.left, to.left),
           top: Math.min(from.top, to.top) - margin,
           right: Math.max(from.right, to.right),
           bottom: Math.max(from.bottom, to.bottom) + margin
         });
-        scrollToCoords(cm2, sPos.scrollLeft, sPos.scrollTop);
+        scrollToCoords(cm, sPos.scrollLeft, sPos.scrollTop);
       }
-      function updateScrollTop(cm2, val) {
-        if (Math.abs(cm2.doc.scrollTop - val) < 2) {
+      function updateScrollTop(cm, val) {
+        if (Math.abs(cm.doc.scrollTop - val) < 2) {
           return;
         }
         if (!gecko) {
-          updateDisplaySimple(cm2, { top: val });
+          updateDisplaySimple(cm, { top: val });
         }
-        setScrollTop(cm2, val, true);
+        setScrollTop(cm, val, true);
         if (gecko) {
-          updateDisplaySimple(cm2);
+          updateDisplaySimple(cm);
         }
-        startWorker(cm2, 100);
+        startWorker(cm, 100);
       }
-      function setScrollTop(cm2, val, forceScroll) {
-        val = Math.max(0, Math.min(cm2.display.scroller.scrollHeight - cm2.display.scroller.clientHeight, val));
-        if (cm2.display.scroller.scrollTop == val && !forceScroll) {
+      function setScrollTop(cm, val, forceScroll) {
+        val = Math.max(0, Math.min(cm.display.scroller.scrollHeight - cm.display.scroller.clientHeight, val));
+        if (cm.display.scroller.scrollTop == val && !forceScroll) {
           return;
         }
-        cm2.doc.scrollTop = val;
-        cm2.display.scrollbars.setScrollTop(val);
-        if (cm2.display.scroller.scrollTop != val) {
-          cm2.display.scroller.scrollTop = val;
+        cm.doc.scrollTop = val;
+        cm.display.scrollbars.setScrollTop(val);
+        if (cm.display.scroller.scrollTop != val) {
+          cm.display.scroller.scrollTop = val;
         }
       }
-      function setScrollLeft(cm2, val, isScroller, forceScroll) {
-        val = Math.max(0, Math.min(val, cm2.display.scroller.scrollWidth - cm2.display.scroller.clientWidth));
-        if ((isScroller ? val == cm2.doc.scrollLeft : Math.abs(cm2.doc.scrollLeft - val) < 2) && !forceScroll) {
+      function setScrollLeft(cm, val, isScroller, forceScroll) {
+        val = Math.max(0, Math.min(val, cm.display.scroller.scrollWidth - cm.display.scroller.clientWidth));
+        if ((isScroller ? val == cm.doc.scrollLeft : Math.abs(cm.doc.scrollLeft - val) < 2) && !forceScroll) {
           return;
         }
-        cm2.doc.scrollLeft = val;
-        alignHorizontally(cm2);
-        if (cm2.display.scroller.scrollLeft != val) {
-          cm2.display.scroller.scrollLeft = val;
+        cm.doc.scrollLeft = val;
+        alignHorizontally(cm);
+        if (cm.display.scroller.scrollLeft != val) {
+          cm.display.scroller.scrollLeft = val;
         }
-        cm2.display.scrollbars.setScrollLeft(val);
+        cm.display.scrollbars.setScrollLeft(val);
       }
-      function measureForScrollbars(cm2) {
-        var d = cm2.display, gutterW = d.gutters.offsetWidth;
-        var docH = Math.round(cm2.doc.height + paddingVert(cm2.display));
+      function measureForScrollbars(cm) {
+        var d = cm.display, gutterW = d.gutters.offsetWidth;
+        var docH = Math.round(cm.doc.height + paddingVert(cm.display));
         return {
           clientHeight: d.scroller.clientHeight,
           viewHeight: d.wrapper.clientHeight,
           scrollWidth: d.scroller.scrollWidth,
           clientWidth: d.scroller.clientWidth,
           viewWidth: d.wrapper.clientWidth,
-          barLeft: cm2.options.fixedGutter ? gutterW : 0,
+          barLeft: cm.options.fixedGutter ? gutterW : 0,
           docHeight: docH,
-          scrollHeight: docH + scrollGap(cm2) + d.barHeight,
+          scrollHeight: docH + scrollGap(cm) + d.barHeight,
           nativeBarWidth: d.nativeBarWidth,
           gutterWidth: gutterW
         };
       }
-      var NativeScrollbars = function(place, scroll, cm2) {
-        this.cm = cm2;
+      var NativeScrollbars = function(place, scroll, cm) {
+        this.cm = cm;
         var vert = this.vert = elt("div", [elt("div", null, null, "min-width: 1px")], "CodeMirror-vscrollbar");
         var horiz = this.horiz = elt("div", [elt("div", null, null, "height: 100%; min-height: 1px")], "CodeMirror-hscrollbar");
         vert.tabIndex = horiz.tabIndex = -1;
@@ -3977,23 +3977,23 @@ var require_codemirror = __commonJS({
       };
       NullScrollbars.prototype.clear = function() {
       };
-      function updateScrollbars(cm2, measure) {
+      function updateScrollbars(cm, measure) {
         if (!measure) {
-          measure = measureForScrollbars(cm2);
+          measure = measureForScrollbars(cm);
         }
-        var startWidth = cm2.display.barWidth, startHeight = cm2.display.barHeight;
-        updateScrollbarsInner(cm2, measure);
-        for (var i2 = 0; i2 < 4 && startWidth != cm2.display.barWidth || startHeight != cm2.display.barHeight; i2++) {
-          if (startWidth != cm2.display.barWidth && cm2.options.lineWrapping) {
-            updateHeightsInViewport(cm2);
+        var startWidth = cm.display.barWidth, startHeight = cm.display.barHeight;
+        updateScrollbarsInner(cm, measure);
+        for (var i2 = 0; i2 < 4 && startWidth != cm.display.barWidth || startHeight != cm.display.barHeight; i2++) {
+          if (startWidth != cm.display.barWidth && cm.options.lineWrapping) {
+            updateHeightsInViewport(cm);
           }
-          updateScrollbarsInner(cm2, measureForScrollbars(cm2));
-          startWidth = cm2.display.barWidth;
-          startHeight = cm2.display.barHeight;
+          updateScrollbarsInner(cm, measureForScrollbars(cm));
+          startWidth = cm.display.barWidth;
+          startHeight = cm.display.barHeight;
         }
       }
-      function updateScrollbarsInner(cm2, measure) {
-        var d = cm2.display;
+      function updateScrollbarsInner(cm, measure) {
+        var d = cm.display;
         var sizes = d.scrollbars.update(measure);
         d.sizer.style.paddingRight = (d.barWidth = sizes.right) + "px";
         d.sizer.style.paddingBottom = (d.barHeight = sizes.bottom) + "px";
@@ -4005,7 +4005,7 @@ var require_codemirror = __commonJS({
         } else {
           d.scrollbarFiller.style.display = "";
         }
-        if (sizes.bottom && cm2.options.coverGutterNextToScrollbar && cm2.options.fixedGutter) {
+        if (sizes.bottom && cm.options.coverGutterNextToScrollbar && cm.options.fixedGutter) {
           d.gutterFiller.style.display = "block";
           d.gutterFiller.style.height = sizes.bottom + "px";
           d.gutterFiller.style.width = measure.gutterWidth + "px";
@@ -4014,41 +4014,41 @@ var require_codemirror = __commonJS({
         }
       }
       var scrollbarModel = { "native": NativeScrollbars, "null": NullScrollbars };
-      function initScrollbars(cm2) {
-        if (cm2.display.scrollbars) {
-          cm2.display.scrollbars.clear();
-          if (cm2.display.scrollbars.addClass) {
-            rmClass(cm2.display.wrapper, cm2.display.scrollbars.addClass);
+      function initScrollbars(cm) {
+        if (cm.display.scrollbars) {
+          cm.display.scrollbars.clear();
+          if (cm.display.scrollbars.addClass) {
+            rmClass(cm.display.wrapper, cm.display.scrollbars.addClass);
           }
         }
-        cm2.display.scrollbars = new scrollbarModel[cm2.options.scrollbarStyle](function(node) {
-          cm2.display.wrapper.insertBefore(node, cm2.display.scrollbarFiller);
+        cm.display.scrollbars = new scrollbarModel[cm.options.scrollbarStyle](function(node) {
+          cm.display.wrapper.insertBefore(node, cm.display.scrollbarFiller);
           on(node, "mousedown", function() {
-            if (cm2.state.focused) {
+            if (cm.state.focused) {
               setTimeout(function() {
-                return cm2.display.input.focus();
+                return cm.display.input.focus();
               }, 0);
             }
           });
           node.setAttribute("cm-not-content", "true");
         }, function(pos, axis) {
           if (axis == "horizontal") {
-            setScrollLeft(cm2, pos);
+            setScrollLeft(cm, pos);
           } else {
-            updateScrollTop(cm2, pos);
+            updateScrollTop(cm, pos);
           }
-        }, cm2);
-        if (cm2.display.scrollbars.addClass) {
-          addClass(cm2.display.wrapper, cm2.display.scrollbars.addClass);
+        }, cm);
+        if (cm.display.scrollbars.addClass) {
+          addClass(cm.display.wrapper, cm.display.scrollbars.addClass);
         }
       }
       var nextOpId = 0;
-      function startOperation(cm2) {
-        cm2.curOp = {
-          cm: cm2,
+      function startOperation(cm) {
+        cm.curOp = {
+          cm,
           viewChanged: false,
           // Flag that indicates that lines might need to be redrawn
-          startHeight: cm2.doc.height,
+          startHeight: cm.doc.height,
           // Used to detect need to update scrollbar
           forceUpdate: false,
           // Used to force a redraw
@@ -4077,10 +4077,10 @@ var require_codemirror = __commonJS({
           markArrays: null
           // Used by addMarkedSpan
         };
-        pushOperation(cm2.curOp);
+        pushOperation(cm.curOp);
       }
-      function endOperation(cm2) {
-        var op = cm2.curOp;
+      function endOperation(cm) {
+        var op = cm.curOp;
         if (op) {
           finishOperation(op, function(group) {
             for (var i2 = 0; i2 < group.ops.length; i2++) {
@@ -4109,84 +4109,84 @@ var require_codemirror = __commonJS({
         }
       }
       function endOperation_R1(op) {
-        var cm2 = op.cm, display = cm2.display;
-        maybeClipScrollbars(cm2);
+        var cm = op.cm, display = cm.display;
+        maybeClipScrollbars(cm);
         if (op.updateMaxLine) {
-          findMaxLine(cm2);
+          findMaxLine(cm);
         }
-        op.mustUpdate = op.viewChanged || op.forceUpdate || op.scrollTop != null || op.scrollToPos && (op.scrollToPos.from.line < display.viewFrom || op.scrollToPos.to.line >= display.viewTo) || display.maxLineChanged && cm2.options.lineWrapping;
-        op.update = op.mustUpdate && new DisplayUpdate(cm2, op.mustUpdate && { top: op.scrollTop, ensure: op.scrollToPos }, op.forceUpdate);
+        op.mustUpdate = op.viewChanged || op.forceUpdate || op.scrollTop != null || op.scrollToPos && (op.scrollToPos.from.line < display.viewFrom || op.scrollToPos.to.line >= display.viewTo) || display.maxLineChanged && cm.options.lineWrapping;
+        op.update = op.mustUpdate && new DisplayUpdate(cm, op.mustUpdate && { top: op.scrollTop, ensure: op.scrollToPos }, op.forceUpdate);
       }
       function endOperation_W1(op) {
         op.updatedDisplay = op.mustUpdate && updateDisplayIfNeeded(op.cm, op.update);
       }
       function endOperation_R2(op) {
-        var cm2 = op.cm, display = cm2.display;
+        var cm = op.cm, display = cm.display;
         if (op.updatedDisplay) {
-          updateHeightsInViewport(cm2);
+          updateHeightsInViewport(cm);
         }
-        op.barMeasure = measureForScrollbars(cm2);
-        if (display.maxLineChanged && !cm2.options.lineWrapping) {
-          op.adjustWidthTo = measureChar(cm2, display.maxLine, display.maxLine.text.length).left + 3;
-          cm2.display.sizerWidth = op.adjustWidthTo;
-          op.barMeasure.scrollWidth = Math.max(display.scroller.clientWidth, display.sizer.offsetLeft + op.adjustWidthTo + scrollGap(cm2) + cm2.display.barWidth);
-          op.maxScrollLeft = Math.max(0, display.sizer.offsetLeft + op.adjustWidthTo - displayWidth(cm2));
+        op.barMeasure = measureForScrollbars(cm);
+        if (display.maxLineChanged && !cm.options.lineWrapping) {
+          op.adjustWidthTo = measureChar(cm, display.maxLine, display.maxLine.text.length).left + 3;
+          cm.display.sizerWidth = op.adjustWidthTo;
+          op.barMeasure.scrollWidth = Math.max(display.scroller.clientWidth, display.sizer.offsetLeft + op.adjustWidthTo + scrollGap(cm) + cm.display.barWidth);
+          op.maxScrollLeft = Math.max(0, display.sizer.offsetLeft + op.adjustWidthTo - displayWidth(cm));
         }
         if (op.updatedDisplay || op.selectionChanged) {
           op.preparedSelection = display.input.prepareSelection();
         }
       }
       function endOperation_W2(op) {
-        var cm2 = op.cm;
+        var cm = op.cm;
         if (op.adjustWidthTo != null) {
-          cm2.display.sizer.style.minWidth = op.adjustWidthTo + "px";
-          if (op.maxScrollLeft < cm2.doc.scrollLeft) {
-            setScrollLeft(cm2, Math.min(cm2.display.scroller.scrollLeft, op.maxScrollLeft), true);
+          cm.display.sizer.style.minWidth = op.adjustWidthTo + "px";
+          if (op.maxScrollLeft < cm.doc.scrollLeft) {
+            setScrollLeft(cm, Math.min(cm.display.scroller.scrollLeft, op.maxScrollLeft), true);
           }
-          cm2.display.maxLineChanged = false;
+          cm.display.maxLineChanged = false;
         }
-        var takeFocus = op.focus && op.focus == activeElt(root(cm2));
+        var takeFocus = op.focus && op.focus == activeElt(root(cm));
         if (op.preparedSelection) {
-          cm2.display.input.showSelection(op.preparedSelection, takeFocus);
+          cm.display.input.showSelection(op.preparedSelection, takeFocus);
         }
-        if (op.updatedDisplay || op.startHeight != cm2.doc.height) {
-          updateScrollbars(cm2, op.barMeasure);
+        if (op.updatedDisplay || op.startHeight != cm.doc.height) {
+          updateScrollbars(cm, op.barMeasure);
         }
         if (op.updatedDisplay) {
-          setDocumentHeight(cm2, op.barMeasure);
+          setDocumentHeight(cm, op.barMeasure);
         }
         if (op.selectionChanged) {
-          restartBlink(cm2);
+          restartBlink(cm);
         }
-        if (cm2.state.focused && op.updateInput) {
-          cm2.display.input.reset(op.typing);
+        if (cm.state.focused && op.updateInput) {
+          cm.display.input.reset(op.typing);
         }
         if (takeFocus) {
           ensureFocus(op.cm);
         }
       }
       function endOperation_finish(op) {
-        var cm2 = op.cm, display = cm2.display, doc2 = cm2.doc;
+        var cm = op.cm, display = cm.display, doc2 = cm.doc;
         if (op.updatedDisplay) {
-          postUpdateDisplay(cm2, op.update);
+          postUpdateDisplay(cm, op.update);
         }
         if (display.wheelStartX != null && (op.scrollTop != null || op.scrollLeft != null || op.scrollToPos)) {
           display.wheelStartX = display.wheelStartY = null;
         }
         if (op.scrollTop != null) {
-          setScrollTop(cm2, op.scrollTop, op.forceScroll);
+          setScrollTop(cm, op.scrollTop, op.forceScroll);
         }
         if (op.scrollLeft != null) {
-          setScrollLeft(cm2, op.scrollLeft, true, true);
+          setScrollLeft(cm, op.scrollLeft, true, true);
         }
         if (op.scrollToPos) {
           var rect = scrollPosIntoView(
-            cm2,
+            cm,
             clipPos(doc2, op.scrollToPos.from),
             clipPos(doc2, op.scrollToPos.to),
             op.scrollToPos.margin
           );
-          maybeScrollWindow(cm2, rect);
+          maybeScrollWindow(cm, rect);
         }
         var hidden = op.maybeHiddenMarkers, unhidden = op.maybeUnhiddenMarkers;
         if (hidden) {
@@ -4204,36 +4204,36 @@ var require_codemirror = __commonJS({
           }
         }
         if (display.wrapper.offsetHeight) {
-          doc2.scrollTop = cm2.display.scroller.scrollTop;
+          doc2.scrollTop = cm.display.scroller.scrollTop;
         }
         if (op.changeObjs) {
-          signal(cm2, "changes", cm2, op.changeObjs);
+          signal(cm, "changes", cm, op.changeObjs);
         }
         if (op.update) {
           op.update.finish();
         }
       }
-      function runInOp(cm2, f) {
-        if (cm2.curOp) {
+      function runInOp(cm, f) {
+        if (cm.curOp) {
           return f();
         }
-        startOperation(cm2);
+        startOperation(cm);
         try {
           return f();
         } finally {
-          endOperation(cm2);
+          endOperation(cm);
         }
       }
-      function operation(cm2, f) {
+      function operation(cm, f) {
         return function() {
-          if (cm2.curOp) {
-            return f.apply(cm2, arguments);
+          if (cm.curOp) {
+            return f.apply(cm, arguments);
           }
-          startOperation(cm2);
+          startOperation(cm);
           try {
-            return f.apply(cm2, arguments);
+            return f.apply(cm, arguments);
           } finally {
-            endOperation(cm2);
+            endOperation(cm);
           }
         };
       }
@@ -4252,36 +4252,36 @@ var require_codemirror = __commonJS({
       }
       function docMethodOp(f) {
         return function() {
-          var cm2 = this.cm;
-          if (!cm2 || cm2.curOp) {
+          var cm = this.cm;
+          if (!cm || cm.curOp) {
             return f.apply(this, arguments);
           }
-          startOperation(cm2);
+          startOperation(cm);
           try {
             return f.apply(this, arguments);
           } finally {
-            endOperation(cm2);
+            endOperation(cm);
           }
         };
       }
-      function startWorker(cm2, time) {
-        if (cm2.doc.highlightFrontier < cm2.display.viewTo) {
-          cm2.state.highlight.set(time, bind(highlightWorker, cm2));
+      function startWorker(cm, time) {
+        if (cm.doc.highlightFrontier < cm.display.viewTo) {
+          cm.state.highlight.set(time, bind(highlightWorker, cm));
         }
       }
-      function highlightWorker(cm2) {
-        var doc2 = cm2.doc;
-        if (doc2.highlightFrontier >= cm2.display.viewTo) {
+      function highlightWorker(cm) {
+        var doc2 = cm.doc;
+        if (doc2.highlightFrontier >= cm.display.viewTo) {
           return;
         }
-        var end = +/* @__PURE__ */ new Date() + cm2.options.workTime;
-        var context = getContextBefore(cm2, doc2.highlightFrontier);
+        var end = +/* @__PURE__ */ new Date() + cm.options.workTime;
+        var context = getContextBefore(cm, doc2.highlightFrontier);
         var changedLines = [];
-        doc2.iter(context.line, Math.min(doc2.first + doc2.size, cm2.display.viewTo + 500), function(line) {
-          if (context.line >= cm2.display.viewFrom) {
+        doc2.iter(context.line, Math.min(doc2.first + doc2.size, cm.display.viewTo + 500), function(line) {
+          if (context.line >= cm.display.viewFrom) {
             var oldStyles = line.styles;
-            var resetState = line.text.length > cm2.options.maxHighlightLength ? copyState(doc2.mode, context.state) : null;
-            var highlighted = highlightLine(cm2, line, context, true);
+            var resetState = line.text.length > cm.options.maxHighlightLength ? copyState(doc2.mode, context.state) : null;
+            var highlighted = highlightLine(cm, line, context, true);
             if (resetState) {
               context.state = resetState;
             }
@@ -4302,37 +4302,37 @@ var require_codemirror = __commonJS({
             line.stateAfter = context.save();
             context.nextLine();
           } else {
-            if (line.text.length <= cm2.options.maxHighlightLength) {
-              processLine(cm2, line.text, context);
+            if (line.text.length <= cm.options.maxHighlightLength) {
+              processLine(cm, line.text, context);
             }
             line.stateAfter = context.line % 5 == 0 ? context.save() : null;
             context.nextLine();
           }
           if (+/* @__PURE__ */ new Date() > end) {
-            startWorker(cm2, cm2.options.workDelay);
+            startWorker(cm, cm.options.workDelay);
             return true;
           }
         });
         doc2.highlightFrontier = context.line;
         doc2.modeFrontier = Math.max(doc2.modeFrontier, context.line);
         if (changedLines.length) {
-          runInOp(cm2, function() {
+          runInOp(cm, function() {
             for (var i2 = 0; i2 < changedLines.length; i2++) {
-              regLineChange(cm2, changedLines[i2], "text");
+              regLineChange(cm, changedLines[i2], "text");
             }
           });
         }
       }
-      var DisplayUpdate = function(cm2, viewport, force) {
-        var display = cm2.display;
+      var DisplayUpdate = function(cm, viewport, force) {
+        var display = cm.display;
         this.viewport = viewport;
-        this.visible = visibleLines(display, cm2.doc, viewport);
+        this.visible = visibleLines(display, cm.doc, viewport);
         this.editorIsHidden = !display.wrapper.offsetWidth;
         this.wrapperHeight = display.wrapper.clientHeight;
         this.wrapperWidth = display.wrapper.clientWidth;
-        this.oldDisplayWidth = displayWidth(cm2);
+        this.oldDisplayWidth = displayWidth(cm);
         this.force = force;
-        this.dims = getDimensions(cm2);
+        this.dims = getDimensions(cm);
         this.events = [];
       };
       DisplayUpdate.prototype.signal = function(emitter, type) {
@@ -4345,28 +4345,28 @@ var require_codemirror = __commonJS({
           signal.apply(null, this.events[i2]);
         }
       };
-      function maybeClipScrollbars(cm2) {
-        var display = cm2.display;
+      function maybeClipScrollbars(cm) {
+        var display = cm.display;
         if (!display.scrollbarsClipped && display.scroller.offsetWidth) {
           display.nativeBarWidth = display.scroller.offsetWidth - display.scroller.clientWidth;
-          display.heightForcer.style.height = scrollGap(cm2) + "px";
+          display.heightForcer.style.height = scrollGap(cm) + "px";
           display.sizer.style.marginBottom = -display.nativeBarWidth + "px";
-          display.sizer.style.borderRightWidth = scrollGap(cm2) + "px";
+          display.sizer.style.borderRightWidth = scrollGap(cm) + "px";
           display.scrollbarsClipped = true;
         }
       }
-      function selectionSnapshot(cm2) {
-        if (cm2.hasFocus()) {
+      function selectionSnapshot(cm) {
+        if (cm.hasFocus()) {
           return null;
         }
-        var active = activeElt(root(cm2));
-        if (!active || !contains(cm2.display.lineDiv, active)) {
+        var active = activeElt(root(cm));
+        if (!active || !contains(cm.display.lineDiv, active)) {
           return null;
         }
         var result = { activeElt: active };
         if (window.getSelection) {
-          var sel = win(cm2).getSelection();
-          if (sel.anchorNode && sel.extend && contains(cm2.display.lineDiv, sel.anchorNode)) {
+          var sel = win(cm).getSelection();
+          if (sel.anchorNode && sel.extend && contains(cm.display.lineDiv, sel.anchorNode)) {
             result.anchorNode = sel.anchorNode;
             result.anchorOffset = sel.anchorOffset;
             result.focusNode = sel.focusNode;
@@ -4390,22 +4390,22 @@ var require_codemirror = __commonJS({
           sel.extend(snapshot.focusNode, snapshot.focusOffset);
         }
       }
-      function updateDisplayIfNeeded(cm2, update) {
-        var display = cm2.display, doc2 = cm2.doc;
+      function updateDisplayIfNeeded(cm, update) {
+        var display = cm.display, doc2 = cm.doc;
         if (update.editorIsHidden) {
-          resetView(cm2);
+          resetView(cm);
           return false;
         }
-        if (!update.force && update.visible.from >= display.viewFrom && update.visible.to <= display.viewTo && (display.updateLineNumbers == null || display.updateLineNumbers >= display.viewTo) && display.renderedView == display.view && countDirtyView(cm2) == 0) {
+        if (!update.force && update.visible.from >= display.viewFrom && update.visible.to <= display.viewTo && (display.updateLineNumbers == null || display.updateLineNumbers >= display.viewTo) && display.renderedView == display.view && countDirtyView(cm) == 0) {
           return false;
         }
-        if (maybeUpdateLineNumberWidth(cm2)) {
-          resetView(cm2);
-          update.dims = getDimensions(cm2);
+        if (maybeUpdateLineNumberWidth(cm)) {
+          resetView(cm);
+          update.dims = getDimensions(cm);
         }
         var end = doc2.first + doc2.size;
-        var from = Math.max(update.visible.from - cm2.options.viewportMargin, doc2.first);
-        var to = Math.min(end, update.visible.to + cm2.options.viewportMargin);
+        var from = Math.max(update.visible.from - cm.options.viewportMargin, doc2.first);
+        var to = Math.min(end, update.visible.to + cm.options.viewportMargin);
         if (display.viewFrom < from && from - display.viewFrom < 20) {
           from = Math.max(doc2.first, display.viewFrom);
         }
@@ -4413,22 +4413,22 @@ var require_codemirror = __commonJS({
           to = Math.min(end, display.viewTo);
         }
         if (sawCollapsedSpans) {
-          from = visualLineNo(cm2.doc, from);
-          to = visualLineEndNo(cm2.doc, to);
+          from = visualLineNo(cm.doc, from);
+          to = visualLineEndNo(cm.doc, to);
         }
         var different = from != display.viewFrom || to != display.viewTo || display.lastWrapHeight != update.wrapperHeight || display.lastWrapWidth != update.wrapperWidth;
-        adjustView(cm2, from, to);
-        display.viewOffset = heightAtLine(getLine(cm2.doc, display.viewFrom));
-        cm2.display.mover.style.top = display.viewOffset + "px";
-        var toUpdate = countDirtyView(cm2);
+        adjustView(cm, from, to);
+        display.viewOffset = heightAtLine(getLine(cm.doc, display.viewFrom));
+        cm.display.mover.style.top = display.viewOffset + "px";
+        var toUpdate = countDirtyView(cm);
         if (!different && toUpdate == 0 && !update.force && display.renderedView == display.view && (display.updateLineNumbers == null || display.updateLineNumbers >= display.viewTo)) {
           return false;
         }
-        var selSnapshot = selectionSnapshot(cm2);
+        var selSnapshot = selectionSnapshot(cm);
         if (toUpdate > 4) {
           display.lineDiv.style.display = "none";
         }
-        patchDisplay(cm2, display.updateLineNumbers, update.dims);
+        patchDisplay(cm, display.updateLineNumbers, update.dims);
         if (toUpdate > 4) {
           display.lineDiv.style.display = "";
         }
@@ -4440,60 +4440,60 @@ var require_codemirror = __commonJS({
         if (different) {
           display.lastWrapHeight = update.wrapperHeight;
           display.lastWrapWidth = update.wrapperWidth;
-          startWorker(cm2, 400);
+          startWorker(cm, 400);
         }
         display.updateLineNumbers = null;
         return true;
       }
-      function postUpdateDisplay(cm2, update) {
+      function postUpdateDisplay(cm, update) {
         var viewport = update.viewport;
         for (var first = true; ; first = false) {
-          if (!first || !cm2.options.lineWrapping || update.oldDisplayWidth == displayWidth(cm2)) {
+          if (!first || !cm.options.lineWrapping || update.oldDisplayWidth == displayWidth(cm)) {
             if (viewport && viewport.top != null) {
-              viewport = { top: Math.min(cm2.doc.height + paddingVert(cm2.display) - displayHeight(cm2), viewport.top) };
+              viewport = { top: Math.min(cm.doc.height + paddingVert(cm.display) - displayHeight(cm), viewport.top) };
             }
-            update.visible = visibleLines(cm2.display, cm2.doc, viewport);
-            if (update.visible.from >= cm2.display.viewFrom && update.visible.to <= cm2.display.viewTo) {
+            update.visible = visibleLines(cm.display, cm.doc, viewport);
+            if (update.visible.from >= cm.display.viewFrom && update.visible.to <= cm.display.viewTo) {
               break;
             }
           } else if (first) {
-            update.visible = visibleLines(cm2.display, cm2.doc, viewport);
+            update.visible = visibleLines(cm.display, cm.doc, viewport);
           }
-          if (!updateDisplayIfNeeded(cm2, update)) {
+          if (!updateDisplayIfNeeded(cm, update)) {
             break;
           }
-          updateHeightsInViewport(cm2);
-          var barMeasure = measureForScrollbars(cm2);
-          updateSelection(cm2);
-          updateScrollbars(cm2, barMeasure);
-          setDocumentHeight(cm2, barMeasure);
+          updateHeightsInViewport(cm);
+          var barMeasure = measureForScrollbars(cm);
+          updateSelection(cm);
+          updateScrollbars(cm, barMeasure);
+          setDocumentHeight(cm, barMeasure);
           update.force = false;
         }
-        update.signal(cm2, "update", cm2);
-        if (cm2.display.viewFrom != cm2.display.reportedViewFrom || cm2.display.viewTo != cm2.display.reportedViewTo) {
-          update.signal(cm2, "viewportChange", cm2, cm2.display.viewFrom, cm2.display.viewTo);
-          cm2.display.reportedViewFrom = cm2.display.viewFrom;
-          cm2.display.reportedViewTo = cm2.display.viewTo;
+        update.signal(cm, "update", cm);
+        if (cm.display.viewFrom != cm.display.reportedViewFrom || cm.display.viewTo != cm.display.reportedViewTo) {
+          update.signal(cm, "viewportChange", cm, cm.display.viewFrom, cm.display.viewTo);
+          cm.display.reportedViewFrom = cm.display.viewFrom;
+          cm.display.reportedViewTo = cm.display.viewTo;
         }
       }
-      function updateDisplaySimple(cm2, viewport) {
-        var update = new DisplayUpdate(cm2, viewport);
-        if (updateDisplayIfNeeded(cm2, update)) {
-          updateHeightsInViewport(cm2);
-          postUpdateDisplay(cm2, update);
-          var barMeasure = measureForScrollbars(cm2);
-          updateSelection(cm2);
-          updateScrollbars(cm2, barMeasure);
-          setDocumentHeight(cm2, barMeasure);
+      function updateDisplaySimple(cm, viewport) {
+        var update = new DisplayUpdate(cm, viewport);
+        if (updateDisplayIfNeeded(cm, update)) {
+          updateHeightsInViewport(cm);
+          postUpdateDisplay(cm, update);
+          var barMeasure = measureForScrollbars(cm);
+          updateSelection(cm);
+          updateScrollbars(cm, barMeasure);
+          setDocumentHeight(cm, barMeasure);
           update.finish();
         }
       }
-      function patchDisplay(cm2, updateNumbersFrom, dims) {
-        var display = cm2.display, lineNumbers = cm2.options.lineNumbers;
+      function patchDisplay(cm, updateNumbersFrom, dims) {
+        var display = cm.display, lineNumbers = cm.options.lineNumbers;
         var container = display.lineDiv, cur = container.firstChild;
         function rm(node2) {
           var next = node2.nextSibling;
-          if (webkit && mac && cm2.display.currentWheelTarget == node2) {
+          if (webkit && mac && cm.display.currentWheelTarget == node2) {
             node2.style.display = "none";
           } else {
             node2.parentNode.removeChild(node2);
@@ -4505,7 +4505,7 @@ var require_codemirror = __commonJS({
           var lineView = view[i2];
           if (lineView.hidden) ;
           else if (!lineView.node || lineView.node.parentNode != container) {
-            var node = buildLineElement(cm2, lineView, lineN, dims);
+            var node = buildLineElement(cm, lineView, lineN, dims);
             container.insertBefore(node, cur);
           } else {
             while (cur != lineView.node) {
@@ -4516,11 +4516,11 @@ var require_codemirror = __commonJS({
               if (indexOf(lineView.changes, "gutter") > -1) {
                 updateNumber = false;
               }
-              updateLineForChanges(cm2, lineView, lineN, dims);
+              updateLineForChanges(cm, lineView, lineN, dims);
             }
             if (updateNumber) {
               removeChildren(lineView.lineNumber);
-              lineView.lineNumber.appendChild(document.createTextNode(lineNumberFor(cm2.options, lineN)));
+              lineView.lineNumber.appendChild(document.createTextNode(lineNumberFor(cm.options, lineN)));
             }
             cur = lineView.node.nextSibling;
           }
@@ -4535,21 +4535,21 @@ var require_codemirror = __commonJS({
         display.sizer.style.marginLeft = width + "px";
         signalLater(display, "gutterChanged", display);
       }
-      function setDocumentHeight(cm2, measure) {
-        cm2.display.sizer.style.minHeight = measure.docHeight + "px";
-        cm2.display.heightForcer.style.top = measure.docHeight + "px";
-        cm2.display.gutters.style.height = measure.docHeight + cm2.display.barHeight + scrollGap(cm2) + "px";
+      function setDocumentHeight(cm, measure) {
+        cm.display.sizer.style.minHeight = measure.docHeight + "px";
+        cm.display.heightForcer.style.top = measure.docHeight + "px";
+        cm.display.gutters.style.height = measure.docHeight + cm.display.barHeight + scrollGap(cm) + "px";
       }
-      function alignHorizontally(cm2) {
-        var display = cm2.display, view = display.view;
-        if (!display.alignWidgets && (!display.gutters.firstChild || !cm2.options.fixedGutter)) {
+      function alignHorizontally(cm) {
+        var display = cm.display, view = display.view;
+        if (!display.alignWidgets && (!display.gutters.firstChild || !cm.options.fixedGutter)) {
           return;
         }
-        var comp = compensateForHScroll(display) - display.scroller.scrollLeft + cm2.doc.scrollLeft;
+        var comp = compensateForHScroll(display) - display.scroller.scrollLeft + cm.doc.scrollLeft;
         var gutterW = display.gutters.offsetWidth, left = comp + "px";
         for (var i2 = 0; i2 < view.length; i2++) {
           if (!view[i2].hidden) {
-            if (cm2.options.fixedGutter) {
+            if (cm.options.fixedGutter) {
               if (view[i2].gutter) {
                 view[i2].gutter.style.left = left;
               }
@@ -4565,15 +4565,15 @@ var require_codemirror = __commonJS({
             }
           }
         }
-        if (cm2.options.fixedGutter) {
+        if (cm.options.fixedGutter) {
           display.gutters.style.left = comp + gutterW + "px";
         }
       }
-      function maybeUpdateLineNumberWidth(cm2) {
-        if (!cm2.options.lineNumbers) {
+      function maybeUpdateLineNumberWidth(cm) {
+        if (!cm.options.lineNumbers) {
           return false;
         }
-        var doc2 = cm2.doc, last = lineNumberFor(cm2.options, doc2.first + doc2.size - 1), display = cm2.display;
+        var doc2 = cm.doc, last = lineNumberFor(cm.options, doc2.first + doc2.size - 1), display = cm.display;
         if (last.length != display.lineNumChars) {
           var test = display.measure.appendChild(elt(
             "div",
@@ -4586,7 +4586,7 @@ var require_codemirror = __commonJS({
           display.lineNumWidth = display.lineNumInnerWidth + padding;
           display.lineNumChars = display.lineNumInnerWidth ? last.length : -1;
           display.lineGutter.style.width = display.lineNumWidth + "px";
-          updateGutterSpace(cm2.display);
+          updateGutterSpace(cm.display);
           return true;
         }
         return false;
@@ -4633,10 +4633,10 @@ var require_codemirror = __commonJS({
         gutters.style.display = specs.length ? "" : "none";
         updateGutterSpace(display);
       }
-      function updateGutters(cm2) {
-        renderGutters(cm2.display);
-        regChange(cm2);
-        alignHorizontally(cm2);
+      function updateGutters(cm) {
+        renderGutters(cm.display);
+        regChange(cm);
+        alignHorizontally(cm);
       }
       function Display(place, doc2, input, options) {
         var d = this;
@@ -4736,16 +4736,16 @@ var require_codemirror = __commonJS({
         delta.y *= wheelPixelsPerUnit;
         return delta;
       }
-      function onScrollWheel(cm2, e) {
+      function onScrollWheel(cm, e) {
         if (chrome && chrome_version == 102) {
-          if (cm2.display.chromeScrollHack == null) {
-            cm2.display.sizer.style.pointerEvents = "none";
+          if (cm.display.chromeScrollHack == null) {
+            cm.display.sizer.style.pointerEvents = "none";
           } else {
-            clearTimeout(cm2.display.chromeScrollHack);
+            clearTimeout(cm.display.chromeScrollHack);
           }
-          cm2.display.chromeScrollHack = setTimeout(function() {
-            cm2.display.chromeScrollHack = null;
-            cm2.display.sizer.style.pointerEvents = "";
+          cm.display.chromeScrollHack = setTimeout(function() {
+            cm.display.chromeScrollHack = null;
+            cm.display.sizer.style.pointerEvents = "";
           }, 100);
         }
         var delta = wheelEventDelta(e), dx = delta.x, dy = delta.y;
@@ -4755,7 +4755,7 @@ var require_codemirror = __commonJS({
           dy = e.deltaY;
           pixelsPerUnit = 1;
         }
-        var display = cm2.display, scroll = display.scroller;
+        var display = cm.display, scroll = display.scroller;
         var canScrollX = scroll.scrollWidth > scroll.clientWidth;
         var canScrollY = scroll.scrollHeight > scroll.clientHeight;
         if (!(dx && canScrollX || dy && canScrollY)) {
@@ -4765,7 +4765,7 @@ var require_codemirror = __commonJS({
           outer: for (var cur = e.target, view = display.view; cur != scroll; cur = cur.parentNode) {
             for (var i2 = 0; i2 < view.length; i2++) {
               if (view[i2].node == cur) {
-                cm2.display.currentWheelTarget = cur;
+                cm.display.currentWheelTarget = cur;
                 break outer;
               }
             }
@@ -4773,9 +4773,9 @@ var require_codemirror = __commonJS({
         }
         if (dx && !gecko && !presto && pixelsPerUnit != null) {
           if (dy && canScrollY) {
-            updateScrollTop(cm2, Math.max(0, scroll.scrollTop + dy * pixelsPerUnit));
+            updateScrollTop(cm, Math.max(0, scroll.scrollTop + dy * pixelsPerUnit));
           }
-          setScrollLeft(cm2, Math.max(0, scroll.scrollLeft + dx * pixelsPerUnit));
+          setScrollLeft(cm, Math.max(0, scroll.scrollLeft + dx * pixelsPerUnit));
           if (!dy || dy && canScrollY) {
             e_preventDefault(e);
           }
@@ -4784,13 +4784,13 @@ var require_codemirror = __commonJS({
         }
         if (dy && pixelsPerUnit != null) {
           var pixels = dy * pixelsPerUnit;
-          var top = cm2.doc.scrollTop, bot = top + display.wrapper.clientHeight;
+          var top = cm.doc.scrollTop, bot = top + display.wrapper.clientHeight;
           if (pixels < 0) {
             top = Math.max(0, top + pixels - 50);
           } else {
-            bot = Math.min(cm2.doc.height, bot + pixels + 50);
+            bot = Math.min(cm.doc.height, bot + pixels + 50);
           }
-          updateDisplaySimple(cm2, { top, bottom: bot });
+          updateDisplaySimple(cm, { top, bottom: bot });
         }
         if (wheelSamples < 20 && e.deltaMode !== 0) {
           if (display.wheelStartX == null) {
@@ -4880,8 +4880,8 @@ var require_codemirror = __commonJS({
       Range.prototype.empty = function() {
         return this.head.line == this.anchor.line && this.head.ch == this.anchor.ch;
       };
-      function normalizeSelection(cm2, ranges, primIndex) {
-        var mayTouch = cm2 && cm2.options.selectionsMayTouch;
+      function normalizeSelection(cm, ranges, primIndex) {
+        var mayTouch = cm && cm.options.selectionsMayTouch;
         var prim = ranges[primIndex];
         ranges.sort(function(a, b) {
           return cmp(a.from(), b.from());
@@ -4962,12 +4962,12 @@ var require_codemirror = __commonJS({
         }
         return new Selection(out, doc2.sel.primIndex);
       }
-      function loadMode(cm2) {
-        cm2.doc.mode = getMode2(cm2.options, cm2.doc.modeOption);
-        resetModeState(cm2);
+      function loadMode(cm) {
+        cm.doc.mode = getMode(cm.options, cm.doc.modeOption);
+        resetModeState(cm);
       }
-      function resetModeState(cm2) {
-        cm2.doc.iter(function(line) {
+      function resetModeState(cm) {
+        cm.doc.iter(function(line) {
           if (line.stateAfter) {
             line.stateAfter = null;
           }
@@ -4975,11 +4975,11 @@ var require_codemirror = __commonJS({
             line.styles = null;
           }
         });
-        cm2.doc.modeFrontier = cm2.doc.highlightFrontier = cm2.doc.first;
-        startWorker(cm2, 100);
-        cm2.state.modeGen++;
-        if (cm2.curOp) {
-          regChange(cm2);
+        cm.doc.modeFrontier = cm.doc.highlightFrontier = cm.doc.first;
+        startWorker(cm, 100);
+        cm.state.modeGen++;
+        if (cm.curOp) {
+          regChange(cm);
         }
       }
       function isWholeLineUpdate(doc2, change) {
@@ -5057,29 +5057,29 @@ var require_codemirror = __commonJS({
         }
         propagate(doc2, null, true);
       }
-      function attachDoc(cm2, doc2) {
+      function attachDoc(cm, doc2) {
         if (doc2.cm) {
           throw new Error("This document is already in use.");
         }
-        cm2.doc = doc2;
-        doc2.cm = cm2;
-        estimateLineHeights(cm2);
-        loadMode(cm2);
-        setDirectionClass(cm2);
-        cm2.options.direction = doc2.direction;
-        if (!cm2.options.lineWrapping) {
-          findMaxLine(cm2);
+        cm.doc = doc2;
+        doc2.cm = cm;
+        estimateLineHeights(cm);
+        loadMode(cm);
+        setDirectionClass(cm);
+        cm.options.direction = doc2.direction;
+        if (!cm.options.lineWrapping) {
+          findMaxLine(cm);
         }
-        cm2.options.mode = doc2.modeOption;
-        regChange(cm2);
+        cm.options.mode = doc2.modeOption;
+        regChange(cm);
       }
-      function setDirectionClass(cm2) {
-        (cm2.doc.direction == "rtl" ? addClass : rmClass)(cm2.display.lineDiv, "CodeMirror-rtl");
+      function setDirectionClass(cm) {
+        (cm.doc.direction == "rtl" ? addClass : rmClass)(cm.display.lineDiv, "CodeMirror-rtl");
       }
-      function directionChanged(cm2) {
-        runInOp(cm2, function() {
-          setDirectionClass(cm2);
-          regChange(cm2);
+      function directionChanged(cm) {
+        runInOp(cm, function() {
+          setDirectionClass(cm);
+          regChange(cm);
         });
       }
       function History(prev) {
@@ -5457,8 +5457,8 @@ var require_codemirror = __commonJS({
           return new Pos(pos.line, pos.ch + dir);
         }
       }
-      function selectAll(cm2) {
-        cm2.setSelection(Pos(cm2.firstLine(), 0), Pos(cm2.lastLine()), sel_dontScroll);
+      function selectAll(cm) {
+        cm.setSelection(Pos(cm.firstLine(), 0), Pos(cm.lastLine()), sel_dontScroll);
       }
       function filterChange(doc2, change, update) {
         var obj = {
@@ -5667,10 +5667,10 @@ var require_codemirror = __commonJS({
           doc2.cantEdit = false;
         }
       }
-      function makeChangeSingleDocInEditor(cm2, change, spans) {
-        var doc2 = cm2.doc, display = cm2.display, from = change.from, to = change.to;
+      function makeChangeSingleDocInEditor(cm, change, spans) {
+        var doc2 = cm.doc, display = cm.display, from = change.from, to = change.to;
         var recomputeMaxLength = false, checkWidthStart = from.line;
-        if (!cm2.options.lineWrapping) {
+        if (!cm.options.lineWrapping) {
           checkWidthStart = lineNo(visualLine(getLine(doc2, from.line)));
           doc2.iter(checkWidthStart, to.line + 1, function(line) {
             if (line == display.maxLine) {
@@ -5680,10 +5680,10 @@ var require_codemirror = __commonJS({
           });
         }
         if (doc2.sel.contains(change.from, change.to) > -1) {
-          signalCursorActivity(cm2);
+          signalCursorActivity(cm);
         }
-        updateDoc(doc2, change, spans, estimateHeight(cm2));
-        if (!cm2.options.lineWrapping) {
+        updateDoc(doc2, change, spans, estimateHeight(cm));
+        if (!cm.options.lineWrapping) {
           doc2.iter(checkWidthStart, from.line + change.text.length, function(line) {
             var len = lineLength(line);
             if (len > display.maxLineLength) {
@@ -5694,20 +5694,20 @@ var require_codemirror = __commonJS({
             }
           });
           if (recomputeMaxLength) {
-            cm2.curOp.updateMaxLine = true;
+            cm.curOp.updateMaxLine = true;
           }
         }
         retreatFrontier(doc2, from.line);
-        startWorker(cm2, 400);
+        startWorker(cm, 400);
         var lendiff = change.text.length - (to.line - from.line) - 1;
         if (change.full) {
-          regChange(cm2);
-        } else if (from.line == to.line && change.text.length == 1 && !isWholeLineUpdate(cm2.doc, change)) {
-          regLineChange(cm2, from.line, "text");
+          regChange(cm);
+        } else if (from.line == to.line && change.text.length == 1 && !isWholeLineUpdate(cm.doc, change)) {
+          regLineChange(cm, from.line, "text");
         } else {
-          regChange(cm2, from.line, to.line + 1, lendiff);
+          regChange(cm, from.line, to.line + 1, lendiff);
         }
-        var changesHandler = hasHandler(cm2, "changes"), changeHandler = hasHandler(cm2, "change");
+        var changesHandler = hasHandler(cm, "changes"), changeHandler = hasHandler(cm, "change");
         if (changeHandler || changesHandler) {
           var obj = {
             from,
@@ -5717,13 +5717,13 @@ var require_codemirror = __commonJS({
             origin: change.origin
           };
           if (changeHandler) {
-            signalLater(cm2, "change", cm2, obj);
+            signalLater(cm, "change", cm, obj);
           }
           if (changesHandler) {
-            (cm2.curOp.changeObjs || (cm2.curOp.changeObjs = [])).push(obj);
+            (cm.curOp.changeObjs || (cm.curOp.changeObjs = [])).push(obj);
           }
         }
-        cm2.display.selForContextMenu = null;
+        cm.display.selForContextMenu = null;
       }
       function replaceRange(doc2, code, from, to, origin) {
         var assign;
@@ -5968,7 +5968,7 @@ var require_codemirror = __commonJS({
         this.node = node;
       };
       LineWidget.prototype.clear = function() {
-        var cm2 = this.doc.cm, ws = this.line.widgets, line = this.line, no = lineNo(line);
+        var cm = this.doc.cm, ws = this.line.widgets, line = this.line, no = lineNo(line);
         if (no == null || !ws) {
           return;
         }
@@ -5982,17 +5982,17 @@ var require_codemirror = __commonJS({
         }
         var height = widgetHeight(this);
         updateLineHeight(line, Math.max(0, line.height - height));
-        if (cm2) {
-          runInOp(cm2, function() {
-            adjustScrollWhenAboveVisible(cm2, line, -height);
-            regLineChange(cm2, no, "widget");
+        if (cm) {
+          runInOp(cm, function() {
+            adjustScrollWhenAboveVisible(cm, line, -height);
+            regLineChange(cm, no, "widget");
           });
-          signalLater(cm2, "lineWidgetCleared", cm2, this, no);
+          signalLater(cm, "lineWidgetCleared", cm, this, no);
         }
       };
       LineWidget.prototype.changed = function() {
         var this$1 = this;
-        var oldH = this.height, cm2 = this.doc.cm, line = this.line;
+        var oldH = this.height, cm = this.doc.cm, line = this.line;
         this.height = null;
         var diff = widgetHeight(this) - oldH;
         if (!diff) {
@@ -6001,25 +6001,25 @@ var require_codemirror = __commonJS({
         if (!lineIsHidden(this.doc, line)) {
           updateLineHeight(line, line.height + diff);
         }
-        if (cm2) {
-          runInOp(cm2, function() {
-            cm2.curOp.forceUpdate = true;
-            adjustScrollWhenAboveVisible(cm2, line, diff);
-            signalLater(cm2, "lineWidgetChanged", cm2, this$1, lineNo(line));
+        if (cm) {
+          runInOp(cm, function() {
+            cm.curOp.forceUpdate = true;
+            adjustScrollWhenAboveVisible(cm, line, diff);
+            signalLater(cm, "lineWidgetChanged", cm, this$1, lineNo(line));
           });
         }
       };
       eventMixin(LineWidget);
-      function adjustScrollWhenAboveVisible(cm2, line, diff) {
-        if (heightAtLine(line) < (cm2.curOp && cm2.curOp.scrollTop || cm2.doc.scrollTop)) {
-          addToScrollTop(cm2, diff);
+      function adjustScrollWhenAboveVisible(cm, line, diff) {
+        if (heightAtLine(line) < (cm.curOp && cm.curOp.scrollTop || cm.doc.scrollTop)) {
+          addToScrollTop(cm, diff);
         }
       }
       function addLineWidget(doc2, handle, node, options) {
         var widget = new LineWidget(doc2, node, options);
-        var cm2 = doc2.cm;
-        if (cm2 && widget.noHScroll) {
-          cm2.display.alignWidgets = true;
+        var cm = doc2.cm;
+        if (cm && widget.noHScroll) {
+          cm.display.alignWidgets = true;
         }
         changeLine(doc2, handle, "widget", function(line) {
           var widgets = line.widgets || (line.widgets = []);
@@ -6029,18 +6029,18 @@ var require_codemirror = __commonJS({
             widgets.splice(Math.min(widgets.length, Math.max(0, widget.insertAt)), 0, widget);
           }
           widget.line = line;
-          if (cm2 && !lineIsHidden(doc2, line)) {
+          if (cm && !lineIsHidden(doc2, line)) {
             var aboveVisible = heightAtLine(line) < doc2.scrollTop;
             updateLineHeight(line, line.height + widgetHeight(widget));
             if (aboveVisible) {
-              addToScrollTop(cm2, widget.height);
+              addToScrollTop(cm, widget.height);
             }
-            cm2.curOp.forceUpdate = true;
+            cm.curOp.forceUpdate = true;
           }
           return true;
         });
-        if (cm2) {
-          signalLater(cm2, "lineWidgetAdded", cm2, widget, typeof handle == "number" ? handle : lineNo(handle));
+        if (cm) {
+          signalLater(cm, "lineWidgetAdded", cm, widget, typeof handle == "number" ? handle : lineNo(handle));
         }
         return widget;
       }
@@ -6055,9 +6055,9 @@ var require_codemirror = __commonJS({
         if (this.explicitlyCleared) {
           return;
         }
-        var cm2 = this.doc.cm, withOp = cm2 && !cm2.curOp;
+        var cm = this.doc.cm, withOp = cm && !cm.curOp;
         if (withOp) {
-          startOperation(cm2);
+          startOperation(cm);
         }
         if (hasHandler(this, "clear")) {
           var found = this.find();
@@ -6069,9 +6069,9 @@ var require_codemirror = __commonJS({
         for (var i2 = 0; i2 < this.lines.length; ++i2) {
           var line = this.lines[i2];
           var span = getMarkedSpanFor(line.markedSpans, this);
-          if (cm2 && !this.collapsed) {
-            regLineChange(cm2, lineNo(line), "text");
-          } else if (cm2) {
+          if (cm && !this.collapsed) {
+            regLineChange(cm, lineNo(line), "text");
+          } else if (cm) {
             if (span.to != null) {
               max = lineNo(line);
             }
@@ -6080,36 +6080,36 @@ var require_codemirror = __commonJS({
             }
           }
           line.markedSpans = removeMarkedSpan(line.markedSpans, span);
-          if (span.from == null && this.collapsed && !lineIsHidden(this.doc, line) && cm2) {
-            updateLineHeight(line, textHeight(cm2.display));
+          if (span.from == null && this.collapsed && !lineIsHidden(this.doc, line) && cm) {
+            updateLineHeight(line, textHeight(cm.display));
           }
         }
-        if (cm2 && this.collapsed && !cm2.options.lineWrapping) {
+        if (cm && this.collapsed && !cm.options.lineWrapping) {
           for (var i$12 = 0; i$12 < this.lines.length; ++i$12) {
             var visual = visualLine(this.lines[i$12]), len = lineLength(visual);
-            if (len > cm2.display.maxLineLength) {
-              cm2.display.maxLine = visual;
-              cm2.display.maxLineLength = len;
-              cm2.display.maxLineChanged = true;
+            if (len > cm.display.maxLineLength) {
+              cm.display.maxLine = visual;
+              cm.display.maxLineLength = len;
+              cm.display.maxLineChanged = true;
             }
           }
         }
-        if (min != null && cm2 && this.collapsed) {
-          regChange(cm2, min, max + 1);
+        if (min != null && cm && this.collapsed) {
+          regChange(cm, min, max + 1);
         }
         this.lines.length = 0;
         this.explicitlyCleared = true;
         if (this.atomic && this.doc.cantEdit) {
           this.doc.cantEdit = false;
-          if (cm2) {
-            reCheckSelection(cm2.doc);
+          if (cm) {
+            reCheckSelection(cm.doc);
           }
         }
-        if (cm2) {
-          signalLater(cm2, "markerCleared", cm2, this, min, max);
+        if (cm) {
+          signalLater(cm, "markerCleared", cm, this, min, max);
         }
         if (withOp) {
-          endOperation(cm2);
+          endOperation(cm);
         }
         if (this.parent) {
           this.parent.clear();
@@ -6140,18 +6140,18 @@ var require_codemirror = __commonJS({
       };
       TextMarker.prototype.changed = function() {
         var this$1 = this;
-        var pos = this.find(-1, true), widget = this, cm2 = this.doc.cm;
-        if (!pos || !cm2) {
+        var pos = this.find(-1, true), widget = this, cm = this.doc.cm;
+        if (!pos || !cm) {
           return;
         }
-        runInOp(cm2, function() {
+        runInOp(cm, function() {
           var line = pos.line, lineN = lineNo(pos.line);
-          var view = findViewForLine(cm2, lineN);
+          var view = findViewForLine(cm, lineN);
           if (view) {
             clearLineMeasurementCacheFor(view);
-            cm2.curOp.selectionChanged = cm2.curOp.forceUpdate = true;
+            cm.curOp.selectionChanged = cm.curOp.forceUpdate = true;
           }
-          cm2.curOp.updateMaxLine = true;
+          cm.curOp.updateMaxLine = true;
           if (!lineIsHidden(widget.doc, line) && widget.height != null) {
             var oldHeight = widget.height;
             widget.height = null;
@@ -6160,7 +6160,7 @@ var require_codemirror = __commonJS({
               updateLineHeight(line, line.height + dHeight);
             }
           }
-          signalLater(cm2, "markerChanged", cm2, this$1);
+          signalLater(cm, "markerChanged", cm, this$1);
         });
       };
       TextMarker.prototype.attachLine = function(line) {
@@ -6213,9 +6213,9 @@ var require_codemirror = __commonJS({
         if (marker.addToHistory) {
           addChangeToHistory(doc2, { from, to, origin: "markText" }, doc2.sel, NaN);
         }
-        var curLine = from.line, cm2 = doc2.cm, updateMaxLine;
+        var curLine = from.line, cm = doc2.cm, updateMaxLine;
         doc2.iter(curLine, to.line + 1, function(line) {
-          if (cm2 && marker.collapsed && !cm2.options.lineWrapping && visualLine(line) == cm2.display.maxLine) {
+          if (cm && marker.collapsed && !cm.options.lineWrapping && visualLine(line) == cm.display.maxLine) {
             updateMaxLine = true;
           }
           if (marker.collapsed && curLine != from.line) {
@@ -6250,21 +6250,21 @@ var require_codemirror = __commonJS({
           marker.id = ++nextMarkerId;
           marker.atomic = true;
         }
-        if (cm2) {
+        if (cm) {
           if (updateMaxLine) {
-            cm2.curOp.updateMaxLine = true;
+            cm.curOp.updateMaxLine = true;
           }
           if (marker.collapsed) {
-            regChange(cm2, from.line, to.line + 1);
+            regChange(cm, from.line, to.line + 1);
           } else if (marker.className || marker.startStyle || marker.endStyle || marker.css || marker.attributes || marker.title) {
             for (var i2 = from.line; i2 <= to.line; i2++) {
-              regLineChange(cm2, i2, "text");
+              regLineChange(cm, i2, "text");
             }
           }
           if (marker.atomic) {
-            reCheckSelection(cm2.doc);
+            reCheckSelection(cm.doc);
           }
-          signalLater(cm2, "markerAdded", cm2, marker);
+          signalLater(cm, "markerAdded", cm, marker);
         }
         return marker;
       }
@@ -6837,7 +6837,7 @@ var require_codemirror = __commonJS({
           return copy;
         },
         unlinkDoc: function(other) {
-          if (other instanceof CodeMirror3) {
+          if (other instanceof CodeMirror2) {
             other = other.doc;
           }
           if (this.linked) {
@@ -6899,42 +6899,42 @@ var require_codemirror = __commonJS({
       Doc.prototype.eachLine = Doc.prototype.iter;
       var lastDrop = 0;
       function onDrop(e) {
-        var cm2 = this;
-        clearDragCursor(cm2);
-        if (signalDOMEvent(cm2, e) || eventInWidget(cm2.display, e)) {
+        var cm = this;
+        clearDragCursor(cm);
+        if (signalDOMEvent(cm, e) || eventInWidget(cm.display, e)) {
           return;
         }
         e_preventDefault(e);
         if (ie) {
           lastDrop = +/* @__PURE__ */ new Date();
         }
-        var pos = posFromMouse(cm2, e, true), files = e.dataTransfer.files;
-        if (!pos || cm2.isReadOnly()) {
+        var pos = posFromMouse(cm, e, true), files = e.dataTransfer.files;
+        if (!pos || cm.isReadOnly()) {
           return;
         }
         if (files && files.length && window.FileReader && window.File) {
           var n = files.length, text = Array(n), read = 0;
           var markAsReadAndPasteIfAllFilesAreRead = function() {
             if (++read == n) {
-              operation(cm2, function() {
-                pos = clipPos(cm2.doc, pos);
+              operation(cm, function() {
+                pos = clipPos(cm.doc, pos);
                 var change = {
                   from: pos,
                   to: pos,
-                  text: cm2.doc.splitLines(
+                  text: cm.doc.splitLines(
                     text.filter(function(t) {
                       return t != null;
-                    }).join(cm2.doc.lineSeparator())
+                    }).join(cm.doc.lineSeparator())
                   ),
                   origin: "paste"
                 };
-                makeChange(cm2.doc, change);
-                setSelectionReplaceHistory(cm2.doc, simpleSelection(clipPos(cm2.doc, pos), clipPos(cm2.doc, changeEnd(change))));
+                makeChange(cm.doc, change);
+                setSelectionReplaceHistory(cm.doc, simpleSelection(clipPos(cm.doc, pos), clipPos(cm.doc, changeEnd(change))));
               })();
             }
           };
           var readTextFromFile = function(file, i3) {
-            if (cm2.options.allowDropFileTypes && indexOf(cm2.options.allowDropFileTypes, file.type) == -1) {
+            if (cm.options.allowDropFileTypes && indexOf(cm.options.allowDropFileTypes, file.type) == -1) {
               markAsReadAndPasteIfAllFilesAreRead();
               return;
             }
@@ -6957,10 +6957,10 @@ var require_codemirror = __commonJS({
             readTextFromFile(files[i2], i2);
           }
         } else {
-          if (cm2.state.draggingText && cm2.doc.sel.contains(pos) > -1) {
-            cm2.state.draggingText(e);
+          if (cm.state.draggingText && cm.doc.sel.contains(pos) > -1) {
+            cm.state.draggingText(e);
             setTimeout(function() {
-              return cm2.display.input.focus();
+              return cm.display.input.focus();
             }, 20);
             return;
           }
@@ -6968,38 +6968,38 @@ var require_codemirror = __commonJS({
             var text$1 = e.dataTransfer.getData("Text");
             if (text$1) {
               var selected;
-              if (cm2.state.draggingText && !cm2.state.draggingText.copy) {
-                selected = cm2.listSelections();
+              if (cm.state.draggingText && !cm.state.draggingText.copy) {
+                selected = cm.listSelections();
               }
-              setSelectionNoUndo(cm2.doc, simpleSelection(pos, pos));
+              setSelectionNoUndo(cm.doc, simpleSelection(pos, pos));
               if (selected) {
                 for (var i$12 = 0; i$12 < selected.length; ++i$12) {
-                  replaceRange(cm2.doc, "", selected[i$12].anchor, selected[i$12].head, "drag");
+                  replaceRange(cm.doc, "", selected[i$12].anchor, selected[i$12].head, "drag");
                 }
               }
-              cm2.replaceSelection(text$1, "around", "paste");
-              cm2.display.input.focus();
+              cm.replaceSelection(text$1, "around", "paste");
+              cm.display.input.focus();
             }
           } catch (e$1) {
           }
         }
       }
-      function onDragStart(cm2, e) {
-        if (ie && (!cm2.state.draggingText || +/* @__PURE__ */ new Date() - lastDrop < 100)) {
+      function onDragStart(cm, e) {
+        if (ie && (!cm.state.draggingText || +/* @__PURE__ */ new Date() - lastDrop < 100)) {
           e_stop(e);
           return;
         }
-        if (signalDOMEvent(cm2, e) || eventInWidget(cm2.display, e)) {
+        if (signalDOMEvent(cm, e) || eventInWidget(cm.display, e)) {
           return;
         }
-        e.dataTransfer.setData("Text", cm2.getSelection());
+        e.dataTransfer.setData("Text", cm.getSelection());
         e.dataTransfer.effectAllowed = "copyMove";
         if (e.dataTransfer.setDragImage && !safari) {
           var img = elt("img", null, null, "position: fixed; left: 0; top: 0;");
           img.src = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
           if (presto) {
             img.width = img.height = 1;
-            cm2.display.wrapper.appendChild(img);
+            cm.display.wrapper.appendChild(img);
             img._top = img.offsetTop;
           }
           e.dataTransfer.setDragImage(img, 0, 0);
@@ -7008,23 +7008,23 @@ var require_codemirror = __commonJS({
           }
         }
       }
-      function onDragOver(cm2, e) {
-        var pos = posFromMouse(cm2, e);
+      function onDragOver(cm, e) {
+        var pos = posFromMouse(cm, e);
         if (!pos) {
           return;
         }
         var frag = document.createDocumentFragment();
-        drawSelectionCursor(cm2, pos, frag);
-        if (!cm2.display.dragCursor) {
-          cm2.display.dragCursor = elt("div", null, "CodeMirror-cursors CodeMirror-dragcursors");
-          cm2.display.lineSpace.insertBefore(cm2.display.dragCursor, cm2.display.cursorDiv);
+        drawSelectionCursor(cm, pos, frag);
+        if (!cm.display.dragCursor) {
+          cm.display.dragCursor = elt("div", null, "CodeMirror-cursors CodeMirror-dragcursors");
+          cm.display.lineSpace.insertBefore(cm.display.dragCursor, cm.display.cursorDiv);
         }
-        removeChildrenAndAdd(cm2.display.dragCursor, frag);
+        removeChildrenAndAdd(cm.display.dragCursor, frag);
       }
-      function clearDragCursor(cm2) {
-        if (cm2.display.dragCursor) {
-          cm2.display.lineSpace.removeChild(cm2.display.dragCursor);
-          cm2.display.dragCursor = null;
+      function clearDragCursor(cm) {
+        if (cm.display.dragCursor) {
+          cm.display.lineSpace.removeChild(cm.display.dragCursor);
+          cm.display.dragCursor = null;
         }
       }
       function forEachCodeMirror(f) {
@@ -7033,9 +7033,9 @@ var require_codemirror = __commonJS({
         }
         var byClass = document.getElementsByClassName("CodeMirror"), editors = [];
         for (var i2 = 0; i2 < byClass.length; i2++) {
-          var cm2 = byClass[i2].CodeMirror;
-          if (cm2) {
-            editors.push(cm2);
+          var cm = byClass[i2].CodeMirror;
+          if (cm) {
+            editors.push(cm);
           }
         }
         if (editors.length) {
@@ -7068,11 +7068,11 @@ var require_codemirror = __commonJS({
           return forEachCodeMirror(onBlur);
         });
       }
-      function onResize(cm2) {
-        var d = cm2.display;
+      function onResize(cm) {
+        var d = cm.display;
         d.cachedCharWidth = d.cachedTextHeight = d.cachedPaddingH = null;
         d.scrollbarsClipped = false;
-        cm2.setSize();
+        cm.setSize();
       }
       var keyNames = {
         3: "Pause",
@@ -7368,8 +7368,8 @@ var require_codemirror = __commonJS({
       function getKeyMap(val) {
         return typeof val == "string" ? keyMap[val] : val;
       }
-      function deleteNearSelection(cm2, compute) {
-        var ranges = cm2.doc.sel.ranges, kill = [];
+      function deleteNearSelection(cm, compute) {
+        var ranges = cm.doc.sel.ranges, kill = [];
         for (var i2 = 0; i2 < ranges.length; i2++) {
           var toKill = compute(ranges[i2]);
           while (kill.length && cmp(toKill.from, lst(kill).to) <= 0) {
@@ -7381,11 +7381,11 @@ var require_codemirror = __commonJS({
           }
           kill.push(toKill);
         }
-        runInOp(cm2, function() {
+        runInOp(cm, function() {
           for (var i3 = kill.length - 1; i3 >= 0; i3--) {
-            replaceRange(cm2.doc, "", kill[i3].from, kill[i3].to, "+delete");
+            replaceRange(cm.doc, "", kill[i3].from, kill[i3].to, "+delete");
           }
-          ensureCursorVisible(cm2);
+          ensureCursorVisible(cm);
         });
       }
       function moveCharLogically(line, ch, dir) {
@@ -7396,23 +7396,23 @@ var require_codemirror = __commonJS({
         var ch = moveCharLogically(line, start.ch, dir);
         return ch == null ? null : new Pos(start.line, ch, dir < 0 ? "after" : "before");
       }
-      function endOfLine(visually, cm2, lineObj, lineNo2, dir) {
+      function endOfLine(visually, cm, lineObj, lineNo2, dir) {
         if (visually) {
-          if (cm2.doc.direction == "rtl") {
+          if (cm.doc.direction == "rtl") {
             dir = -dir;
           }
-          var order = getOrder(lineObj, cm2.doc.direction);
+          var order = getOrder(lineObj, cm.doc.direction);
           if (order) {
             var part = dir < 0 ? lst(order) : order[0];
             var moveInStorageOrder = dir < 0 == (part.level == 1);
             var sticky = moveInStorageOrder ? "after" : "before";
             var ch;
-            if (part.level > 0 || cm2.doc.direction == "rtl") {
-              var prep = prepareMeasureForLine(cm2, lineObj);
+            if (part.level > 0 || cm.doc.direction == "rtl") {
+              var prep = prepareMeasureForLine(cm, lineObj);
               ch = dir < 0 ? lineObj.text.length - 1 : 0;
-              var targetTop = measureCharPrepared(cm2, prep, ch).top;
+              var targetTop = measureCharPrepared(cm, prep, ch).top;
               ch = findFirst(function(ch2) {
-                return measureCharPrepared(cm2, prep, ch2).top == targetTop;
+                return measureCharPrepared(cm, prep, ch2).top == targetTop;
               }, dir < 0 == (part.level == 1) ? part.from : part.to - 1, ch);
               if (sticky == "before") {
                 ch = moveCharLogically(lineObj, ch, 1);
@@ -7425,8 +7425,8 @@ var require_codemirror = __commonJS({
         }
         return new Pos(lineNo2, dir < 0 ? lineObj.text.length : 0, dir < 0 ? "before" : "after");
       }
-      function moveVisually(cm2, line, start, dir) {
-        var bidi = getOrder(line, cm2.doc.direction);
+      function moveVisually(cm, line, start, dir) {
+        var bidi = getOrder(line, cm.doc.direction);
         if (!bidi) {
           return moveLogically(line, start, dir);
         }
@@ -7438,7 +7438,7 @@ var require_codemirror = __commonJS({
           start.sticky = "after";
         }
         var partPos = getBidiPartAt(bidi, start.ch, start.sticky), part = bidi[partPos];
-        if (cm2.doc.direction == "ltr" && part.level % 2 == 0 && (dir > 0 ? part.to > start.ch : part.from < start.ch)) {
+        if (cm.doc.direction == "ltr" && part.level % 2 == 0 && (dir > 0 ? part.to > start.ch : part.from < start.ch)) {
           return moveLogically(line, start, dir);
         }
         var mv = function(pos, dir2) {
@@ -7446,14 +7446,14 @@ var require_codemirror = __commonJS({
         };
         var prep;
         var getWrappedLineExtent = function(ch2) {
-          if (!cm2.options.lineWrapping) {
+          if (!cm.options.lineWrapping) {
             return { begin: 0, end: line.text.length };
           }
-          prep = prep || prepareMeasureForLine(cm2, line);
-          return wrappedLineExtentChar(cm2, line, prep, ch2);
+          prep = prep || prepareMeasureForLine(cm, line);
+          return wrappedLineExtentChar(cm, line, prep, ch2);
         };
         var wrappedLineExtent2 = getWrappedLineExtent(start.sticky == "before" ? mv(start, -1) : start.ch);
-        if (cm2.doc.direction == "rtl" || part.level == 1) {
+        if (cm.doc.direction == "rtl" || part.level == 1) {
           var moveInStorageOrder = part.level == 1 == dir < 0;
           var ch = mv(start, moveInStorageOrder ? 1 : -1);
           if (ch != null && (!moveInStorageOrder ? ch >= part.from && ch >= wrappedLineExtent2.begin : ch <= part.to && ch <= wrappedLineExtent2.end)) {
@@ -7493,14 +7493,14 @@ var require_codemirror = __commonJS({
       }
       var commands = {
         selectAll,
-        singleSelection: function(cm2) {
-          return cm2.setSelection(cm2.getCursor("anchor"), cm2.getCursor("head"), sel_dontScroll);
+        singleSelection: function(cm) {
+          return cm.setSelection(cm.getCursor("anchor"), cm.getCursor("head"), sel_dontScroll);
         },
-        killLine: function(cm2) {
-          return deleteNearSelection(cm2, function(range2) {
+        killLine: function(cm) {
+          return deleteNearSelection(cm, function(range2) {
             if (range2.empty()) {
-              var len = getLine(cm2.doc, range2.head.line).text.length;
-              if (range2.head.ch == len && range2.head.line < cm2.lastLine()) {
+              var len = getLine(cm.doc, range2.head.line).text.length;
+              if (range2.head.ch == len && range2.head.line < cm.lastLine()) {
                 return { from: range2.head, to: Pos(range2.head.line + 1, 0) };
               } else {
                 return { from: range2.head, to: Pos(range2.head.line, len) };
@@ -7510,180 +7510,180 @@ var require_codemirror = __commonJS({
             }
           });
         },
-        deleteLine: function(cm2) {
-          return deleteNearSelection(cm2, function(range2) {
+        deleteLine: function(cm) {
+          return deleteNearSelection(cm, function(range2) {
             return {
               from: Pos(range2.from().line, 0),
-              to: clipPos(cm2.doc, Pos(range2.to().line + 1, 0))
+              to: clipPos(cm.doc, Pos(range2.to().line + 1, 0))
             };
           });
         },
-        delLineLeft: function(cm2) {
-          return deleteNearSelection(cm2, function(range2) {
+        delLineLeft: function(cm) {
+          return deleteNearSelection(cm, function(range2) {
             return {
               from: Pos(range2.from().line, 0),
               to: range2.from()
             };
           });
         },
-        delWrappedLineLeft: function(cm2) {
-          return deleteNearSelection(cm2, function(range2) {
-            var top = cm2.charCoords(range2.head, "div").top + 5;
-            var leftPos = cm2.coordsChar({ left: 0, top }, "div");
+        delWrappedLineLeft: function(cm) {
+          return deleteNearSelection(cm, function(range2) {
+            var top = cm.charCoords(range2.head, "div").top + 5;
+            var leftPos = cm.coordsChar({ left: 0, top }, "div");
             return { from: leftPos, to: range2.from() };
           });
         },
-        delWrappedLineRight: function(cm2) {
-          return deleteNearSelection(cm2, function(range2) {
-            var top = cm2.charCoords(range2.head, "div").top + 5;
-            var rightPos = cm2.coordsChar({ left: cm2.display.lineDiv.offsetWidth + 100, top }, "div");
+        delWrappedLineRight: function(cm) {
+          return deleteNearSelection(cm, function(range2) {
+            var top = cm.charCoords(range2.head, "div").top + 5;
+            var rightPos = cm.coordsChar({ left: cm.display.lineDiv.offsetWidth + 100, top }, "div");
             return { from: range2.from(), to: rightPos };
           });
         },
-        undo: function(cm2) {
-          return cm2.undo();
+        undo: function(cm) {
+          return cm.undo();
         },
-        redo: function(cm2) {
-          return cm2.redo();
+        redo: function(cm) {
+          return cm.redo();
         },
-        undoSelection: function(cm2) {
-          return cm2.undoSelection();
+        undoSelection: function(cm) {
+          return cm.undoSelection();
         },
-        redoSelection: function(cm2) {
-          return cm2.redoSelection();
+        redoSelection: function(cm) {
+          return cm.redoSelection();
         },
-        goDocStart: function(cm2) {
-          return cm2.extendSelection(Pos(cm2.firstLine(), 0));
+        goDocStart: function(cm) {
+          return cm.extendSelection(Pos(cm.firstLine(), 0));
         },
-        goDocEnd: function(cm2) {
-          return cm2.extendSelection(Pos(cm2.lastLine()));
+        goDocEnd: function(cm) {
+          return cm.extendSelection(Pos(cm.lastLine()));
         },
-        goLineStart: function(cm2) {
-          return cm2.extendSelectionsBy(
+        goLineStart: function(cm) {
+          return cm.extendSelectionsBy(
             function(range2) {
-              return lineStart(cm2, range2.head.line);
+              return lineStart(cm, range2.head.line);
             },
             { origin: "+move", bias: 1 }
           );
         },
-        goLineStartSmart: function(cm2) {
-          return cm2.extendSelectionsBy(
+        goLineStartSmart: function(cm) {
+          return cm.extendSelectionsBy(
             function(range2) {
-              return lineStartSmart(cm2, range2.head);
+              return lineStartSmart(cm, range2.head);
             },
             { origin: "+move", bias: 1 }
           );
         },
-        goLineEnd: function(cm2) {
-          return cm2.extendSelectionsBy(
+        goLineEnd: function(cm) {
+          return cm.extendSelectionsBy(
             function(range2) {
-              return lineEnd(cm2, range2.head.line);
+              return lineEnd(cm, range2.head.line);
             },
             { origin: "+move", bias: -1 }
           );
         },
-        goLineRight: function(cm2) {
-          return cm2.extendSelectionsBy(function(range2) {
-            var top = cm2.cursorCoords(range2.head, "div").top + 5;
-            return cm2.coordsChar({ left: cm2.display.lineDiv.offsetWidth + 100, top }, "div");
+        goLineRight: function(cm) {
+          return cm.extendSelectionsBy(function(range2) {
+            var top = cm.cursorCoords(range2.head, "div").top + 5;
+            return cm.coordsChar({ left: cm.display.lineDiv.offsetWidth + 100, top }, "div");
           }, sel_move);
         },
-        goLineLeft: function(cm2) {
-          return cm2.extendSelectionsBy(function(range2) {
-            var top = cm2.cursorCoords(range2.head, "div").top + 5;
-            return cm2.coordsChar({ left: 0, top }, "div");
+        goLineLeft: function(cm) {
+          return cm.extendSelectionsBy(function(range2) {
+            var top = cm.cursorCoords(range2.head, "div").top + 5;
+            return cm.coordsChar({ left: 0, top }, "div");
           }, sel_move);
         },
-        goLineLeftSmart: function(cm2) {
-          return cm2.extendSelectionsBy(function(range2) {
-            var top = cm2.cursorCoords(range2.head, "div").top + 5;
-            var pos = cm2.coordsChar({ left: 0, top }, "div");
-            if (pos.ch < cm2.getLine(pos.line).search(/\S/)) {
-              return lineStartSmart(cm2, range2.head);
+        goLineLeftSmart: function(cm) {
+          return cm.extendSelectionsBy(function(range2) {
+            var top = cm.cursorCoords(range2.head, "div").top + 5;
+            var pos = cm.coordsChar({ left: 0, top }, "div");
+            if (pos.ch < cm.getLine(pos.line).search(/\S/)) {
+              return lineStartSmart(cm, range2.head);
             }
             return pos;
           }, sel_move);
         },
-        goLineUp: function(cm2) {
-          return cm2.moveV(-1, "line");
+        goLineUp: function(cm) {
+          return cm.moveV(-1, "line");
         },
-        goLineDown: function(cm2) {
-          return cm2.moveV(1, "line");
+        goLineDown: function(cm) {
+          return cm.moveV(1, "line");
         },
-        goPageUp: function(cm2) {
-          return cm2.moveV(-1, "page");
+        goPageUp: function(cm) {
+          return cm.moveV(-1, "page");
         },
-        goPageDown: function(cm2) {
-          return cm2.moveV(1, "page");
+        goPageDown: function(cm) {
+          return cm.moveV(1, "page");
         },
-        goCharLeft: function(cm2) {
-          return cm2.moveH(-1, "char");
+        goCharLeft: function(cm) {
+          return cm.moveH(-1, "char");
         },
-        goCharRight: function(cm2) {
-          return cm2.moveH(1, "char");
+        goCharRight: function(cm) {
+          return cm.moveH(1, "char");
         },
-        goColumnLeft: function(cm2) {
-          return cm2.moveH(-1, "column");
+        goColumnLeft: function(cm) {
+          return cm.moveH(-1, "column");
         },
-        goColumnRight: function(cm2) {
-          return cm2.moveH(1, "column");
+        goColumnRight: function(cm) {
+          return cm.moveH(1, "column");
         },
-        goWordLeft: function(cm2) {
-          return cm2.moveH(-1, "word");
+        goWordLeft: function(cm) {
+          return cm.moveH(-1, "word");
         },
-        goGroupRight: function(cm2) {
-          return cm2.moveH(1, "group");
+        goGroupRight: function(cm) {
+          return cm.moveH(1, "group");
         },
-        goGroupLeft: function(cm2) {
-          return cm2.moveH(-1, "group");
+        goGroupLeft: function(cm) {
+          return cm.moveH(-1, "group");
         },
-        goWordRight: function(cm2) {
-          return cm2.moveH(1, "word");
+        goWordRight: function(cm) {
+          return cm.moveH(1, "word");
         },
-        delCharBefore: function(cm2) {
-          return cm2.deleteH(-1, "codepoint");
+        delCharBefore: function(cm) {
+          return cm.deleteH(-1, "codepoint");
         },
-        delCharAfter: function(cm2) {
-          return cm2.deleteH(1, "char");
+        delCharAfter: function(cm) {
+          return cm.deleteH(1, "char");
         },
-        delWordBefore: function(cm2) {
-          return cm2.deleteH(-1, "word");
+        delWordBefore: function(cm) {
+          return cm.deleteH(-1, "word");
         },
-        delWordAfter: function(cm2) {
-          return cm2.deleteH(1, "word");
+        delWordAfter: function(cm) {
+          return cm.deleteH(1, "word");
         },
-        delGroupBefore: function(cm2) {
-          return cm2.deleteH(-1, "group");
+        delGroupBefore: function(cm) {
+          return cm.deleteH(-1, "group");
         },
-        delGroupAfter: function(cm2) {
-          return cm2.deleteH(1, "group");
+        delGroupAfter: function(cm) {
+          return cm.deleteH(1, "group");
         },
-        indentAuto: function(cm2) {
-          return cm2.indentSelection("smart");
+        indentAuto: function(cm) {
+          return cm.indentSelection("smart");
         },
-        indentMore: function(cm2) {
-          return cm2.indentSelection("add");
+        indentMore: function(cm) {
+          return cm.indentSelection("add");
         },
-        indentLess: function(cm2) {
-          return cm2.indentSelection("subtract");
+        indentLess: function(cm) {
+          return cm.indentSelection("subtract");
         },
-        insertTab: function(cm2) {
-          return cm2.replaceSelection("	");
+        insertTab: function(cm) {
+          return cm.replaceSelection("	");
         },
-        insertSoftTab: function(cm2) {
-          var spaces = [], ranges = cm2.listSelections(), tabSize = cm2.options.tabSize;
+        insertSoftTab: function(cm) {
+          var spaces = [], ranges = cm.listSelections(), tabSize = cm.options.tabSize;
           for (var i2 = 0; i2 < ranges.length; i2++) {
             var pos = ranges[i2].from();
-            var col = countColumn(cm2.getLine(pos.line), pos.ch, tabSize);
+            var col = countColumn(cm.getLine(pos.line), pos.ch, tabSize);
             spaces.push(spaceStr(tabSize - col % tabSize));
           }
-          cm2.replaceSelections(spaces);
+          cm.replaceSelections(spaces);
         },
-        defaultTab: function(cm2) {
-          if (cm2.somethingSelected()) {
-            cm2.indentSelection("add");
+        defaultTab: function(cm) {
+          if (cm.somethingSelected()) {
+            cm.indentSelection("add");
           } else {
-            cm2.execCommand("insertTab");
+            cm.execCommand("insertTab");
           }
         },
         // Swap the two chars left and right of each selection's head.
@@ -7693,32 +7693,32 @@ var require_codemirror = __commonJS({
         // Doesn't scan more than one line above to find a character.
         // Doesn't do anything on an empty line.
         // Doesn't do anything with non-empty selections.
-        transposeChars: function(cm2) {
-          return runInOp(cm2, function() {
-            var ranges = cm2.listSelections(), newSel = [];
+        transposeChars: function(cm) {
+          return runInOp(cm, function() {
+            var ranges = cm.listSelections(), newSel = [];
             for (var i2 = 0; i2 < ranges.length; i2++) {
               if (!ranges[i2].empty()) {
                 continue;
               }
-              var cur = ranges[i2].head, line = getLine(cm2.doc, cur.line).text;
+              var cur = ranges[i2].head, line = getLine(cm.doc, cur.line).text;
               if (line) {
                 if (cur.ch == line.length) {
                   cur = new Pos(cur.line, cur.ch - 1);
                 }
                 if (cur.ch > 0) {
                   cur = new Pos(cur.line, cur.ch + 1);
-                  cm2.replaceRange(
+                  cm.replaceRange(
                     line.charAt(cur.ch - 1) + line.charAt(cur.ch - 2),
                     Pos(cur.line, cur.ch - 2),
                     cur,
                     "+transpose"
                   );
-                } else if (cur.line > cm2.doc.first) {
-                  var prev = getLine(cm2.doc, cur.line - 1).text;
+                } else if (cur.line > cm.doc.first) {
+                  var prev = getLine(cm.doc, cur.line - 1).text;
                   if (prev) {
                     cur = new Pos(cur.line, 1);
-                    cm2.replaceRange(
-                      line.charAt(0) + cm2.doc.lineSeparator() + prev.charAt(prev.length - 1),
+                    cm.replaceRange(
+                      line.charAt(0) + cm.doc.lineSeparator() + prev.charAt(prev.length - 1),
                       Pos(cur.line - 1, prev.length - 1),
                       cur,
                       "+transpose"
@@ -7728,49 +7728,49 @@ var require_codemirror = __commonJS({
               }
               newSel.push(new Range(cur, cur));
             }
-            cm2.setSelections(newSel);
+            cm.setSelections(newSel);
           });
         },
-        newlineAndIndent: function(cm2) {
-          return runInOp(cm2, function() {
-            var sels = cm2.listSelections();
+        newlineAndIndent: function(cm) {
+          return runInOp(cm, function() {
+            var sels = cm.listSelections();
             for (var i2 = sels.length - 1; i2 >= 0; i2--) {
-              cm2.replaceRange(cm2.doc.lineSeparator(), sels[i2].anchor, sels[i2].head, "+input");
+              cm.replaceRange(cm.doc.lineSeparator(), sels[i2].anchor, sels[i2].head, "+input");
             }
-            sels = cm2.listSelections();
+            sels = cm.listSelections();
             for (var i$12 = 0; i$12 < sels.length; i$12++) {
-              cm2.indentLine(sels[i$12].from().line, null, true);
+              cm.indentLine(sels[i$12].from().line, null, true);
             }
-            ensureCursorVisible(cm2);
+            ensureCursorVisible(cm);
           });
         },
-        openLine: function(cm2) {
-          return cm2.replaceSelection("\n", "start");
+        openLine: function(cm) {
+          return cm.replaceSelection("\n", "start");
         },
-        toggleOverwrite: function(cm2) {
-          return cm2.toggleOverwrite();
+        toggleOverwrite: function(cm) {
+          return cm.toggleOverwrite();
         }
       };
-      function lineStart(cm2, lineN) {
-        var line = getLine(cm2.doc, lineN);
+      function lineStart(cm, lineN) {
+        var line = getLine(cm.doc, lineN);
         var visual = visualLine(line);
         if (visual != line) {
           lineN = lineNo(visual);
         }
-        return endOfLine(true, cm2, visual, lineN, 1);
+        return endOfLine(true, cm, visual, lineN, 1);
       }
-      function lineEnd(cm2, lineN) {
-        var line = getLine(cm2.doc, lineN);
+      function lineEnd(cm, lineN) {
+        var line = getLine(cm.doc, lineN);
         var visual = visualLineEnd(line);
         if (visual != line) {
           lineN = lineNo(visual);
         }
-        return endOfLine(true, cm2, line, lineN, -1);
+        return endOfLine(true, cm, line, lineN, -1);
       }
-      function lineStartSmart(cm2, pos) {
-        var start = lineStart(cm2, pos.line);
-        var line = getLine(cm2.doc, start.line);
-        var order = getOrder(line, cm2.doc.direction);
+      function lineStartSmart(cm, pos) {
+        var start = lineStart(cm, pos.line);
+        var line = getLine(cm.doc, start.line);
+        var order = getOrder(line, cm.doc.direction);
         if (!order || order[0].level == 0) {
           var firstNonWS = Math.max(start.ch, line.text.search(/\S/));
           var inWS = pos.line == start.line && pos.ch <= firstNonWS && pos.ch;
@@ -7778,130 +7778,130 @@ var require_codemirror = __commonJS({
         }
         return start;
       }
-      function doHandleBinding(cm2, bound, dropShift) {
+      function doHandleBinding(cm, bound, dropShift) {
         if (typeof bound == "string") {
           bound = commands[bound];
           if (!bound) {
             return false;
           }
         }
-        cm2.display.input.ensurePolled();
-        var prevShift = cm2.display.shift, done = false;
+        cm.display.input.ensurePolled();
+        var prevShift = cm.display.shift, done = false;
         try {
-          if (cm2.isReadOnly()) {
-            cm2.state.suppressEdits = true;
+          if (cm.isReadOnly()) {
+            cm.state.suppressEdits = true;
           }
           if (dropShift) {
-            cm2.display.shift = false;
+            cm.display.shift = false;
           }
-          done = bound(cm2) != Pass;
+          done = bound(cm) != Pass;
         } finally {
-          cm2.display.shift = prevShift;
-          cm2.state.suppressEdits = false;
+          cm.display.shift = prevShift;
+          cm.state.suppressEdits = false;
         }
         return done;
       }
-      function lookupKeyForEditor(cm2, name, handle) {
-        for (var i2 = 0; i2 < cm2.state.keyMaps.length; i2++) {
-          var result = lookupKey(name, cm2.state.keyMaps[i2], handle, cm2);
+      function lookupKeyForEditor(cm, name, handle) {
+        for (var i2 = 0; i2 < cm.state.keyMaps.length; i2++) {
+          var result = lookupKey(name, cm.state.keyMaps[i2], handle, cm);
           if (result) {
             return result;
           }
         }
-        return cm2.options.extraKeys && lookupKey(name, cm2.options.extraKeys, handle, cm2) || lookupKey(name, cm2.options.keyMap, handle, cm2);
+        return cm.options.extraKeys && lookupKey(name, cm.options.extraKeys, handle, cm) || lookupKey(name, cm.options.keyMap, handle, cm);
       }
       var stopSeq = new Delayed();
-      function dispatchKey(cm2, name, e, handle) {
-        var seq = cm2.state.keySeq;
+      function dispatchKey(cm, name, e, handle) {
+        var seq = cm.state.keySeq;
         if (seq) {
           if (isModifierKey(name)) {
             return "handled";
           }
           if (/\'$/.test(name)) {
-            cm2.state.keySeq = null;
+            cm.state.keySeq = null;
           } else {
             stopSeq.set(50, function() {
-              if (cm2.state.keySeq == seq) {
-                cm2.state.keySeq = null;
-                cm2.display.input.reset();
+              if (cm.state.keySeq == seq) {
+                cm.state.keySeq = null;
+                cm.display.input.reset();
               }
             });
           }
-          if (dispatchKeyInner(cm2, seq + " " + name, e, handle)) {
+          if (dispatchKeyInner(cm, seq + " " + name, e, handle)) {
             return true;
           }
         }
-        return dispatchKeyInner(cm2, name, e, handle);
+        return dispatchKeyInner(cm, name, e, handle);
       }
-      function dispatchKeyInner(cm2, name, e, handle) {
-        var result = lookupKeyForEditor(cm2, name, handle);
+      function dispatchKeyInner(cm, name, e, handle) {
+        var result = lookupKeyForEditor(cm, name, handle);
         if (result == "multi") {
-          cm2.state.keySeq = name;
+          cm.state.keySeq = name;
         }
         if (result == "handled") {
-          signalLater(cm2, "keyHandled", cm2, name, e);
+          signalLater(cm, "keyHandled", cm, name, e);
         }
         if (result == "handled" || result == "multi") {
           e_preventDefault(e);
-          restartBlink(cm2);
+          restartBlink(cm);
         }
         return !!result;
       }
-      function handleKeyBinding(cm2, e) {
+      function handleKeyBinding(cm, e) {
         var name = keyName(e, true);
         if (!name) {
           return false;
         }
-        if (e.shiftKey && !cm2.state.keySeq) {
-          return dispatchKey(cm2, "Shift-" + name, e, function(b) {
-            return doHandleBinding(cm2, b, true);
-          }) || dispatchKey(cm2, name, e, function(b) {
+        if (e.shiftKey && !cm.state.keySeq) {
+          return dispatchKey(cm, "Shift-" + name, e, function(b) {
+            return doHandleBinding(cm, b, true);
+          }) || dispatchKey(cm, name, e, function(b) {
             if (typeof b == "string" ? /^go[A-Z]/.test(b) : b.motion) {
-              return doHandleBinding(cm2, b);
+              return doHandleBinding(cm, b);
             }
           });
         } else {
-          return dispatchKey(cm2, name, e, function(b) {
-            return doHandleBinding(cm2, b);
+          return dispatchKey(cm, name, e, function(b) {
+            return doHandleBinding(cm, b);
           });
         }
       }
-      function handleCharBinding(cm2, e, ch) {
-        return dispatchKey(cm2, "'" + ch + "'", e, function(b) {
-          return doHandleBinding(cm2, b, true);
+      function handleCharBinding(cm, e, ch) {
+        return dispatchKey(cm, "'" + ch + "'", e, function(b) {
+          return doHandleBinding(cm, b, true);
         });
       }
       var lastStoppedKey = null;
       function onKeyDown(e) {
-        var cm2 = this;
-        if (e.target && e.target != cm2.display.input.getField()) {
+        var cm = this;
+        if (e.target && e.target != cm.display.input.getField()) {
           return;
         }
-        cm2.curOp.focus = activeElt(root(cm2));
-        if (signalDOMEvent(cm2, e)) {
+        cm.curOp.focus = activeElt(root(cm));
+        if (signalDOMEvent(cm, e)) {
           return;
         }
         if (ie && ie_version < 11 && e.keyCode == 27) {
           e.returnValue = false;
         }
         var code = e.keyCode;
-        cm2.display.shift = code == 16 || e.shiftKey;
-        var handled = handleKeyBinding(cm2, e);
+        cm.display.shift = code == 16 || e.shiftKey;
+        var handled = handleKeyBinding(cm, e);
         if (presto) {
           lastStoppedKey = handled ? code : null;
           if (!handled && code == 88 && !hasCopyEvent && (mac ? e.metaKey : e.ctrlKey)) {
-            cm2.replaceSelection("", null, "cut");
+            cm.replaceSelection("", null, "cut");
           }
         }
         if (gecko && !mac && !handled && code == 46 && e.shiftKey && !e.ctrlKey && document.execCommand) {
           document.execCommand("cut");
         }
-        if (code == 18 && !/\bCodeMirror-crosshair\b/.test(cm2.display.lineDiv.className)) {
-          showCrossHair(cm2);
+        if (code == 18 && !/\bCodeMirror-crosshair\b/.test(cm.display.lineDiv.className)) {
+          showCrossHair(cm);
         }
       }
-      function showCrossHair(cm2) {
-        var lineDiv = cm2.display.lineDiv;
+      function showCrossHair(cm) {
+        var lineDiv = cm.display.lineDiv;
         addClass(lineDiv, "CodeMirror-crosshair");
         function up(e) {
           if (e.keyCode == 18 || !e.altKey) {
@@ -7920,11 +7920,11 @@ var require_codemirror = __commonJS({
         signalDOMEvent(this, e);
       }
       function onKeyPress(e) {
-        var cm2 = this;
-        if (e.target && e.target != cm2.display.input.getField()) {
+        var cm = this;
+        if (e.target && e.target != cm.display.input.getField()) {
           return;
         }
-        if (eventInWidget(cm2.display, e) || signalDOMEvent(cm2, e) || e.ctrlKey && !e.altKey || mac && e.metaKey) {
+        if (eventInWidget(cm.display, e) || signalDOMEvent(cm, e) || e.ctrlKey && !e.altKey || mac && e.metaKey) {
           return;
         }
         var keyCode = e.keyCode, charCode = e.charCode;
@@ -7933,17 +7933,17 @@ var require_codemirror = __commonJS({
           e_preventDefault(e);
           return;
         }
-        if (presto && (!e.which || e.which < 10) && handleKeyBinding(cm2, e)) {
+        if (presto && (!e.which || e.which < 10) && handleKeyBinding(cm, e)) {
           return;
         }
         var ch = String.fromCharCode(charCode == null ? keyCode : charCode);
         if (ch == "\b") {
           return;
         }
-        if (handleCharBinding(cm2, e, ch)) {
+        if (handleCharBinding(cm, e, ch)) {
           return;
         }
-        cm2.display.input.onKeyPress(e);
+        cm.display.input.onKeyPress(e);
       }
       var DOUBLECLICK_DELAY = 400;
       var PastClick = function(time, pos, button) {
@@ -7971,8 +7971,8 @@ var require_codemirror = __commonJS({
         }
       }
       function onMouseDown(e) {
-        var cm2 = this, display = cm2.display;
-        if (signalDOMEvent(cm2, e) || display.activeTouch && display.input.supportsTouch()) {
+        var cm = this, display = cm.display;
+        if (signalDOMEvent(cm, e) || display.activeTouch && display.input.supportsTouch()) {
           return;
         }
         display.input.ensurePolled();
@@ -7986,39 +7986,39 @@ var require_codemirror = __commonJS({
           }
           return;
         }
-        if (clickInGutter(cm2, e)) {
+        if (clickInGutter(cm, e)) {
           return;
         }
-        var pos = posFromMouse(cm2, e), button = e_button(e), repeat = pos ? clickRepeat(pos, button) : "single";
-        win(cm2).focus();
-        if (button == 1 && cm2.state.selectingText) {
-          cm2.state.selectingText(e);
+        var pos = posFromMouse(cm, e), button = e_button(e), repeat = pos ? clickRepeat(pos, button) : "single";
+        win(cm).focus();
+        if (button == 1 && cm.state.selectingText) {
+          cm.state.selectingText(e);
         }
-        if (pos && handleMappedButton(cm2, button, pos, repeat, e)) {
+        if (pos && handleMappedButton(cm, button, pos, repeat, e)) {
           return;
         }
         if (button == 1) {
           if (pos) {
-            leftButtonDown(cm2, pos, repeat, e);
+            leftButtonDown(cm, pos, repeat, e);
           } else if (e_target(e) == display.scroller) {
             e_preventDefault(e);
           }
         } else if (button == 2) {
           if (pos) {
-            extendSelection(cm2.doc, pos);
+            extendSelection(cm.doc, pos);
           }
           setTimeout(function() {
             return display.input.focus();
           }, 20);
         } else if (button == 3) {
           if (captureRightClick) {
-            cm2.display.input.onContextMenu(e);
+            cm.display.input.onContextMenu(e);
           } else {
-            delayBlurEvent(cm2);
+            delayBlurEvent(cm);
           }
         }
       }
-      function handleMappedButton(cm2, button, pos, repeat, event) {
+      function handleMappedButton(cm, button, pos, repeat, event) {
         var name = "Click";
         if (repeat == "double") {
           name = "Double" + name;
@@ -8026,7 +8026,7 @@ var require_codemirror = __commonJS({
           name = "Triple" + name;
         }
         name = (button == 1 ? "Left" : button == 2 ? "Middle" : "Right") + name;
-        return dispatchKey(cm2, addModifierNames(name, event), event, function(bound) {
+        return dispatchKey(cm, addModifierNames(name, event), event, function(bound) {
           if (typeof bound == "string") {
             bound = commands[bound];
           }
@@ -8035,25 +8035,25 @@ var require_codemirror = __commonJS({
           }
           var done = false;
           try {
-            if (cm2.isReadOnly()) {
-              cm2.state.suppressEdits = true;
+            if (cm.isReadOnly()) {
+              cm.state.suppressEdits = true;
             }
-            done = bound(cm2, pos) != Pass;
+            done = bound(cm, pos) != Pass;
           } finally {
-            cm2.state.suppressEdits = false;
+            cm.state.suppressEdits = false;
           }
           return done;
         });
       }
-      function configureMouse(cm2, repeat, event) {
-        var option = cm2.getOption("configureMouse");
-        var value = option ? option(cm2, repeat, event) : {};
+      function configureMouse(cm, repeat, event) {
+        var option = cm.getOption("configureMouse");
+        var value = option ? option(cm, repeat, event) : {};
         if (value.unit == null) {
           var rect = chromeOS ? event.shiftKey && event.metaKey : event.altKey;
           value.unit = rect ? "rectangle" : repeat == "single" ? "char" : repeat == "double" ? "word" : "line";
         }
-        if (value.extend == null || cm2.doc.extend) {
-          value.extend = cm2.doc.extend || event.shiftKey;
+        if (value.extend == null || cm.doc.extend) {
+          value.extend = cm.doc.extend || event.shiftKey;
         }
         if (value.addNew == null) {
           value.addNew = mac ? event.metaKey : event.ctrlKey;
@@ -8063,32 +8063,32 @@ var require_codemirror = __commonJS({
         }
         return value;
       }
-      function leftButtonDown(cm2, pos, repeat, event) {
+      function leftButtonDown(cm, pos, repeat, event) {
         if (ie) {
-          setTimeout(bind(ensureFocus, cm2), 0);
+          setTimeout(bind(ensureFocus, cm), 0);
         } else {
-          cm2.curOp.focus = activeElt(root(cm2));
+          cm.curOp.focus = activeElt(root(cm));
         }
-        var behavior = configureMouse(cm2, repeat, event);
-        var sel = cm2.doc.sel, contained;
-        if (cm2.options.dragDrop && dragAndDrop && !cm2.isReadOnly() && repeat == "single" && (contained = sel.contains(pos)) > -1 && (cmp((contained = sel.ranges[contained]).from(), pos) < 0 || pos.xRel > 0) && (cmp(contained.to(), pos) > 0 || pos.xRel < 0)) {
-          leftButtonStartDrag(cm2, event, pos, behavior);
+        var behavior = configureMouse(cm, repeat, event);
+        var sel = cm.doc.sel, contained;
+        if (cm.options.dragDrop && dragAndDrop && !cm.isReadOnly() && repeat == "single" && (contained = sel.contains(pos)) > -1 && (cmp((contained = sel.ranges[contained]).from(), pos) < 0 || pos.xRel > 0) && (cmp(contained.to(), pos) > 0 || pos.xRel < 0)) {
+          leftButtonStartDrag(cm, event, pos, behavior);
         } else {
-          leftButtonSelect(cm2, event, pos, behavior);
+          leftButtonSelect(cm, event, pos, behavior);
         }
       }
-      function leftButtonStartDrag(cm2, event, pos, behavior) {
-        var display = cm2.display, moved = false;
-        var dragEnd = operation(cm2, function(e) {
+      function leftButtonStartDrag(cm, event, pos, behavior) {
+        var display = cm.display, moved = false;
+        var dragEnd = operation(cm, function(e) {
           if (webkit) {
             display.scroller.draggable = false;
           }
-          cm2.state.draggingText = false;
-          if (cm2.state.delayingBlurEvent) {
-            if (cm2.hasFocus()) {
-              cm2.state.delayingBlurEvent = false;
+          cm.state.draggingText = false;
+          if (cm.state.delayingBlurEvent) {
+            if (cm.hasFocus()) {
+              cm.state.delayingBlurEvent = false;
             } else {
-              delayBlurEvent(cm2);
+              delayBlurEvent(cm);
             }
           }
           off(display.wrapper.ownerDocument, "mouseup", dragEnd);
@@ -8098,7 +8098,7 @@ var require_codemirror = __commonJS({
           if (!moved) {
             e_preventDefault(e);
             if (!behavior.addNew) {
-              extendSelection(cm2.doc, pos, null, null, behavior.extend);
+              extendSelection(cm.doc, pos, null, null, behavior.extend);
             }
             if (webkit && !safari || ie && ie_version == 9) {
               setTimeout(function() {
@@ -8119,13 +8119,13 @@ var require_codemirror = __commonJS({
         if (webkit) {
           display.scroller.draggable = true;
         }
-        cm2.state.draggingText = dragEnd;
+        cm.state.draggingText = dragEnd;
         dragEnd.copy = !behavior.moveOnDrag;
         on(display.wrapper.ownerDocument, "mouseup", dragEnd);
         on(display.wrapper.ownerDocument, "mousemove", mouseMove);
         on(display.scroller, "dragstart", dragStart);
         on(display.scroller, "drop", dragEnd);
-        cm2.state.delayingBlurEvent = true;
+        cm.state.delayingBlurEvent = true;
         setTimeout(function() {
           return display.input.focus();
         }, 20);
@@ -8133,24 +8133,24 @@ var require_codemirror = __commonJS({
           display.scroller.dragDrop();
         }
       }
-      function rangeForUnit(cm2, pos, unit) {
+      function rangeForUnit(cm, pos, unit) {
         if (unit == "char") {
           return new Range(pos, pos);
         }
         if (unit == "word") {
-          return cm2.findWordAt(pos);
+          return cm.findWordAt(pos);
         }
         if (unit == "line") {
-          return new Range(Pos(pos.line, 0), clipPos(cm2.doc, Pos(pos.line + 1, 0)));
+          return new Range(Pos(pos.line, 0), clipPos(cm.doc, Pos(pos.line + 1, 0)));
         }
-        var result = unit(cm2, pos);
+        var result = unit(cm, pos);
         return new Range(result.from, result.to);
       }
-      function leftButtonSelect(cm2, event, start, behavior) {
+      function leftButtonSelect(cm, event, start, behavior) {
         if (ie) {
-          delayBlurEvent(cm2);
+          delayBlurEvent(cm);
         }
-        var display = cm2.display, doc2 = cm2.doc;
+        var display = cm.display, doc2 = cm.doc;
         e_preventDefault(event);
         var ourRange, ourIndex, startSel = doc2.sel, ranges = startSel.ranges;
         if (behavior.addNew && !behavior.extend) {
@@ -8168,10 +8168,10 @@ var require_codemirror = __commonJS({
           if (!behavior.addNew) {
             ourRange = new Range(start, start);
           }
-          start = posFromMouse(cm2, event, true, true);
+          start = posFromMouse(cm, event, true, true);
           ourIndex = -1;
         } else {
-          var range2 = rangeForUnit(cm2, start, behavior.unit);
+          var range2 = rangeForUnit(cm, start, behavior.unit);
           if (behavior.extend) {
             ourRange = extendRange(ourRange, range2.anchor, range2.head, behavior.extend);
           } else {
@@ -8186,13 +8186,13 @@ var require_codemirror = __commonJS({
           ourIndex = ranges.length;
           setSelection(
             doc2,
-            normalizeSelection(cm2, ranges.concat([ourRange]), ourIndex),
+            normalizeSelection(cm, ranges.concat([ourRange]), ourIndex),
             { scroll: false, origin: "*mouse" }
           );
         } else if (ranges.length > 1 && ranges[ourIndex].empty() && behavior.unit == "char" && !behavior.extend) {
           setSelection(
             doc2,
-            normalizeSelection(cm2, ranges.slice(0, ourIndex).concat(ranges.slice(ourIndex + 1)), 0),
+            normalizeSelection(cm, ranges.slice(0, ourIndex).concat(ranges.slice(ourIndex + 1)), 0),
             { scroll: false, origin: "*mouse" }
           );
           startSel = doc2.sel;
@@ -8206,11 +8206,11 @@ var require_codemirror = __commonJS({
           }
           lastPos = pos;
           if (behavior.unit == "rectangle") {
-            var ranges2 = [], tabSize = cm2.options.tabSize;
+            var ranges2 = [], tabSize = cm.options.tabSize;
             var startCol = countColumn(getLine(doc2, start.line).text, start.ch, tabSize);
             var posCol = countColumn(getLine(doc2, pos.line).text, pos.ch, tabSize);
             var left = Math.min(startCol, posCol), right = Math.max(startCol, posCol);
-            for (var line = Math.min(start.line, pos.line), end = Math.min(cm2.lastLine(), Math.max(start.line, pos.line)); line <= end; line++) {
+            for (var line = Math.min(start.line, pos.line), end = Math.min(cm.lastLine(), Math.max(start.line, pos.line)); line <= end; line++) {
               var text = getLine(doc2, line).text, leftPos = findColumn(text, left, tabSize);
               if (left == right) {
                 ranges2.push(new Range(Pos(line, leftPos), Pos(line, leftPos)));
@@ -8223,13 +8223,13 @@ var require_codemirror = __commonJS({
             }
             setSelection(
               doc2,
-              normalizeSelection(cm2, startSel.ranges.slice(0, ourIndex).concat(ranges2), ourIndex),
+              normalizeSelection(cm, startSel.ranges.slice(0, ourIndex).concat(ranges2), ourIndex),
               { origin: "*mouse", scroll: false }
             );
-            cm2.scrollIntoView(pos);
+            cm.scrollIntoView(pos);
           } else {
             var oldRange = ourRange;
-            var range3 = rangeForUnit(cm2, pos, behavior.unit);
+            var range3 = rangeForUnit(cm, pos, behavior.unit);
             var anchor = oldRange.anchor, head;
             if (cmp(range3.anchor, anchor) > 0) {
               head = range3.head;
@@ -8239,24 +8239,24 @@ var require_codemirror = __commonJS({
               anchor = maxPos(oldRange.to(), range3.head);
             }
             var ranges$1 = startSel.ranges.slice(0);
-            ranges$1[ourIndex] = bidiSimplify(cm2, new Range(clipPos(doc2, anchor), head));
-            setSelection(doc2, normalizeSelection(cm2, ranges$1, ourIndex), sel_mouse);
+            ranges$1[ourIndex] = bidiSimplify(cm, new Range(clipPos(doc2, anchor), head));
+            setSelection(doc2, normalizeSelection(cm, ranges$1, ourIndex), sel_mouse);
           }
         }
         var editorSize = display.wrapper.getBoundingClientRect();
         var counter = 0;
         function extend(e) {
           var curCount = ++counter;
-          var cur = posFromMouse(cm2, e, true, behavior.unit == "rectangle");
+          var cur = posFromMouse(cm, e, true, behavior.unit == "rectangle");
           if (!cur) {
             return;
           }
           if (cmp(cur, lastPos) != 0) {
-            cm2.curOp.focus = activeElt(root(cm2));
+            cm.curOp.focus = activeElt(root(cm));
             extendTo(cur);
             var visible = visibleLines(display, doc2);
             if (cur.line >= visible.to || cur.line < visible.from) {
-              setTimeout(operation(cm2, function() {
+              setTimeout(operation(cm, function() {
                 if (counter == curCount) {
                   extend(e);
                 }
@@ -8265,7 +8265,7 @@ var require_codemirror = __commonJS({
           } else {
             var outside = e.clientY < editorSize.top ? -20 : e.clientY > editorSize.bottom ? 20 : 0;
             if (outside) {
-              setTimeout(operation(cm2, function() {
+              setTimeout(operation(cm, function() {
                 if (counter != curCount) {
                   return;
                 }
@@ -8276,7 +8276,7 @@ var require_codemirror = __commonJS({
           }
         }
         function done(e) {
-          cm2.state.selectingText = false;
+          cm.state.selectingText = false;
           counter = Infinity;
           if (e) {
             e_preventDefault(e);
@@ -8286,22 +8286,22 @@ var require_codemirror = __commonJS({
           off(display.wrapper.ownerDocument, "mouseup", up);
           doc2.history.lastSelOrigin = null;
         }
-        var move = operation(cm2, function(e) {
+        var move = operation(cm, function(e) {
           if (e.buttons === 0 || !e_button(e)) {
             done(e);
           } else {
             extend(e);
           }
         });
-        var up = operation(cm2, done);
-        cm2.state.selectingText = up;
+        var up = operation(cm, done);
+        cm.state.selectingText = up;
         on(display.wrapper.ownerDocument, "mousemove", move);
         on(display.wrapper.ownerDocument, "mouseup", up);
       }
-      function bidiSimplify(cm2, range2) {
+      function bidiSimplify(cm, range2) {
         var anchor = range2.anchor;
         var head = range2.head;
-        var anchorLine = getLine(cm2.doc, anchor.line);
+        var anchorLine = getLine(cm.doc, anchor.line);
         if (cmp(anchor, head) == 0 && anchor.sticky == head.sticky) {
           return range2;
         }
@@ -8319,7 +8319,7 @@ var require_codemirror = __commonJS({
         }
         var leftSide;
         if (head.line != anchor.line) {
-          leftSide = (head.line - anchor.line) * (cm2.doc.direction == "ltr" ? 1 : -1) > 0;
+          leftSide = (head.line - anchor.line) * (cm.doc.direction == "ltr" ? 1 : -1) > 0;
         } else {
           var headIndex = getBidiPartAt(order, head.ch, head.sticky);
           var dir = headIndex - index || (head.ch - anchor.ch) * (part.level == 1 ? -1 : 1);
@@ -8334,7 +8334,7 @@ var require_codemirror = __commonJS({
         var ch = from ? usePart.from : usePart.to, sticky = from ? "after" : "before";
         return anchor.ch == ch && anchor.sticky == sticky ? range2 : new Range(new Pos(anchor.line, ch, sticky), head);
       }
-      function gutterEvent(cm2, e, type, prevent) {
+      function gutterEvent(cm, e, type, prevent) {
         var mX, mY;
         if (e.touches) {
           mX = e.touches[0].clientX;
@@ -8347,93 +8347,93 @@ var require_codemirror = __commonJS({
             return false;
           }
         }
-        if (mX >= Math.floor(cm2.display.gutters.getBoundingClientRect().right)) {
+        if (mX >= Math.floor(cm.display.gutters.getBoundingClientRect().right)) {
           return false;
         }
         if (prevent) {
           e_preventDefault(e);
         }
-        var display = cm2.display;
+        var display = cm.display;
         var lineBox = display.lineDiv.getBoundingClientRect();
-        if (mY > lineBox.bottom || !hasHandler(cm2, type)) {
+        if (mY > lineBox.bottom || !hasHandler(cm, type)) {
           return e_defaultPrevented(e);
         }
         mY -= lineBox.top - display.viewOffset;
-        for (var i2 = 0; i2 < cm2.display.gutterSpecs.length; ++i2) {
+        for (var i2 = 0; i2 < cm.display.gutterSpecs.length; ++i2) {
           var g = display.gutters.childNodes[i2];
           if (g && g.getBoundingClientRect().right >= mX) {
-            var line = lineAtHeight(cm2.doc, mY);
-            var gutter = cm2.display.gutterSpecs[i2];
-            signal(cm2, type, cm2, line, gutter.className, e);
+            var line = lineAtHeight(cm.doc, mY);
+            var gutter = cm.display.gutterSpecs[i2];
+            signal(cm, type, cm, line, gutter.className, e);
             return e_defaultPrevented(e);
           }
         }
       }
-      function clickInGutter(cm2, e) {
-        return gutterEvent(cm2, e, "gutterClick", true);
+      function clickInGutter(cm, e) {
+        return gutterEvent(cm, e, "gutterClick", true);
       }
-      function onContextMenu(cm2, e) {
-        if (eventInWidget(cm2.display, e) || contextMenuInGutter(cm2, e)) {
+      function onContextMenu(cm, e) {
+        if (eventInWidget(cm.display, e) || contextMenuInGutter(cm, e)) {
           return;
         }
-        if (signalDOMEvent(cm2, e, "contextmenu")) {
+        if (signalDOMEvent(cm, e, "contextmenu")) {
           return;
         }
         if (!captureRightClick) {
-          cm2.display.input.onContextMenu(e);
+          cm.display.input.onContextMenu(e);
         }
       }
-      function contextMenuInGutter(cm2, e) {
-        if (!hasHandler(cm2, "gutterContextMenu")) {
+      function contextMenuInGutter(cm, e) {
+        if (!hasHandler(cm, "gutterContextMenu")) {
           return false;
         }
-        return gutterEvent(cm2, e, "gutterContextMenu", false);
+        return gutterEvent(cm, e, "gutterContextMenu", false);
       }
-      function themeChanged(cm2) {
-        cm2.display.wrapper.className = cm2.display.wrapper.className.replace(/\s*cm-s-\S+/g, "") + cm2.options.theme.replace(/(^|\s)\s*/g, " cm-s-");
-        clearCaches(cm2);
+      function themeChanged(cm) {
+        cm.display.wrapper.className = cm.display.wrapper.className.replace(/\s*cm-s-\S+/g, "") + cm.options.theme.replace(/(^|\s)\s*/g, " cm-s-");
+        clearCaches(cm);
       }
       var Init = { toString: function() {
         return "CodeMirror.Init";
       } };
       var defaults = {};
       var optionHandlers = {};
-      function defineOptions(CodeMirror4) {
-        var optionHandlers2 = CodeMirror4.optionHandlers;
+      function defineOptions(CodeMirror3) {
+        var optionHandlers2 = CodeMirror3.optionHandlers;
         function option(name, deflt, handle, notOnInit) {
-          CodeMirror4.defaults[name] = deflt;
+          CodeMirror3.defaults[name] = deflt;
           if (handle) {
-            optionHandlers2[name] = notOnInit ? function(cm2, val, old) {
+            optionHandlers2[name] = notOnInit ? function(cm, val, old) {
               if (old != Init) {
-                handle(cm2, val, old);
+                handle(cm, val, old);
               }
             } : handle;
           }
         }
-        CodeMirror4.defineOption = option;
-        CodeMirror4.Init = Init;
-        option("value", "", function(cm2, val) {
-          return cm2.setValue(val);
+        CodeMirror3.defineOption = option;
+        CodeMirror3.Init = Init;
+        option("value", "", function(cm, val) {
+          return cm.setValue(val);
         }, true);
-        option("mode", null, function(cm2, val) {
-          cm2.doc.modeOption = val;
-          loadMode(cm2);
+        option("mode", null, function(cm, val) {
+          cm.doc.modeOption = val;
+          loadMode(cm);
         }, true);
         option("indentUnit", 2, loadMode, true);
         option("indentWithTabs", false);
         option("smartIndent", true);
-        option("tabSize", 4, function(cm2) {
-          resetModeState(cm2);
-          clearCaches(cm2);
-          regChange(cm2);
+        option("tabSize", 4, function(cm) {
+          resetModeState(cm);
+          clearCaches(cm);
+          regChange(cm);
         }, true);
-        option("lineSeparator", null, function(cm2, val) {
-          cm2.doc.lineSep = val;
+        option("lineSeparator", null, function(cm, val) {
+          cm.doc.lineSep = val;
           if (!val) {
             return;
           }
-          var newBreaks = [], lineNo2 = cm2.doc.first;
-          cm2.doc.iter(function(line) {
+          var newBreaks = [], lineNo2 = cm.doc.first;
+          cm.doc.iter(function(line) {
             for (var pos = 0; ; ) {
               var found = line.text.indexOf(val, pos);
               if (found == -1) {
@@ -8445,70 +8445,70 @@ var require_codemirror = __commonJS({
             lineNo2++;
           });
           for (var i2 = newBreaks.length - 1; i2 >= 0; i2--) {
-            replaceRange(cm2.doc, val, newBreaks[i2], Pos(newBreaks[i2].line, newBreaks[i2].ch + val.length));
+            replaceRange(cm.doc, val, newBreaks[i2], Pos(newBreaks[i2].line, newBreaks[i2].ch + val.length));
           }
         });
-        option("specialChars", /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b\u200e\u200f\u2028\u2029\u202d\u202e\u2066\u2067\u2069\ufeff\ufff9-\ufffc]/g, function(cm2, val, old) {
-          cm2.state.specialChars = new RegExp(val.source + (val.test("	") ? "" : "|	"), "g");
+        option("specialChars", /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b\u200e\u200f\u2028\u2029\u202d\u202e\u2066\u2067\u2069\ufeff\ufff9-\ufffc]/g, function(cm, val, old) {
+          cm.state.specialChars = new RegExp(val.source + (val.test("	") ? "" : "|	"), "g");
           if (old != Init) {
-            cm2.refresh();
+            cm.refresh();
           }
         });
-        option("specialCharPlaceholder", defaultSpecialCharPlaceholder, function(cm2) {
-          return cm2.refresh();
+        option("specialCharPlaceholder", defaultSpecialCharPlaceholder, function(cm) {
+          return cm.refresh();
         }, true);
         option("electricChars", true);
         option("inputStyle", mobile ? "contenteditable" : "textarea", function() {
           throw new Error("inputStyle can not (yet) be changed in a running editor");
         }, true);
-        option("spellcheck", false, function(cm2, val) {
-          return cm2.getInputField().spellcheck = val;
+        option("spellcheck", false, function(cm, val) {
+          return cm.getInputField().spellcheck = val;
         }, true);
-        option("autocorrect", false, function(cm2, val) {
-          return cm2.getInputField().autocorrect = val;
+        option("autocorrect", false, function(cm, val) {
+          return cm.getInputField().autocorrect = val;
         }, true);
-        option("autocapitalize", false, function(cm2, val) {
-          return cm2.getInputField().autocapitalize = val;
+        option("autocapitalize", false, function(cm, val) {
+          return cm.getInputField().autocapitalize = val;
         }, true);
         option("rtlMoveVisually", !windows);
         option("wholeLineUpdateBefore", true);
-        option("theme", "default", function(cm2) {
-          themeChanged(cm2);
-          updateGutters(cm2);
+        option("theme", "default", function(cm) {
+          themeChanged(cm);
+          updateGutters(cm);
         }, true);
-        option("keyMap", "default", function(cm2, val, old) {
+        option("keyMap", "default", function(cm, val, old) {
           var next = getKeyMap(val);
           var prev = old != Init && getKeyMap(old);
           if (prev && prev.detach) {
-            prev.detach(cm2, next);
+            prev.detach(cm, next);
           }
           if (next.attach) {
-            next.attach(cm2, prev || null);
+            next.attach(cm, prev || null);
           }
         });
         option("extraKeys", null);
         option("configureMouse", null);
         option("lineWrapping", false, wrappingChanged, true);
-        option("gutters", [], function(cm2, val) {
-          cm2.display.gutterSpecs = getGutters(val, cm2.options.lineNumbers);
-          updateGutters(cm2);
+        option("gutters", [], function(cm, val) {
+          cm.display.gutterSpecs = getGutters(val, cm.options.lineNumbers);
+          updateGutters(cm);
         }, true);
-        option("fixedGutter", true, function(cm2, val) {
-          cm2.display.gutters.style.left = val ? compensateForHScroll(cm2.display) + "px" : "0";
-          cm2.refresh();
+        option("fixedGutter", true, function(cm, val) {
+          cm.display.gutters.style.left = val ? compensateForHScroll(cm.display) + "px" : "0";
+          cm.refresh();
         }, true);
-        option("coverGutterNextToScrollbar", false, function(cm2) {
-          return updateScrollbars(cm2);
+        option("coverGutterNextToScrollbar", false, function(cm) {
+          return updateScrollbars(cm);
         }, true);
-        option("scrollbarStyle", "native", function(cm2) {
-          initScrollbars(cm2);
-          updateScrollbars(cm2);
-          cm2.display.scrollbars.setScrollTop(cm2.doc.scrollTop);
-          cm2.display.scrollbars.setScrollLeft(cm2.doc.scrollLeft);
+        option("scrollbarStyle", "native", function(cm) {
+          initScrollbars(cm);
+          updateScrollbars(cm);
+          cm.display.scrollbars.setScrollTop(cm.doc.scrollTop);
+          cm.display.scrollbars.setScrollLeft(cm.doc.scrollLeft);
         }, true);
-        option("lineNumbers", false, function(cm2, val) {
-          cm2.display.gutterSpecs = getGutters(cm2.options.gutters, val);
-          updateGutters(cm2);
+        option("lineNumbers", false, function(cm, val) {
+          cm.display.gutterSpecs = getGutters(cm.options.gutters, val);
+          updateGutters(cm);
         }, true);
         option("firstLineNumber", 1, updateGutters, true);
         option("lineNumberFormatter", function(integer) {
@@ -8519,20 +8519,20 @@ var require_codemirror = __commonJS({
         option("lineWiseCopyCut", true);
         option("pasteLinesPerSelection", true);
         option("selectionsMayTouch", false);
-        option("readOnly", false, function(cm2, val) {
+        option("readOnly", false, function(cm, val) {
           if (val == "nocursor") {
-            onBlur(cm2);
-            cm2.display.input.blur();
+            onBlur(cm);
+            cm.display.input.blur();
           }
-          cm2.display.input.readOnlyChanged(val);
+          cm.display.input.readOnlyChanged(val);
         });
-        option("screenReaderLabel", null, function(cm2, val) {
+        option("screenReaderLabel", null, function(cm, val) {
           val = val === "" ? null : val;
-          cm2.display.input.screenReaderLabelChanged(val);
+          cm.display.input.screenReaderLabelChanged(val);
         });
-        option("disableInput", false, function(cm2, val) {
+        option("disableInput", false, function(cm, val) {
           if (!val) {
-            cm2.display.input.reset();
+            cm.display.input.reset();
           }
         }, true);
         option("dragDrop", true, dragDropChanged);
@@ -8546,60 +8546,60 @@ var require_codemirror = __commonJS({
         option("flattenSpans", true, resetModeState, true);
         option("addModeClass", false, resetModeState, true);
         option("pollInterval", 100);
-        option("undoDepth", 200, function(cm2, val) {
-          return cm2.doc.history.undoDepth = val;
+        option("undoDepth", 200, function(cm, val) {
+          return cm.doc.history.undoDepth = val;
         });
         option("historyEventDelay", 1250);
-        option("viewportMargin", 10, function(cm2) {
-          return cm2.refresh();
+        option("viewportMargin", 10, function(cm) {
+          return cm.refresh();
         }, true);
         option("maxHighlightLength", 1e4, resetModeState, true);
-        option("moveInputWithCursor", true, function(cm2, val) {
+        option("moveInputWithCursor", true, function(cm, val) {
           if (!val) {
-            cm2.display.input.resetPosition();
+            cm.display.input.resetPosition();
           }
         });
-        option("tabindex", null, function(cm2, val) {
-          return cm2.display.input.getField().tabIndex = val || "";
+        option("tabindex", null, function(cm, val) {
+          return cm.display.input.getField().tabIndex = val || "";
         });
         option("autofocus", null);
-        option("direction", "ltr", function(cm2, val) {
-          return cm2.doc.setDirection(val);
+        option("direction", "ltr", function(cm, val) {
+          return cm.doc.setDirection(val);
         }, true);
         option("phrases", null);
       }
-      function dragDropChanged(cm2, value, old) {
+      function dragDropChanged(cm, value, old) {
         var wasOn = old && old != Init;
         if (!value != !wasOn) {
-          var funcs = cm2.display.dragFunctions;
+          var funcs = cm.display.dragFunctions;
           var toggle = value ? on : off;
-          toggle(cm2.display.scroller, "dragstart", funcs.start);
-          toggle(cm2.display.scroller, "dragenter", funcs.enter);
-          toggle(cm2.display.scroller, "dragover", funcs.over);
-          toggle(cm2.display.scroller, "dragleave", funcs.leave);
-          toggle(cm2.display.scroller, "drop", funcs.drop);
+          toggle(cm.display.scroller, "dragstart", funcs.start);
+          toggle(cm.display.scroller, "dragenter", funcs.enter);
+          toggle(cm.display.scroller, "dragover", funcs.over);
+          toggle(cm.display.scroller, "dragleave", funcs.leave);
+          toggle(cm.display.scroller, "drop", funcs.drop);
         }
       }
-      function wrappingChanged(cm2) {
-        if (cm2.options.lineWrapping) {
-          addClass(cm2.display.wrapper, "CodeMirror-wrap");
-          cm2.display.sizer.style.minWidth = "";
-          cm2.display.sizerWidth = null;
+      function wrappingChanged(cm) {
+        if (cm.options.lineWrapping) {
+          addClass(cm.display.wrapper, "CodeMirror-wrap");
+          cm.display.sizer.style.minWidth = "";
+          cm.display.sizerWidth = null;
         } else {
-          rmClass(cm2.display.wrapper, "CodeMirror-wrap");
-          findMaxLine(cm2);
+          rmClass(cm.display.wrapper, "CodeMirror-wrap");
+          findMaxLine(cm);
         }
-        estimateLineHeights(cm2);
-        regChange(cm2);
-        clearCaches(cm2);
+        estimateLineHeights(cm);
+        regChange(cm);
+        clearCaches(cm);
         setTimeout(function() {
-          return updateScrollbars(cm2);
+          return updateScrollbars(cm);
         }, 100);
       }
-      function CodeMirror3(place, options) {
+      function CodeMirror2(place, options) {
         var this$1 = this;
-        if (!(this instanceof CodeMirror3)) {
-          return new CodeMirror3(place, options);
+        if (!(this instanceof CodeMirror2)) {
+          return new CodeMirror2(place, options);
         }
         this.options = options = options ? copyObj(options) : {};
         copyObj(defaults, options, false);
@@ -8610,7 +8610,7 @@ var require_codemirror = __commonJS({
           doc2.modeOption = options.mode;
         }
         this.doc = doc2;
-        var input = new CodeMirror3.inputStyles[options.inputStyle](this);
+        var input = new CodeMirror2.inputStyles[options.inputStyle](this);
         var display = this.display = new Display(place, doc2, input, options);
         display.wrapper.CodeMirror = this;
         themeChanged(this);
@@ -8680,35 +8680,35 @@ var require_codemirror = __commonJS({
           display.lineDiv.style.textRendering = "auto";
         }
       }
-      CodeMirror3.defaults = defaults;
-      CodeMirror3.optionHandlers = optionHandlers;
-      function registerEventHandlers(cm2) {
-        var d = cm2.display;
-        on(d.scroller, "mousedown", operation(cm2, onMouseDown));
+      CodeMirror2.defaults = defaults;
+      CodeMirror2.optionHandlers = optionHandlers;
+      function registerEventHandlers(cm) {
+        var d = cm.display;
+        on(d.scroller, "mousedown", operation(cm, onMouseDown));
         if (ie && ie_version < 11) {
-          on(d.scroller, "dblclick", operation(cm2, function(e) {
-            if (signalDOMEvent(cm2, e)) {
+          on(d.scroller, "dblclick", operation(cm, function(e) {
+            if (signalDOMEvent(cm, e)) {
               return;
             }
-            var pos = posFromMouse(cm2, e);
-            if (!pos || clickInGutter(cm2, e) || eventInWidget(cm2.display, e)) {
+            var pos = posFromMouse(cm, e);
+            if (!pos || clickInGutter(cm, e) || eventInWidget(cm.display, e)) {
               return;
             }
             e_preventDefault(e);
-            var word = cm2.findWordAt(pos);
-            extendSelection(cm2.doc, word.anchor, word.head);
+            var word = cm.findWordAt(pos);
+            extendSelection(cm.doc, word.anchor, word.head);
           }));
         } else {
           on(d.scroller, "dblclick", function(e) {
-            return signalDOMEvent(cm2, e) || e_preventDefault(e);
+            return signalDOMEvent(cm, e) || e_preventDefault(e);
           });
         }
         on(d.scroller, "contextmenu", function(e) {
-          return onContextMenu(cm2, e);
+          return onContextMenu(cm, e);
         });
         on(d.input.getField(), "contextmenu", function(e) {
           if (!d.scroller.contains(e.target)) {
-            onContextMenu(cm2, e);
+            onContextMenu(cm, e);
           }
         });
         var touchFinished, prevTouch = { end: 0 };
@@ -8736,7 +8736,7 @@ var require_codemirror = __commonJS({
           return dx * dx + dy * dy > 20 * 20;
         }
         on(d.scroller, "touchstart", function(e) {
-          if (!signalDOMEvent(cm2, e) && !isMouseLikeTouchEvent(e) && !clickInGutter(cm2, e)) {
+          if (!signalDOMEvent(cm, e) && !isMouseLikeTouchEvent(e) && !clickInGutter(cm, e)) {
             d.input.ensurePolled();
             clearTimeout(touchFinished);
             var now = +/* @__PURE__ */ new Date();
@@ -8759,16 +8759,16 @@ var require_codemirror = __commonJS({
         on(d.scroller, "touchend", function(e) {
           var touch = d.activeTouch;
           if (touch && !eventInWidget(d, e) && touch.left != null && !touch.moved && /* @__PURE__ */ new Date() - touch.start < 300) {
-            var pos = cm2.coordsChar(d.activeTouch, "page"), range2;
+            var pos = cm.coordsChar(d.activeTouch, "page"), range2;
             if (!touch.prev || farAway(touch, touch.prev)) {
               range2 = new Range(pos, pos);
             } else if (!touch.prev.prev || farAway(touch, touch.prev.prev)) {
-              range2 = cm2.findWordAt(pos);
+              range2 = cm.findWordAt(pos);
             } else {
-              range2 = new Range(Pos(pos.line, 0), clipPos(cm2.doc, Pos(pos.line + 1, 0)));
+              range2 = new Range(Pos(pos.line, 0), clipPos(cm.doc, Pos(pos.line + 1, 0)));
             }
-            cm2.setSelection(range2.anchor, range2.head);
-            cm2.focus();
+            cm.setSelection(range2.anchor, range2.head);
+            cm.focus();
             e_preventDefault(e);
           }
           finishTouch();
@@ -8776,61 +8776,61 @@ var require_codemirror = __commonJS({
         on(d.scroller, "touchcancel", finishTouch);
         on(d.scroller, "scroll", function() {
           if (d.scroller.clientHeight) {
-            updateScrollTop(cm2, d.scroller.scrollTop);
-            setScrollLeft(cm2, d.scroller.scrollLeft, true);
-            signal(cm2, "scroll", cm2);
+            updateScrollTop(cm, d.scroller.scrollTop);
+            setScrollLeft(cm, d.scroller.scrollLeft, true);
+            signal(cm, "scroll", cm);
           }
         });
         on(d.scroller, "mousewheel", function(e) {
-          return onScrollWheel(cm2, e);
+          return onScrollWheel(cm, e);
         });
         on(d.scroller, "DOMMouseScroll", function(e) {
-          return onScrollWheel(cm2, e);
+          return onScrollWheel(cm, e);
         });
         on(d.wrapper, "scroll", function() {
           return d.wrapper.scrollTop = d.wrapper.scrollLeft = 0;
         });
         d.dragFunctions = {
           enter: function(e) {
-            if (!signalDOMEvent(cm2, e)) {
+            if (!signalDOMEvent(cm, e)) {
               e_stop(e);
             }
           },
           over: function(e) {
-            if (!signalDOMEvent(cm2, e)) {
-              onDragOver(cm2, e);
+            if (!signalDOMEvent(cm, e)) {
+              onDragOver(cm, e);
               e_stop(e);
             }
           },
           start: function(e) {
-            return onDragStart(cm2, e);
+            return onDragStart(cm, e);
           },
-          drop: operation(cm2, onDrop),
+          drop: operation(cm, onDrop),
           leave: function(e) {
-            if (!signalDOMEvent(cm2, e)) {
-              clearDragCursor(cm2);
+            if (!signalDOMEvent(cm, e)) {
+              clearDragCursor(cm);
             }
           }
         };
         var inp = d.input.getField();
         on(inp, "keyup", function(e) {
-          return onKeyUp.call(cm2, e);
+          return onKeyUp.call(cm, e);
         });
-        on(inp, "keydown", operation(cm2, onKeyDown));
-        on(inp, "keypress", operation(cm2, onKeyPress));
+        on(inp, "keydown", operation(cm, onKeyDown));
+        on(inp, "keypress", operation(cm, onKeyPress));
         on(inp, "focus", function(e) {
-          return onFocus(cm2, e);
+          return onFocus(cm, e);
         });
         on(inp, "blur", function(e) {
-          return onBlur(cm2, e);
+          return onBlur(cm, e);
         });
       }
       var initHooks = [];
-      CodeMirror3.defineInitHook = function(f) {
+      CodeMirror2.defineInitHook = function(f) {
         return initHooks.push(f);
       };
-      function indentLine(cm2, n, how, aggressive) {
-        var doc2 = cm2.doc, state;
+      function indentLine(cm, n, how, aggressive) {
+        var doc2 = cm.doc, state;
         if (how == null) {
           how = "add";
         }
@@ -8838,10 +8838,10 @@ var require_codemirror = __commonJS({
           if (!doc2.mode.indent) {
             how = "prev";
           } else {
-            state = getContextBefore(cm2, n).state;
+            state = getContextBefore(cm, n).state;
           }
         }
-        var tabSize = cm2.options.tabSize;
+        var tabSize = cm.options.tabSize;
         var line = getLine(doc2, n), curSpace = countColumn(line.text, null, tabSize);
         if (line.stateAfter) {
           line.stateAfter = null;
@@ -8866,15 +8866,15 @@ var require_codemirror = __commonJS({
             indentation = 0;
           }
         } else if (how == "add") {
-          indentation = curSpace + cm2.options.indentUnit;
+          indentation = curSpace + cm.options.indentUnit;
         } else if (how == "subtract") {
-          indentation = curSpace - cm2.options.indentUnit;
+          indentation = curSpace - cm.options.indentUnit;
         } else if (typeof how == "number") {
           indentation = curSpace + how;
         }
         indentation = Math.max(0, indentation);
         var indentString = "", pos = 0;
-        if (cm2.options.indentWithTabs) {
+        if (cm.options.indentWithTabs) {
           for (var i2 = Math.floor(indentation / tabSize); i2; --i2) {
             pos += tabSize;
             indentString += "	";
@@ -8902,14 +8902,14 @@ var require_codemirror = __commonJS({
       function setLastCopied(newLastCopied) {
         lastCopied = newLastCopied;
       }
-      function applyTextInput(cm2, inserted, deleted, sel, origin) {
-        var doc2 = cm2.doc;
-        cm2.display.shift = false;
+      function applyTextInput(cm, inserted, deleted, sel, origin) {
+        var doc2 = cm.doc;
+        cm.display.shift = false;
         if (!sel) {
           sel = doc2.sel;
         }
         var recent = +/* @__PURE__ */ new Date() - 200;
-        var paste = origin == "paste" || cm2.state.pasteIncoming > recent;
+        var paste = origin == "paste" || cm.state.pasteIncoming > recent;
         var textLines = splitLinesAuto(inserted), multiPaste = null;
         if (paste && sel.ranges.length > 1) {
           if (lastCopied && lastCopied.text.join("\n") == inserted) {
@@ -8919,20 +8919,20 @@ var require_codemirror = __commonJS({
                 multiPaste.push(doc2.splitLines(lastCopied.text[i2]));
               }
             }
-          } else if (textLines.length == sel.ranges.length && cm2.options.pasteLinesPerSelection) {
+          } else if (textLines.length == sel.ranges.length && cm.options.pasteLinesPerSelection) {
             multiPaste = map(textLines, function(l) {
               return [l];
             });
           }
         }
-        var updateInput = cm2.curOp.updateInput;
+        var updateInput = cm.curOp.updateInput;
         for (var i$12 = sel.ranges.length - 1; i$12 >= 0; i$12--) {
           var range2 = sel.ranges[i$12];
           var from = range2.from(), to = range2.to();
           if (range2.empty()) {
             if (deleted && deleted > 0) {
               from = Pos(from.line, from.ch - deleted);
-            } else if (cm2.state.overwrite && !paste) {
+            } else if (cm.state.overwrite && !paste) {
               to = Pos(to.line, Math.min(getLine(doc2, to.line).text.length, to.ch + lst(textLines).length));
             } else if (paste && lastCopied && lastCopied.lineWise && lastCopied.text.join("\n") == textLines.join("\n")) {
               from = to = Pos(from.line, 0);
@@ -8942,69 +8942,69 @@ var require_codemirror = __commonJS({
             from,
             to,
             text: multiPaste ? multiPaste[i$12 % multiPaste.length] : textLines,
-            origin: origin || (paste ? "paste" : cm2.state.cutIncoming > recent ? "cut" : "+input")
+            origin: origin || (paste ? "paste" : cm.state.cutIncoming > recent ? "cut" : "+input")
           };
-          makeChange(cm2.doc, changeEvent);
-          signalLater(cm2, "inputRead", cm2, changeEvent);
+          makeChange(cm.doc, changeEvent);
+          signalLater(cm, "inputRead", cm, changeEvent);
         }
         if (inserted && !paste) {
-          triggerElectric(cm2, inserted);
+          triggerElectric(cm, inserted);
         }
-        ensureCursorVisible(cm2);
-        if (cm2.curOp.updateInput < 2) {
-          cm2.curOp.updateInput = updateInput;
+        ensureCursorVisible(cm);
+        if (cm.curOp.updateInput < 2) {
+          cm.curOp.updateInput = updateInput;
         }
-        cm2.curOp.typing = true;
-        cm2.state.pasteIncoming = cm2.state.cutIncoming = -1;
+        cm.curOp.typing = true;
+        cm.state.pasteIncoming = cm.state.cutIncoming = -1;
       }
-      function handlePaste(e, cm2) {
+      function handlePaste(e, cm) {
         var pasted = e.clipboardData && e.clipboardData.getData("Text");
         if (pasted) {
           e.preventDefault();
-          if (!cm2.isReadOnly() && !cm2.options.disableInput && cm2.hasFocus()) {
-            runInOp(cm2, function() {
-              return applyTextInput(cm2, pasted, 0, null, "paste");
+          if (!cm.isReadOnly() && !cm.options.disableInput && cm.hasFocus()) {
+            runInOp(cm, function() {
+              return applyTextInput(cm, pasted, 0, null, "paste");
             });
           }
           return true;
         }
       }
-      function triggerElectric(cm2, inserted) {
-        if (!cm2.options.electricChars || !cm2.options.smartIndent) {
+      function triggerElectric(cm, inserted) {
+        if (!cm.options.electricChars || !cm.options.smartIndent) {
           return;
         }
-        var sel = cm2.doc.sel;
+        var sel = cm.doc.sel;
         for (var i2 = sel.ranges.length - 1; i2 >= 0; i2--) {
           var range2 = sel.ranges[i2];
           if (range2.head.ch > 100 || i2 && sel.ranges[i2 - 1].head.line == range2.head.line) {
             continue;
           }
-          var mode = cm2.getModeAt(range2.head);
+          var mode = cm.getModeAt(range2.head);
           var indented = false;
           if (mode.electricChars) {
             for (var j = 0; j < mode.electricChars.length; j++) {
               if (inserted.indexOf(mode.electricChars.charAt(j)) > -1) {
-                indented = indentLine(cm2, range2.head.line, "smart");
+                indented = indentLine(cm, range2.head.line, "smart");
                 break;
               }
             }
           } else if (mode.electricInput) {
-            if (mode.electricInput.test(getLine(cm2.doc, range2.head.line).text.slice(0, range2.head.ch))) {
-              indented = indentLine(cm2, range2.head.line, "smart");
+            if (mode.electricInput.test(getLine(cm.doc, range2.head.line).text.slice(0, range2.head.ch))) {
+              indented = indentLine(cm, range2.head.line, "smart");
             }
           }
           if (indented) {
-            signalLater(cm2, "electricInput", cm2, range2.head.line);
+            signalLater(cm, "electricInput", cm, range2.head.line);
           }
         }
       }
-      function copyableRanges(cm2) {
+      function copyableRanges(cm) {
         var text = [], ranges = [];
-        for (var i2 = 0; i2 < cm2.doc.sel.ranges.length; i2++) {
-          var line = cm2.doc.sel.ranges[i2].head.line;
+        for (var i2 = 0; i2 < cm.doc.sel.ranges.length; i2++) {
+          var line = cm.doc.sel.ranges[i2].head.line;
           var lineRange = { anchor: Pos(line, 0), head: Pos(line + 1, 0) };
           ranges.push(lineRange);
-          text.push(cm2.getRange(lineRange.anchor, lineRange.head));
+          text.push(cm.getRange(lineRange.anchor, lineRange.head));
         }
         return { text, ranges };
       }
@@ -9026,11 +9026,11 @@ var require_codemirror = __commonJS({
         }
         return div;
       }
-      function addEditorMethods(CodeMirror4) {
-        var optionHandlers2 = CodeMirror4.optionHandlers;
-        var helpers = CodeMirror4.helpers = {};
-        CodeMirror4.prototype = {
-          constructor: CodeMirror4,
+      function addEditorMethods(CodeMirror3) {
+        var optionHandlers2 = CodeMirror3.optionHandlers;
+        var helpers = CodeMirror3.helpers = {};
+        CodeMirror3.prototype = {
+          constructor: CodeMirror3,
           focus: function() {
             win(this).focus();
             this.display.input.focus();
@@ -9065,7 +9065,7 @@ var require_codemirror = __commonJS({
             }
           },
           addOverlay: methodOp(function(spec, options) {
-            var mode = spec.token ? spec : CodeMirror4.getMode(this.options, spec);
+            var mode = spec.token ? spec : CodeMirror3.getMode(this.options, spec);
             if (mode.startState) {
               throw new Error("Overlays may not be stateful.");
             }
@@ -9168,7 +9168,7 @@ var require_codemirror = __commonJS({
             if (!mode.innerMode) {
               return mode;
             }
-            return CodeMirror4.innerMode(mode, this.getTokenAt(pos).state).mode;
+            return CodeMirror3.innerMode(mode, this.getTokenAt(pos).state).mode;
           },
           getHelper: function(pos, type) {
             return this.getHelpers(pos, type)[0];
@@ -9548,15 +9548,15 @@ var require_codemirror = __commonJS({
             return this.display.gutters;
           }
         };
-        eventMixin(CodeMirror4);
-        CodeMirror4.registerHelper = function(type, name, value) {
+        eventMixin(CodeMirror3);
+        CodeMirror3.registerHelper = function(type, name, value) {
           if (!helpers.hasOwnProperty(type)) {
-            helpers[type] = CodeMirror4[type] = { _global: [] };
+            helpers[type] = CodeMirror3[type] = { _global: [] };
           }
           helpers[type][name] = value;
         };
-        CodeMirror4.registerGlobalHelper = function(type, name, predicate, value) {
-          CodeMirror4.registerHelper(type, name, value);
+        CodeMirror3.registerGlobalHelper = function(type, name, predicate, value) {
+          CodeMirror3.registerHelper(type, name, value);
           helpers[type]._global.push({ pred: predicate, val: value });
         };
       }
@@ -9637,18 +9637,18 @@ var require_codemirror = __commonJS({
         }
         return result;
       }
-      function findPosV(cm2, pos, dir, unit) {
-        var doc2 = cm2.doc, x = pos.left, y;
+      function findPosV(cm, pos, dir, unit) {
+        var doc2 = cm.doc, x = pos.left, y;
         if (unit == "page") {
-          var pageSize = Math.min(cm2.display.wrapper.clientHeight, win(cm2).innerHeight || doc2(cm2).documentElement.clientHeight);
-          var moveAmount = Math.max(pageSize - 0.5 * textHeight(cm2.display), 3);
+          var pageSize = Math.min(cm.display.wrapper.clientHeight, win(cm).innerHeight || doc2(cm).documentElement.clientHeight);
+          var moveAmount = Math.max(pageSize - 0.5 * textHeight(cm.display), 3);
           y = (dir > 0 ? pos.bottom : pos.top) + dir * moveAmount;
         } else if (unit == "line") {
           y = dir > 0 ? pos.bottom + 3 : pos.top - 3;
         }
         var target;
         for (; ; ) {
-          target = coordsChar(cm2, x, y);
+          target = coordsChar(cm, x, y);
           if (!target.outside) {
             break;
           }
@@ -9660,8 +9660,8 @@ var require_codemirror = __commonJS({
         }
         return target;
       }
-      var ContentEditableInput = function(cm2) {
-        this.cm = cm2;
+      var ContentEditableInput = function(cm) {
+        this.cm = cm;
         this.lastAnchorNode = this.lastAnchorOffset = this.lastFocusNode = this.lastFocusOffset = null;
         this.polling = new Delayed();
         this.composing = null;
@@ -9670,10 +9670,10 @@ var require_codemirror = __commonJS({
       };
       ContentEditableInput.prototype.init = function(display) {
         var this$1 = this;
-        var input = this, cm2 = input.cm;
+        var input = this, cm = input.cm;
         var div = input.div = display.lineDiv;
         div.contentEditable = true;
-        disableBrowserMagic(div, cm2.options.spellcheck, cm2.options.autocorrect, cm2.options.autocapitalize);
+        disableBrowserMagic(div, cm.options.spellcheck, cm.options.autocorrect, cm.options.autocapitalize);
         function belongsToInput(e) {
           for (var t = e.target; t; t = t.parentNode) {
             if (t == div) {
@@ -9686,11 +9686,11 @@ var require_codemirror = __commonJS({
           return false;
         }
         on(div, "paste", function(e) {
-          if (!belongsToInput(e) || signalDOMEvent(cm2, e) || handlePaste(e, cm2)) {
+          if (!belongsToInput(e) || signalDOMEvent(cm, e) || handlePaste(e, cm)) {
             return;
           }
           if (ie_version <= 11) {
-            setTimeout(operation(cm2, function() {
+            setTimeout(operation(cm, function() {
               return this$1.updateFromDOM();
             }), 20);
           }
@@ -9720,23 +9720,23 @@ var require_codemirror = __commonJS({
           }
         });
         function onCopyCut(e) {
-          if (!belongsToInput(e) || signalDOMEvent(cm2, e)) {
+          if (!belongsToInput(e) || signalDOMEvent(cm, e)) {
             return;
           }
-          if (cm2.somethingSelected()) {
-            setLastCopied({ lineWise: false, text: cm2.getSelections() });
+          if (cm.somethingSelected()) {
+            setLastCopied({ lineWise: false, text: cm.getSelections() });
             if (e.type == "cut") {
-              cm2.replaceSelection("", null, "cut");
+              cm.replaceSelection("", null, "cut");
             }
-          } else if (!cm2.options.lineWiseCopyCut) {
+          } else if (!cm.options.lineWiseCopyCut) {
             return;
           } else {
-            var ranges = copyableRanges(cm2);
+            var ranges = copyableRanges(cm);
             setLastCopied({ lineWise: true, text: ranges.text });
             if (e.type == "cut") {
-              cm2.operation(function() {
-                cm2.setSelections(ranges.ranges, 0, sel_dontScroll);
-                cm2.replaceSelection("", null, "cut");
+              cm.operation(function() {
+                cm.setSelections(ranges.ranges, 0, sel_dontScroll);
+                cm.replaceSelection("", null, "cut");
               });
             }
           }
@@ -9751,12 +9751,12 @@ var require_codemirror = __commonJS({
           }
           var kludge = hiddenTextarea(), te = kludge.firstChild;
           disableBrowserMagic(te);
-          cm2.display.lineSpace.insertBefore(kludge, cm2.display.lineSpace.firstChild);
+          cm.display.lineSpace.insertBefore(kludge, cm.display.lineSpace.firstChild);
           te.value = lastCopied.text.join("\n");
           var hadFocus = activeElt(rootNode(div));
           selectInput(te);
           setTimeout(function() {
-            cm2.display.lineSpace.removeChild(kludge);
+            cm.display.lineSpace.removeChild(kludge);
             hadFocus.focus();
             if (hadFocus == div) {
               input.showPrimarySelection();
@@ -9791,20 +9791,20 @@ var require_codemirror = __commonJS({
         return this.cm.display.wrapper.ownerDocument.getSelection();
       };
       ContentEditableInput.prototype.showPrimarySelection = function() {
-        var sel = this.getSelection(), cm2 = this.cm, prim = cm2.doc.sel.primary();
+        var sel = this.getSelection(), cm = this.cm, prim = cm.doc.sel.primary();
         var from = prim.from(), to = prim.to();
-        if (cm2.display.viewTo == cm2.display.viewFrom || from.line >= cm2.display.viewTo || to.line < cm2.display.viewFrom) {
+        if (cm.display.viewTo == cm.display.viewFrom || from.line >= cm.display.viewTo || to.line < cm.display.viewFrom) {
           sel.removeAllRanges();
           return;
         }
-        var curAnchor = domToPos(cm2, sel.anchorNode, sel.anchorOffset);
-        var curFocus = domToPos(cm2, sel.focusNode, sel.focusOffset);
+        var curAnchor = domToPos(cm, sel.anchorNode, sel.anchorOffset);
+        var curFocus = domToPos(cm, sel.focusNode, sel.focusOffset);
         if (curAnchor && !curAnchor.bad && curFocus && !curFocus.bad && cmp(minPos(curAnchor, curFocus), from) == 0 && cmp(maxPos(curAnchor, curFocus), to) == 0) {
           return;
         }
-        var view = cm2.display.view;
-        var start = from.line >= cm2.display.viewFrom && posToDOM(cm2, from) || { node: view[0].measure.map[2], offset: 0 };
-        var end = to.line < cm2.display.viewTo && posToDOM(cm2, to);
+        var view = cm.display.view;
+        var start = from.line >= cm.display.viewFrom && posToDOM(cm, from) || { node: view[0].measure.map[2], offset: 0 };
+        var end = to.line < cm.display.viewTo && posToDOM(cm, to);
         if (!end) {
           var measure = view[view.length - 1].measure;
           var map2 = measure.maps ? measure.maps[measure.maps.length - 1] : measure.map;
@@ -9820,7 +9820,7 @@ var require_codemirror = __commonJS({
         } catch (e) {
         }
         if (rng) {
-          if (!gecko && cm2.state.focused) {
+          if (!gecko && cm.state.focused) {
             sel.collapse(start.node, start.offset);
             if (!rng.collapsed) {
               sel.removeAllRanges();
@@ -9914,7 +9914,7 @@ var require_codemirror = __commonJS({
         if (this.readDOMTimeout != null || this.gracePeriod || !this.selectionChanged()) {
           return;
         }
-        var sel = this.getSelection(), cm2 = this.cm;
+        var sel = this.getSelection(), cm = this.cm;
         if (android && chrome && this.cm.display.gutterSpecs.length && isInGutter(sel.anchorNode)) {
           this.cm.triggerOnKeyDown({ type: "keydown", keyCode: 8, preventDefault: Math.abs });
           this.blur();
@@ -9925,13 +9925,13 @@ var require_codemirror = __commonJS({
           return;
         }
         this.rememberSelection();
-        var anchor = domToPos(cm2, sel.anchorNode, sel.anchorOffset);
-        var head = domToPos(cm2, sel.focusNode, sel.focusOffset);
+        var anchor = domToPos(cm, sel.anchorNode, sel.anchorOffset);
+        var head = domToPos(cm, sel.focusNode, sel.focusOffset);
         if (anchor && head) {
-          runInOp(cm2, function() {
-            setSelection(cm2.doc, simpleSelection(anchor, head), sel_dontScroll);
+          runInOp(cm, function() {
+            setSelection(cm.doc, simpleSelection(anchor, head), sel_dontScroll);
             if (anchor.bad || head.bad) {
-              cm2.curOp.selectionChanged = true;
+              cm.curOp.selectionChanged = true;
             }
           });
         }
@@ -9941,26 +9941,26 @@ var require_codemirror = __commonJS({
           clearTimeout(this.readDOMTimeout);
           this.readDOMTimeout = null;
         }
-        var cm2 = this.cm, display = cm2.display, sel = cm2.doc.sel.primary();
+        var cm = this.cm, display = cm.display, sel = cm.doc.sel.primary();
         var from = sel.from(), to = sel.to();
-        if (from.ch == 0 && from.line > cm2.firstLine()) {
-          from = Pos(from.line - 1, getLine(cm2.doc, from.line - 1).length);
+        if (from.ch == 0 && from.line > cm.firstLine()) {
+          from = Pos(from.line - 1, getLine(cm.doc, from.line - 1).length);
         }
-        if (to.ch == getLine(cm2.doc, to.line).text.length && to.line < cm2.lastLine()) {
+        if (to.ch == getLine(cm.doc, to.line).text.length && to.line < cm.lastLine()) {
           to = Pos(to.line + 1, 0);
         }
         if (from.line < display.viewFrom || to.line > display.viewTo - 1) {
           return false;
         }
         var fromIndex, fromLine, fromNode;
-        if (from.line == display.viewFrom || (fromIndex = findViewIndex(cm2, from.line)) == 0) {
+        if (from.line == display.viewFrom || (fromIndex = findViewIndex(cm, from.line)) == 0) {
           fromLine = lineNo(display.view[0].line);
           fromNode = display.view[0].node;
         } else {
           fromLine = lineNo(display.view[fromIndex].line);
           fromNode = display.view[fromIndex - 1].node.nextSibling;
         }
-        var toIndex = findViewIndex(cm2, to.line);
+        var toIndex = findViewIndex(cm, to.line);
         var toLine, toNode;
         if (toIndex == display.view.length - 1) {
           toLine = display.viewTo - 1;
@@ -9972,8 +9972,8 @@ var require_codemirror = __commonJS({
         if (!fromNode) {
           return false;
         }
-        var newText = cm2.doc.splitLines(domTextBetween(cm2, fromNode, toNode, fromLine, toLine));
-        var oldText = getBetween(cm2.doc, Pos(fromLine, 0), Pos(toLine, getLine(cm2.doc, toLine).text.length));
+        var newText = cm.doc.splitLines(domTextBetween(cm, fromNode, toNode, fromLine, toLine));
+        var oldText = getBetween(cm.doc, Pos(fromLine, 0), Pos(toLine, getLine(cm.doc, toLine).text.length));
         while (newText.length > 1 && oldText.length > 1) {
           if (lst(newText) == lst(oldText)) {
             newText.pop();
@@ -10011,7 +10011,7 @@ var require_codemirror = __commonJS({
         var chFrom = Pos(fromLine, cutFront);
         var chTo = Pos(toLine, oldText.length ? lst(oldText).length - cutEnd : 0);
         if (newText.length > 1 || newText[0] || cmp(chFrom, chTo)) {
-          replaceRange(cm2.doc, newText, chFrom, chTo, "+input");
+          replaceRange(cm.doc, newText, chFrom, chTo, "+input");
           return true;
         }
       };
@@ -10076,14 +10076,14 @@ var require_codemirror = __commonJS({
       ContentEditableInput.prototype.resetPosition = function() {
       };
       ContentEditableInput.prototype.needsContentAttribute = true;
-      function posToDOM(cm2, pos) {
-        var view = findViewForLine(cm2, pos.line);
+      function posToDOM(cm, pos) {
+        var view = findViewForLine(cm, pos.line);
         if (!view || view.hidden) {
           return null;
         }
-        var line = getLine(cm2.doc, pos.line);
+        var line = getLine(cm.doc, pos.line);
         var info = mapFromLineView(view, line, pos.line);
-        var order = getOrder(line, cm2.doc.direction), side = "left";
+        var order = getOrder(line, cm.doc.direction), side = "left";
         if (order) {
           var partPos = getBidiPartAt(order, pos.ch);
           side = partPos % 2 ? "right" : "left";
@@ -10106,8 +10106,8 @@ var require_codemirror = __commonJS({
         }
         return pos;
       }
-      function domTextBetween(cm2, from, to, fromLine, toLine) {
-        var text = "", closing = false, lineSep = cm2.doc.lineSeparator(), extraLinebreak = false;
+      function domTextBetween(cm, from, to, fromLine, toLine) {
+        var text = "", closing = false, lineSep = cm.doc.lineSeparator(), extraLinebreak = false;
         function recognizeMarker(id) {
           return function(marker) {
             return marker.id == id;
@@ -10137,9 +10137,9 @@ var require_codemirror = __commonJS({
             }
             var markerID = node.getAttribute("cm-marker"), range2;
             if (markerID) {
-              var found = cm2.findMarks(Pos(fromLine, 0), Pos(toLine + 1, 0), recognizeMarker(+markerID));
+              var found = cm.findMarks(Pos(fromLine, 0), Pos(toLine + 1, 0), recognizeMarker(+markerID));
               if (found.length && (range2 = found[0].find(0))) {
-                addText(getBetween(cm2.doc, range2.from, range2.to).join(lineSep));
+                addText(getBetween(cm.doc, range2.from, range2.to).join(lineSep));
               }
               return;
             }
@@ -10176,27 +10176,27 @@ var require_codemirror = __commonJS({
         }
         return text;
       }
-      function domToPos(cm2, node, offset) {
+      function domToPos(cm, node, offset) {
         var lineNode;
-        if (node == cm2.display.lineDiv) {
-          lineNode = cm2.display.lineDiv.childNodes[offset];
+        if (node == cm.display.lineDiv) {
+          lineNode = cm.display.lineDiv.childNodes[offset];
           if (!lineNode) {
-            return badPos(cm2.clipPos(Pos(cm2.display.viewTo - 1)), true);
+            return badPos(cm.clipPos(Pos(cm.display.viewTo - 1)), true);
           }
           node = null;
           offset = 0;
         } else {
           for (lineNode = node; ; lineNode = lineNode.parentNode) {
-            if (!lineNode || lineNode == cm2.display.lineDiv) {
+            if (!lineNode || lineNode == cm.display.lineDiv) {
               return null;
             }
-            if (lineNode.parentNode && lineNode.parentNode == cm2.display.lineDiv) {
+            if (lineNode.parentNode && lineNode.parentNode == cm.display.lineDiv) {
               break;
             }
           }
         }
-        for (var i2 = 0; i2 < cm2.display.view.length; i2++) {
-          var lineView = cm2.display.view[i2];
+        for (var i2 = 0; i2 < cm.display.view.length; i2++) {
+          var lineView = cm.display.view[i2];
           if (lineView.node == lineNode) {
             return locateNodeInLineView(lineView, node, offset);
           }
@@ -10264,8 +10264,8 @@ var require_codemirror = __commonJS({
           }
         }
       }
-      var TextareaInput = function(cm2) {
-        this.cm = cm2;
+      var TextareaInput = function(cm) {
+        this.cm = cm;
         this.prevInput = "";
         this.pollingFast = false;
         this.polling = new Delayed();
@@ -10275,7 +10275,7 @@ var require_codemirror = __commonJS({
       };
       TextareaInput.prototype.init = function(display) {
         var this$1 = this;
-        var input = this, cm2 = this.cm;
+        var input = this, cm = this.cm;
         this.createField(display);
         var te = this.textarea;
         display.wrapper.insertBefore(this.wrapper, display.wrapper.firstChild);
@@ -10289,25 +10289,25 @@ var require_codemirror = __commonJS({
           input.poll();
         });
         on(te, "paste", function(e) {
-          if (signalDOMEvent(cm2, e) || handlePaste(e, cm2)) {
+          if (signalDOMEvent(cm, e) || handlePaste(e, cm)) {
             return;
           }
-          cm2.state.pasteIncoming = +/* @__PURE__ */ new Date();
+          cm.state.pasteIncoming = +/* @__PURE__ */ new Date();
           input.fastPoll();
         });
         function prepareCopyCut(e) {
-          if (signalDOMEvent(cm2, e)) {
+          if (signalDOMEvent(cm, e)) {
             return;
           }
-          if (cm2.somethingSelected()) {
-            setLastCopied({ lineWise: false, text: cm2.getSelections() });
-          } else if (!cm2.options.lineWiseCopyCut) {
+          if (cm.somethingSelected()) {
+            setLastCopied({ lineWise: false, text: cm.getSelections() });
+          } else if (!cm.options.lineWiseCopyCut) {
             return;
           } else {
-            var ranges = copyableRanges(cm2);
+            var ranges = copyableRanges(cm);
             setLastCopied({ lineWise: true, text: ranges.text });
             if (e.type == "cut") {
-              cm2.setSelections(ranges.ranges, null, sel_dontScroll);
+              cm.setSelections(ranges.ranges, null, sel_dontScroll);
             } else {
               input.prevInput = "";
               te.value = ranges.text.join("\n");
@@ -10315,17 +10315,17 @@ var require_codemirror = __commonJS({
             }
           }
           if (e.type == "cut") {
-            cm2.state.cutIncoming = +/* @__PURE__ */ new Date();
+            cm.state.cutIncoming = +/* @__PURE__ */ new Date();
           }
         }
         on(te, "cut", prepareCopyCut);
         on(te, "copy", prepareCopyCut);
         on(display.scroller, "paste", function(e) {
-          if (eventInWidget(display, e) || signalDOMEvent(cm2, e)) {
+          if (eventInWidget(display, e) || signalDOMEvent(cm, e)) {
             return;
           }
           if (!te.dispatchEvent) {
-            cm2.state.pasteIncoming = +/* @__PURE__ */ new Date();
+            cm.state.pasteIncoming = +/* @__PURE__ */ new Date();
             input.focus();
             return;
           }
@@ -10339,13 +10339,13 @@ var require_codemirror = __commonJS({
           }
         });
         on(te, "compositionstart", function() {
-          var start = cm2.getCursor("from");
+          var start = cm.getCursor("from");
           if (input.composing) {
             input.composing.range.clear();
           }
           input.composing = {
             start,
-            range: cm2.markText(start, cm2.getCursor("to"), { className: "CodeMirror-composing" })
+            range: cm.markText(start, cm.getCursor("to"), { className: "CodeMirror-composing" })
           };
         });
         on(te, "compositionend", function() {
@@ -10370,10 +10370,10 @@ var require_codemirror = __commonJS({
         }
       };
       TextareaInput.prototype.prepareSelection = function() {
-        var cm2 = this.cm, display = cm2.display, doc2 = cm2.doc;
-        var result = prepareSelection(cm2);
-        if (cm2.options.moveInputWithCursor) {
-          var headPos = cursorCoords(cm2, doc2.sel.primary().head, "div");
+        var cm = this.cm, display = cm.display, doc2 = cm.doc;
+        var result = prepareSelection(cm);
+        if (cm.options.moveInputWithCursor) {
+          var headPos = cursorCoords(cm, doc2.sel.primary().head, "div");
           var wrapOff = display.wrapper.getBoundingClientRect(), lineOff = display.lineDiv.getBoundingClientRect();
           result.teTop = Math.max(0, Math.min(
             display.wrapper.clientHeight - 10,
@@ -10387,7 +10387,7 @@ var require_codemirror = __commonJS({
         return result;
       };
       TextareaInput.prototype.showSelection = function(drawn) {
-        var cm2 = this.cm, display = cm2.display;
+        var cm = this.cm, display = cm.display;
         removeChildrenAndAdd(display.cursorDiv, drawn.cursors);
         removeChildrenAndAdd(display.selectionDiv, drawn.selection);
         if (drawn.teTop != null) {
@@ -10399,13 +10399,13 @@ var require_codemirror = __commonJS({
         if (this.contextMenuPending || this.composing && typing) {
           return;
         }
-        var cm2 = this.cm;
+        var cm = this.cm;
         this.resetting = true;
-        if (cm2.somethingSelected()) {
+        if (cm.somethingSelected()) {
           this.prevInput = "";
-          var content = cm2.getSelection();
+          var content = cm.getSelection();
           this.textarea.value = content;
-          if (cm2.state.focused) {
+          if (cm.state.focused) {
             selectInput(this.textarea);
           }
           if (ie && ie_version >= 9) {
@@ -10471,19 +10471,19 @@ var require_codemirror = __commonJS({
       };
       TextareaInput.prototype.poll = function() {
         var this$1 = this;
-        var cm2 = this.cm, input = this.textarea, prevInput = this.prevInput;
-        if (this.contextMenuPending || this.resetting || !cm2.state.focused || hasSelection(input) && !prevInput && !this.composing || cm2.isReadOnly() || cm2.options.disableInput || cm2.state.keySeq) {
+        var cm = this.cm, input = this.textarea, prevInput = this.prevInput;
+        if (this.contextMenuPending || this.resetting || !cm.state.focused || hasSelection(input) && !prevInput && !this.composing || cm.isReadOnly() || cm.options.disableInput || cm.state.keySeq) {
           return false;
         }
         var text = input.value;
-        if (text == prevInput && !cm2.somethingSelected()) {
+        if (text == prevInput && !cm.somethingSelected()) {
           return false;
         }
         if (ie && ie_version >= 9 && this.hasSelection === text || mac && /[\uf700-\uf7ff]/.test(text)) {
-          cm2.display.input.reset();
+          cm.display.input.reset();
           return false;
         }
-        if (cm2.doc.sel == cm2.display.selForContextMenu) {
+        if (cm.doc.sel == cm.display.selForContextMenu) {
           var first = text.charCodeAt(0);
           if (first == 8203 && !prevInput) {
             prevInput = "\u200B";
@@ -10497,9 +10497,9 @@ var require_codemirror = __commonJS({
         while (same < l && prevInput.charCodeAt(same) == text.charCodeAt(same)) {
           ++same;
         }
-        runInOp(cm2, function() {
+        runInOp(cm, function() {
           applyTextInput(
-            cm2,
+            cm,
             text.slice(same),
             prevInput.length - same,
             null,
@@ -10512,9 +10512,9 @@ var require_codemirror = __commonJS({
           }
           if (this$1.composing) {
             this$1.composing.range.clear();
-            this$1.composing.range = cm2.markText(
+            this$1.composing.range = cm.markText(
               this$1.composing.start,
-              cm2.getCursor("to"),
+              cm.getCursor("to"),
               { className: "CodeMirror-composing" }
             );
           }
@@ -10533,17 +10533,17 @@ var require_codemirror = __commonJS({
         this.fastPoll();
       };
       TextareaInput.prototype.onContextMenu = function(e) {
-        var input = this, cm2 = input.cm, display = cm2.display, te = input.textarea;
+        var input = this, cm = input.cm, display = cm.display, te = input.textarea;
         if (input.contextMenuPending) {
           input.contextMenuPending();
         }
-        var pos = posFromMouse(cm2, e), scrollPos = display.scroller.scrollTop;
+        var pos = posFromMouse(cm, e), scrollPos = display.scroller.scrollTop;
         if (!pos || presto) {
           return;
         }
-        var reset = cm2.options.resetSelectionOnContextMenu;
-        if (reset && cm2.doc.sel.contains(pos) == -1) {
-          operation(cm2, setSelection)(cm2.doc, simpleSelection(pos), sel_dontScroll);
+        var reset = cm.options.resetSelectionOnContextMenu;
+        if (reset && cm.doc.sel.contains(pos) == -1) {
+          operation(cm, setSelection)(cm.doc, simpleSelection(pos), sel_dontScroll);
         }
         var oldCSS = te.style.cssText, oldWrapperCSS = input.wrapper.style.cssText;
         var wrapperBox = input.wrapper.offsetParent.getBoundingClientRect();
@@ -10558,22 +10558,22 @@ var require_codemirror = __commonJS({
           te.ownerDocument.defaultView.scrollTo(null, oldScrollY);
         }
         display.input.reset();
-        if (!cm2.somethingSelected()) {
+        if (!cm.somethingSelected()) {
           te.value = input.prevInput = " ";
         }
         input.contextMenuPending = rehide;
-        display.selForContextMenu = cm2.doc.sel;
+        display.selForContextMenu = cm.doc.sel;
         clearTimeout(display.detectingSelectAll);
         function prepareSelectAllHack() {
           if (te.selectionStart != null) {
-            var selected = cm2.somethingSelected();
+            var selected = cm.somethingSelected();
             var extval = "\u200B" + (selected ? te.value : "");
             te.value = "\u21DA";
             te.value = extval;
             input.prevInput = selected ? "" : "\u200B";
             te.selectionStart = 1;
             te.selectionEnd = extval.length;
-            display.selForContextMenu = cm2.doc.sel;
+            display.selForContextMenu = cm.doc.sel;
           }
         }
         function rehide() {
@@ -10591,8 +10591,8 @@ var require_codemirror = __commonJS({
               prepareSelectAllHack();
             }
             var i2 = 0, poll = function() {
-              if (display.selForContextMenu == cm2.doc.sel && te.selectionStart == 0 && te.selectionEnd > 0 && input.prevInput == "\u200B") {
-                operation(cm2, selectAll)(cm2);
+              if (display.selForContextMenu == cm.doc.sel && te.selectionStart == 0 && te.selectionEnd > 0 && input.prevInput == "\u200B") {
+                operation(cm, selectAll)(cm);
               } else if (i2++ < 10) {
                 display.detectingSelectAll = setTimeout(poll, 500);
               } else {
@@ -10641,7 +10641,7 @@ var require_codemirror = __commonJS({
           options.autofocus = hasFocus == textarea2 || textarea2.getAttribute("autofocus") != null && hasFocus == document.body;
         }
         function save() {
-          textarea2.value = cm2.getValue();
+          textarea2.value = cm.getValue();
         }
         var realSubmit;
         if (textarea2.form) {
@@ -10660,15 +10660,15 @@ var require_codemirror = __commonJS({
             }
           }
         }
-        options.finishInit = function(cm3) {
-          cm3.save = save;
-          cm3.getTextArea = function() {
+        options.finishInit = function(cm2) {
+          cm2.save = save;
+          cm2.getTextArea = function() {
             return textarea2;
           };
-          cm3.toTextArea = function() {
-            cm3.toTextArea = isNaN;
+          cm2.toTextArea = function() {
+            cm2.toTextArea = isNaN;
             save();
-            textarea2.parentNode.removeChild(cm3.getWrapperElement());
+            textarea2.parentNode.removeChild(cm2.getWrapperElement());
             textarea2.style.display = "";
             if (textarea2.form) {
               off(textarea2.form, "submit", save);
@@ -10679,63 +10679,63 @@ var require_codemirror = __commonJS({
           };
         };
         textarea2.style.display = "none";
-        var cm2 = CodeMirror3(
+        var cm = CodeMirror2(
           function(node) {
             return textarea2.parentNode.insertBefore(node, textarea2.nextSibling);
           },
           options
         );
-        return cm2;
+        return cm;
       }
-      function addLegacyProps(CodeMirror4) {
-        CodeMirror4.off = off;
-        CodeMirror4.on = on;
-        CodeMirror4.wheelEventPixels = wheelEventPixels;
-        CodeMirror4.Doc = Doc;
-        CodeMirror4.splitLines = splitLinesAuto;
-        CodeMirror4.countColumn = countColumn;
-        CodeMirror4.findColumn = findColumn;
-        CodeMirror4.isWordChar = isWordCharBasic;
-        CodeMirror4.Pass = Pass;
-        CodeMirror4.signal = signal;
-        CodeMirror4.Line = Line;
-        CodeMirror4.changeEnd = changeEnd;
-        CodeMirror4.scrollbarModel = scrollbarModel;
-        CodeMirror4.Pos = Pos;
-        CodeMirror4.cmpPos = cmp;
-        CodeMirror4.modes = modes;
-        CodeMirror4.mimeModes = mimeModes;
-        CodeMirror4.resolveMode = resolveMode;
-        CodeMirror4.getMode = getMode2;
-        CodeMirror4.modeExtensions = modeExtensions;
-        CodeMirror4.extendMode = extendMode;
-        CodeMirror4.copyState = copyState;
-        CodeMirror4.startState = startState2;
-        CodeMirror4.innerMode = innerMode;
-        CodeMirror4.commands = commands;
-        CodeMirror4.keyMap = keyMap;
-        CodeMirror4.keyName = keyName;
-        CodeMirror4.isModifierKey = isModifierKey;
-        CodeMirror4.lookupKey = lookupKey;
-        CodeMirror4.normalizeKeyMap = normalizeKeyMap;
-        CodeMirror4.StringStream = StringStream2;
-        CodeMirror4.SharedTextMarker = SharedTextMarker;
-        CodeMirror4.TextMarker = TextMarker;
-        CodeMirror4.LineWidget = LineWidget;
-        CodeMirror4.e_preventDefault = e_preventDefault;
-        CodeMirror4.e_stopPropagation = e_stopPropagation;
-        CodeMirror4.e_stop = e_stop;
-        CodeMirror4.addClass = addClass;
-        CodeMirror4.contains = contains;
-        CodeMirror4.rmClass = rmClass;
-        CodeMirror4.keyNames = keyNames;
+      function addLegacyProps(CodeMirror3) {
+        CodeMirror3.off = off;
+        CodeMirror3.on = on;
+        CodeMirror3.wheelEventPixels = wheelEventPixels;
+        CodeMirror3.Doc = Doc;
+        CodeMirror3.splitLines = splitLinesAuto;
+        CodeMirror3.countColumn = countColumn;
+        CodeMirror3.findColumn = findColumn;
+        CodeMirror3.isWordChar = isWordCharBasic;
+        CodeMirror3.Pass = Pass;
+        CodeMirror3.signal = signal;
+        CodeMirror3.Line = Line;
+        CodeMirror3.changeEnd = changeEnd;
+        CodeMirror3.scrollbarModel = scrollbarModel;
+        CodeMirror3.Pos = Pos;
+        CodeMirror3.cmpPos = cmp;
+        CodeMirror3.modes = modes;
+        CodeMirror3.mimeModes = mimeModes;
+        CodeMirror3.resolveMode = resolveMode;
+        CodeMirror3.getMode = getMode;
+        CodeMirror3.modeExtensions = modeExtensions;
+        CodeMirror3.extendMode = extendMode;
+        CodeMirror3.copyState = copyState;
+        CodeMirror3.startState = startState;
+        CodeMirror3.innerMode = innerMode;
+        CodeMirror3.commands = commands;
+        CodeMirror3.keyMap = keyMap;
+        CodeMirror3.keyName = keyName;
+        CodeMirror3.isModifierKey = isModifierKey;
+        CodeMirror3.lookupKey = lookupKey;
+        CodeMirror3.normalizeKeyMap = normalizeKeyMap;
+        CodeMirror3.StringStream = StringStream;
+        CodeMirror3.SharedTextMarker = SharedTextMarker;
+        CodeMirror3.TextMarker = TextMarker;
+        CodeMirror3.LineWidget = LineWidget;
+        CodeMirror3.e_preventDefault = e_preventDefault;
+        CodeMirror3.e_stopPropagation = e_stopPropagation;
+        CodeMirror3.e_stop = e_stop;
+        CodeMirror3.addClass = addClass;
+        CodeMirror3.contains = contains;
+        CodeMirror3.rmClass = rmClass;
+        CodeMirror3.keyNames = keyNames;
       }
-      defineOptions(CodeMirror3);
-      addEditorMethods(CodeMirror3);
+      defineOptions(CodeMirror2);
+      addEditorMethods(CodeMirror2);
       var dontDelegate = "iter insert remove copy getEditor constructor".split(" ");
       for (var prop in Doc.prototype) {
         if (Doc.prototype.hasOwnProperty(prop) && indexOf(dontDelegate, prop) < 0) {
-          CodeMirror3.prototype[prop] = /* @__PURE__ */ (function(method) {
+          CodeMirror2.prototype[prop] = /* @__PURE__ */ (function(method) {
             return function() {
               return method.apply(this.doc, arguments);
             };
@@ -10743,30 +10743,30 @@ var require_codemirror = __commonJS({
         }
       }
       eventMixin(Doc);
-      CodeMirror3.inputStyles = { "textarea": TextareaInput, "contenteditable": ContentEditableInput };
-      CodeMirror3.defineMode = function(name) {
-        if (!CodeMirror3.defaults.mode && name != "null") {
-          CodeMirror3.defaults.mode = name;
+      CodeMirror2.inputStyles = { "textarea": TextareaInput, "contenteditable": ContentEditableInput };
+      CodeMirror2.defineMode = function(name) {
+        if (!CodeMirror2.defaults.mode && name != "null") {
+          CodeMirror2.defaults.mode = name;
         }
         defineMode.apply(this, arguments);
       };
-      CodeMirror3.defineMIME = defineMIME;
-      CodeMirror3.defineMode("null", function() {
+      CodeMirror2.defineMIME = defineMIME;
+      CodeMirror2.defineMode("null", function() {
         return { token: function(stream) {
           return stream.skipToEnd();
         } };
       });
-      CodeMirror3.defineMIME("text/plain", "null");
-      CodeMirror3.defineExtension = function(name, func) {
-        CodeMirror3.prototype[name] = func;
+      CodeMirror2.defineMIME("text/plain", "null");
+      CodeMirror2.defineExtension = function(name, func) {
+        CodeMirror2.prototype[name] = func;
       };
-      CodeMirror3.defineDocExtension = function(name, func) {
+      CodeMirror2.defineDocExtension = function(name, func) {
         Doc.prototype[name] = func;
       };
-      CodeMirror3.fromTextArea = fromTextArea;
-      addLegacyProps(CodeMirror3);
-      CodeMirror3.version = "5.65.20";
-      return CodeMirror3;
+      CodeMirror2.fromTextArea = fromTextArea;
+      addLegacyProps(CodeMirror2);
+      CodeMirror2.version = "5.65.20";
+      return CodeMirror2;
     }));
   }
 });
@@ -10781,34 +10781,34 @@ var require_continuelist = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
       var listRE = /^(\s*)(>[> ]*|[*+-] \[[x ]\]\s|[*+-]\s|(\d+)([.)]))(\s*)/, emptyListRE = /^(\s*)(>[> ]*|[*+-] \[[x ]\]|[*+-]|(\d+)[.)])(\s*)$/, unorderedListRE = /[*+-]\s/;
-      CodeMirror3.commands.newlineAndIndentContinueMarkdownList = function(cm2) {
-        if (cm2.getOption("disableInput")) return CodeMirror3.Pass;
-        var ranges = cm2.listSelections(), replacements = [];
+      CodeMirror2.commands.newlineAndIndentContinueMarkdownList = function(cm) {
+        if (cm.getOption("disableInput")) return CodeMirror2.Pass;
+        var ranges = cm.listSelections(), replacements = [];
         for (var i = 0; i < ranges.length; i++) {
           var pos = ranges[i].head;
-          var eolState = cm2.getStateAfter(pos.line);
-          var inner = CodeMirror3.innerMode(cm2.getMode(), eolState);
+          var eolState = cm.getStateAfter(pos.line);
+          var inner = CodeMirror2.innerMode(cm.getMode(), eolState);
           if (inner.mode.name !== "markdown" && inner.mode.helperType !== "markdown") {
-            cm2.execCommand("newlineAndIndent");
+            cm.execCommand("newlineAndIndent");
             return;
           } else {
             eolState = inner.state;
           }
           var inList = eolState.list !== false;
           var inQuote = eolState.quote !== 0;
-          var line = cm2.getLine(pos.line), match = listRE.exec(line);
+          var line = cm.getLine(pos.line), match = listRE.exec(line);
           var cursorBeforeBullet = /^\s*$/.test(line.slice(0, pos.ch));
           if (!ranges[i].empty() || !inList && !inQuote || !match || cursorBeforeBullet) {
-            cm2.execCommand("newlineAndIndent");
+            cm.execCommand("newlineAndIndent");
             return;
           }
           if (emptyListRE.test(line)) {
             var endOfQuote = inQuote && />\s*$/.test(line);
             var endOfList = !/>\s*$/.test(line);
-            if (endOfQuote || endOfList) cm2.replaceRange("", {
+            if (endOfQuote || endOfList) cm.replaceRange("", {
               line: pos.line,
               ch: 0
             }, {
@@ -10821,18 +10821,18 @@ var require_continuelist = __commonJS({
             var numbered = !(unorderedListRE.test(match[2]) || match[2].indexOf(">") >= 0);
             var bullet = numbered ? parseInt(match[3], 10) + 1 + match[4] : match[2].replace("x", " ");
             replacements[i] = "\n" + indent + bullet + after;
-            if (numbered) incrementRemainingMarkdownListNumbers(cm2, pos);
+            if (numbered) incrementRemainingMarkdownListNumbers(cm, pos);
           }
         }
-        cm2.replaceSelections(replacements);
+        cm.replaceSelections(replacements);
       };
-      function incrementRemainingMarkdownListNumbers(cm2, pos) {
+      function incrementRemainingMarkdownListNumbers(cm, pos) {
         var startLine = pos.line, lookAhead = 0, skipCount = 0;
-        var startItem = listRE.exec(cm2.getLine(startLine)), startIndent = startItem[1];
+        var startItem = listRE.exec(cm.getLine(startLine)), startIndent = startItem[1];
         do {
           lookAhead += 1;
           var nextLineNumber = startLine + lookAhead;
-          var nextLine = cm2.getLine(nextLineNumber), nextItem = listRE.exec(nextLine);
+          var nextLine = cm.getLine(nextLineNumber), nextItem = listRE.exec(nextLine);
           if (nextItem) {
             var nextIndent = nextItem[1];
             var newNumber = parseInt(startItem[3], 10) + lookAhead - skipCount;
@@ -10840,7 +10840,7 @@ var require_continuelist = __commonJS({
             if (startIndent === nextIndent && !isNaN(nextNumber)) {
               if (newNumber === nextNumber) itemNumber = nextNumber + 1;
               if (newNumber > nextNumber) itemNumber = newNumber + 1;
-              cm2.replaceRange(
+              cm.replaceRange(
                 nextLine.replace(listRE, nextIndent + itemNumber + nextItem[4] + nextItem[5]),
                 {
                   line: nextLineNumber,
@@ -10866,37 +10866,37 @@ var require_continuelist = __commonJS({
 // node_modules/.pnpm/easymde@2.20.0/node_modules/easymde/src/js/codemirror/tablist.js
 var require_tablist = __commonJS({
   "node_modules/.pnpm/easymde@2.20.0/node_modules/easymde/src/js/codemirror/tablist.js"() {
-    var CodeMirror3 = require_codemirror();
-    CodeMirror3.commands.tabAndIndentMarkdownList = function(cm2) {
-      var ranges = cm2.listSelections();
+    var CodeMirror2 = require_codemirror();
+    CodeMirror2.commands.tabAndIndentMarkdownList = function(cm) {
+      var ranges = cm.listSelections();
       var pos = ranges[0].head;
-      var eolState = cm2.getStateAfter(pos.line);
+      var eolState = cm.getStateAfter(pos.line);
       var inList = eolState.list !== false;
       if (inList) {
-        cm2.execCommand("indentMore");
+        cm.execCommand("indentMore");
         return;
       }
-      if (cm2.options.indentWithTabs) {
-        cm2.execCommand("insertTab");
+      if (cm.options.indentWithTabs) {
+        cm.execCommand("insertTab");
       } else {
-        var spaces = Array(cm2.options.tabSize + 1).join(" ");
-        cm2.replaceSelection(spaces);
+        var spaces = Array(cm.options.tabSize + 1).join(" ");
+        cm.replaceSelection(spaces);
       }
     };
-    CodeMirror3.commands.shiftTabAndUnindentMarkdownList = function(cm2) {
-      var ranges = cm2.listSelections();
+    CodeMirror2.commands.shiftTabAndUnindentMarkdownList = function(cm) {
+      var ranges = cm.listSelections();
       var pos = ranges[0].head;
-      var eolState = cm2.getStateAfter(pos.line);
+      var eolState = cm.getStateAfter(pos.line);
       var inList = eolState.list !== false;
       if (inList) {
-        cm2.execCommand("indentLess");
+        cm.execCommand("indentLess");
         return;
       }
-      if (cm2.options.indentWithTabs) {
-        cm2.execCommand("insertTab");
+      if (cm.options.indentWithTabs) {
+        cm.execCommand("insertTab");
       } else {
-        var spaces = Array(cm2.options.tabSize + 1).join(" ");
-        cm2.replaceSelection(spaces);
+        var spaces = Array(cm.options.tabSize + 1).join(" ");
+        cm.replaceSelection(spaces);
       }
     };
   }
@@ -10912,17 +10912,17 @@ var require_fullscreen = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
-      CodeMirror3.defineOption("fullScreen", false, function(cm2, val, old) {
-        if (old == CodeMirror3.Init) old = false;
+      CodeMirror2.defineOption("fullScreen", false, function(cm, val, old) {
+        if (old == CodeMirror2.Init) old = false;
         if (!old == !val) return;
-        if (val) setFullscreen(cm2);
-        else setNormal(cm2);
+        if (val) setFullscreen(cm);
+        else setNormal(cm);
       });
-      function setFullscreen(cm2) {
-        var wrap = cm2.getWrapperElement();
-        cm2.state.fullScreenRestore = {
+      function setFullscreen(cm) {
+        var wrap = cm.getWrapperElement();
+        cm.state.fullScreenRestore = {
           scrollTop: window.pageYOffset,
           scrollLeft: window.pageXOffset,
           width: wrap.style.width,
@@ -10932,17 +10932,17 @@ var require_fullscreen = __commonJS({
         wrap.style.height = "auto";
         wrap.className += " CodeMirror-fullscreen";
         document.documentElement.style.overflow = "hidden";
-        cm2.refresh();
+        cm.refresh();
       }
-      function setNormal(cm2) {
-        var wrap = cm2.getWrapperElement();
+      function setNormal(cm) {
+        var wrap = cm.getWrapperElement();
         wrap.className = wrap.className.replace(/\s*CodeMirror-fullscreen\b/, "");
         document.documentElement.style.overflow = "";
-        var info = cm2.state.fullScreenRestore;
+        var info = cm.state.fullScreenRestore;
         wrap.style.width = info.width;
         wrap.style.height = info.height;
         window.scrollTo(info.scrollLeft, info.scrollTop);
-        cm2.refresh();
+        cm.refresh();
       }
     });
   }
@@ -10958,7 +10958,7 @@ var require_xml = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
       var htmlConfig = {
         autoSelfClosers: {
@@ -11054,7 +11054,7 @@ var require_xml = __commonJS({
         allowMissingTagName: false,
         caseFold: false
       };
-      CodeMirror3.defineMode("xml", function(editorConf, config_) {
+      CodeMirror2.defineMode("xml", function(editorConf, config_) {
         var indentUnit = editorConf.indentUnit;
         var config = {};
         var defaults = config_.htmlMode ? htmlConfig : xmlConfig;
@@ -11329,7 +11329,7 @@ var require_xml = __commonJS({
               else
                 return state.indented + indentUnit;
             }
-            if (context && context.noIndent) return CodeMirror3.Pass;
+            if (context && context.noIndent) return CodeMirror2.Pass;
             if (state.tokenize != inTag && state.tokenize != inText)
               return fullLine ? fullLine.match(/^(\s*)/)[0].length : 0;
             if (state.tagName) {
@@ -11385,10 +11385,10 @@ var require_xml = __commonJS({
           }
         };
       });
-      CodeMirror3.defineMIME("text/xml", "xml");
-      CodeMirror3.defineMIME("application/xml", "xml");
-      if (!CodeMirror3.mimeModes.hasOwnProperty("text/html"))
-        CodeMirror3.defineMIME("text/html", { name: "xml", htmlMode: true });
+      CodeMirror2.defineMIME("text/xml", "xml");
+      CodeMirror2.defineMIME("application/xml", "xml");
+      if (!CodeMirror2.mimeModes.hasOwnProperty("text/html"))
+        CodeMirror2.defineMIME("text/html", { name: "xml", htmlMode: true });
     });
   }
 });
@@ -11403,9 +11403,9 @@ var require_meta = __commonJS({
         define(["../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
-      CodeMirror3.modeInfo = [
+      CodeMirror2.modeInfo = [
         { name: "APL", mime: "text/apl", mode: "apl", ext: ["dyalog", "apl"] },
         { name: "PGP", mimes: ["application/pgp", "application/pgp-encrypted", "application/pgp-keys", "application/pgp-signature"], mode: "asciiarmor", ext: ["asc", "pgp", "sig"] },
         { name: "ASN.1", mime: "text/x-ttcn-asn", mode: "asn.1", ext: ["asn", "asn1"] },
@@ -11575,46 +11575,46 @@ var require_meta = __commonJS({
         { name: "msgenny", mime: "text/x-msgenny", mode: "mscgen", ext: ["msgenny"] },
         { name: "WebAssembly", mime: "text/webassembly", mode: "wast", ext: ["wat", "wast"] }
       ];
-      for (var i = 0; i < CodeMirror3.modeInfo.length; i++) {
-        var info = CodeMirror3.modeInfo[i];
+      for (var i = 0; i < CodeMirror2.modeInfo.length; i++) {
+        var info = CodeMirror2.modeInfo[i];
         if (info.mimes) info.mime = info.mimes[0];
       }
-      CodeMirror3.findModeByMIME = function(mime) {
+      CodeMirror2.findModeByMIME = function(mime) {
         mime = mime.toLowerCase();
-        for (var i2 = 0; i2 < CodeMirror3.modeInfo.length; i2++) {
-          var info2 = CodeMirror3.modeInfo[i2];
+        for (var i2 = 0; i2 < CodeMirror2.modeInfo.length; i2++) {
+          var info2 = CodeMirror2.modeInfo[i2];
           if (info2.mime == mime) return info2;
           if (info2.mimes) {
             for (var j = 0; j < info2.mimes.length; j++)
               if (info2.mimes[j] == mime) return info2;
           }
         }
-        if (/\+xml$/.test(mime)) return CodeMirror3.findModeByMIME("application/xml");
-        if (/\+json$/.test(mime)) return CodeMirror3.findModeByMIME("application/json");
+        if (/\+xml$/.test(mime)) return CodeMirror2.findModeByMIME("application/xml");
+        if (/\+json$/.test(mime)) return CodeMirror2.findModeByMIME("application/json");
       };
-      CodeMirror3.findModeByExtension = function(ext) {
+      CodeMirror2.findModeByExtension = function(ext) {
         ext = ext.toLowerCase();
-        for (var i2 = 0; i2 < CodeMirror3.modeInfo.length; i2++) {
-          var info2 = CodeMirror3.modeInfo[i2];
+        for (var i2 = 0; i2 < CodeMirror2.modeInfo.length; i2++) {
+          var info2 = CodeMirror2.modeInfo[i2];
           if (info2.ext) {
             for (var j = 0; j < info2.ext.length; j++)
               if (info2.ext[j] == ext) return info2;
           }
         }
       };
-      CodeMirror3.findModeByFileName = function(filename) {
-        for (var i2 = 0; i2 < CodeMirror3.modeInfo.length; i2++) {
-          var info2 = CodeMirror3.modeInfo[i2];
+      CodeMirror2.findModeByFileName = function(filename) {
+        for (var i2 = 0; i2 < CodeMirror2.modeInfo.length; i2++) {
+          var info2 = CodeMirror2.modeInfo[i2];
           if (info2.file && info2.file.test(filename)) return info2;
         }
         var dot = filename.lastIndexOf(".");
         var ext = dot > -1 && filename.substring(dot + 1, filename.length);
-        if (ext) return CodeMirror3.findModeByExtension(ext);
+        if (ext) return CodeMirror2.findModeByExtension(ext);
       };
-      CodeMirror3.findModeByName = function(name) {
+      CodeMirror2.findModeByName = function(name) {
         name = name.toLowerCase();
-        for (var i2 = 0; i2 < CodeMirror3.modeInfo.length; i2++) {
-          var info2 = CodeMirror3.modeInfo[i2];
+        for (var i2 = 0; i2 < CodeMirror2.modeInfo.length; i2++) {
+          var info2 = CodeMirror2.modeInfo[i2];
           if (info2.name.toLowerCase() == name) return info2;
           if (info2.alias) {
             for (var j = 0; j < info2.alias.length; j++)
@@ -11636,17 +11636,17 @@ var require_markdown = __commonJS({
         define(["../../lib/codemirror", "../xml/xml", "../meta"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
-      CodeMirror3.defineMode("markdown", function(cmCfg, modeCfg) {
-        var htmlMode = CodeMirror3.getMode(cmCfg, "text/html");
+      CodeMirror2.defineMode("markdown", function(cmCfg, modeCfg) {
+        var htmlMode = CodeMirror2.getMode(cmCfg, "text/html");
         var htmlModeMissing = htmlMode.name == "null";
-        function getMode2(name) {
-          if (CodeMirror3.findModeByName) {
-            var found = CodeMirror3.findModeByName(name);
+        function getMode(name) {
+          if (CodeMirror2.findModeByName) {
+            var found = CodeMirror2.findModeByName(name);
             if (found) name = found.mime || found.mimes[0];
           }
-          var mode2 = CodeMirror3.getMode(cmCfg, name);
+          var mode2 = CodeMirror2.getMode(cmCfg, name);
           return mode2.name == "null" ? null : mode2;
         }
         if (modeCfg.highlightFormatting === void 0)
@@ -11716,7 +11716,7 @@ var require_markdown = __commonJS({
           if (state.f == htmlBlock) {
             var exit = htmlModeMissing;
             if (!exit) {
-              var inner = CodeMirror3.innerMode(htmlMode, state.htmlState);
+              var inner = CodeMirror2.innerMode(htmlMode, state.htmlState);
               exit = inner.mode.name == "xml" && inner.state.tagStart === null && (!inner.state.context && inner.state.tokenize.isInText);
             }
             if (exit) {
@@ -11797,8 +11797,8 @@ var require_markdown = __commonJS({
           } else if (firstTokenOnLine && state.indentation <= maxNonCodeIndentation && (match = stream.match(fencedCodeRE, true))) {
             state.quote = 0;
             state.fencedEndRE = new RegExp(match[1] + "+ *$");
-            state.localMode = modeCfg.fencedCodeBlockHighlighting && getMode2(match[2] || modeCfg.fencedCodeBlockDefaultMode);
-            if (state.localMode) state.localState = CodeMirror3.startState(state.localMode);
+            state.localMode = modeCfg.fencedCodeBlockHighlighting && getMode(match[2] || modeCfg.fencedCodeBlockDefaultMode);
+            if (state.localMode) state.localState = CodeMirror2.startState(state.localMode);
             state.f = state.block = local;
             if (modeCfg.highlightFormatting) state.formatting = "code-block";
             state.code = -1;
@@ -11833,7 +11833,7 @@ var require_markdown = __commonJS({
         function htmlBlock(stream, state) {
           var style = htmlMode.token(stream, state.htmlState);
           if (!htmlModeMissing) {
-            var inner = CodeMirror3.innerMode(htmlMode, state.htmlState);
+            var inner = CodeMirror2.innerMode(htmlMode, state.htmlState);
             if (inner.mode.name == "xml" && inner.state.tagStart === null && (!inner.state.context && inner.state.tokenize.isInText) || state.md_inside && stream.current().indexOf(">") > -1) {
               state.f = inlineNormal;
               state.block = blockNormal;
@@ -12081,7 +12081,7 @@ var require_markdown = __commonJS({
               if (/markdown\s*=\s*('|"){0,1}1('|"){0,1}/.test(atts)) state.md_inside = true;
             }
             stream.backUp(1);
-            state.htmlState = CodeMirror3.startState(htmlMode);
+            state.htmlState = CodeMirror2.startState(htmlMode);
             return switchBlock(stream, state, htmlBlock);
           }
           if (modeCfg.xml && ch === "<" && stream.match(/^\/\w*?>/)) {
@@ -12282,10 +12282,10 @@ var require_markdown = __commonJS({
               prevLine: s.prevLine,
               thisLine: s.thisLine,
               block: s.block,
-              htmlState: s.htmlState && CodeMirror3.copyState(htmlMode, s.htmlState),
+              htmlState: s.htmlState && CodeMirror2.copyState(htmlMode, s.htmlState),
               indentation: s.indentation,
               localMode: s.localMode,
-              localState: s.localMode ? CodeMirror3.copyState(s.localMode, s.localState) : null,
+              localState: s.localMode ? CodeMirror2.copyState(s.localMode, s.localState) : null,
               inline: s.inline,
               text: s.text,
               formatting: false,
@@ -12345,7 +12345,7 @@ var require_markdown = __commonJS({
           indent: function(state, textAfter, line) {
             if (state.block == htmlBlock && htmlMode.indent) return htmlMode.indent(state.htmlState, textAfter, line);
             if (state.localState && state.localMode.indent) return state.localMode.indent(state.localState, textAfter, line);
-            return CodeMirror3.Pass;
+            return CodeMirror2.Pass;
           },
           blankLine,
           getType,
@@ -12356,8 +12356,8 @@ var require_markdown = __commonJS({
         };
         return mode;
       }, "xml");
-      CodeMirror3.defineMIME("text/markdown", "markdown");
-      CodeMirror3.defineMIME("text/x-markdown", "markdown");
+      CodeMirror2.defineMIME("text/markdown", "markdown");
+      CodeMirror2.defineMIME("text/x-markdown", "markdown");
     });
   }
 });
@@ -12372,14 +12372,14 @@ var require_overlay = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
-      CodeMirror3.overlayMode = function(base, overlay, combine) {
+      CodeMirror2.overlayMode = function(base, overlay, combine) {
         return {
           startState: function() {
             return {
-              base: CodeMirror3.startState(base),
-              overlay: CodeMirror3.startState(overlay),
+              base: CodeMirror2.startState(base),
+              overlay: CodeMirror2.startState(overlay),
               basePos: 0,
               baseCur: null,
               overlayPos: 0,
@@ -12389,8 +12389,8 @@ var require_overlay = __commonJS({
           },
           copyState: function(state) {
             return {
-              base: CodeMirror3.copyState(base, state.base),
-              overlay: CodeMirror3.copyState(overlay, state.overlay),
+              base: CodeMirror2.copyState(base, state.base),
+              overlay: CodeMirror2.copyState(overlay, state.overlay),
               basePos: state.basePos,
               baseCur: null,
               overlayPos: state.overlayPos,
@@ -12446,67 +12446,67 @@ var require_placeholder = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
-      CodeMirror3.defineOption("placeholder", "", function(cm2, val, old) {
-        var prev = old && old != CodeMirror3.Init;
+    })(function(CodeMirror2) {
+      CodeMirror2.defineOption("placeholder", "", function(cm, val, old) {
+        var prev = old && old != CodeMirror2.Init;
         if (val && !prev) {
-          cm2.on("blur", onBlur);
-          cm2.on("change", onChange);
-          cm2.on("swapDoc", onChange);
-          CodeMirror3.on(cm2.getInputField(), "compositionupdate", cm2.state.placeholderCompose = function() {
-            onComposition(cm2);
+          cm.on("blur", onBlur);
+          cm.on("change", onChange);
+          cm.on("swapDoc", onChange);
+          CodeMirror2.on(cm.getInputField(), "compositionupdate", cm.state.placeholderCompose = function() {
+            onComposition(cm);
           });
-          onChange(cm2);
+          onChange(cm);
         } else if (!val && prev) {
-          cm2.off("blur", onBlur);
-          cm2.off("change", onChange);
-          cm2.off("swapDoc", onChange);
-          CodeMirror3.off(cm2.getInputField(), "compositionupdate", cm2.state.placeholderCompose);
-          clearPlaceholder(cm2);
-          var wrapper = cm2.getWrapperElement();
+          cm.off("blur", onBlur);
+          cm.off("change", onChange);
+          cm.off("swapDoc", onChange);
+          CodeMirror2.off(cm.getInputField(), "compositionupdate", cm.state.placeholderCompose);
+          clearPlaceholder(cm);
+          var wrapper = cm.getWrapperElement();
           wrapper.className = wrapper.className.replace(" CodeMirror-empty", "");
         }
-        if (val && !cm2.hasFocus()) onBlur(cm2);
+        if (val && !cm.hasFocus()) onBlur(cm);
       });
-      function clearPlaceholder(cm2) {
-        if (cm2.state.placeholder) {
-          cm2.state.placeholder.parentNode.removeChild(cm2.state.placeholder);
-          cm2.state.placeholder = null;
+      function clearPlaceholder(cm) {
+        if (cm.state.placeholder) {
+          cm.state.placeholder.parentNode.removeChild(cm.state.placeholder);
+          cm.state.placeholder = null;
         }
       }
-      function setPlaceholder(cm2) {
-        clearPlaceholder(cm2);
-        var elt = cm2.state.placeholder = document.createElement("pre");
+      function setPlaceholder(cm) {
+        clearPlaceholder(cm);
+        var elt = cm.state.placeholder = document.createElement("pre");
         elt.style.cssText = "height: 0; overflow: visible";
-        elt.style.direction = cm2.getOption("direction");
+        elt.style.direction = cm.getOption("direction");
         elt.className = "CodeMirror-placeholder CodeMirror-line-like";
-        var placeHolder = cm2.getOption("placeholder");
+        var placeHolder = cm.getOption("placeholder");
         if (typeof placeHolder == "string") placeHolder = document.createTextNode(placeHolder);
         elt.appendChild(placeHolder);
-        cm2.display.lineSpace.insertBefore(elt, cm2.display.lineSpace.firstChild);
+        cm.display.lineSpace.insertBefore(elt, cm.display.lineSpace.firstChild);
       }
-      function onComposition(cm2) {
+      function onComposition(cm) {
         setTimeout(function() {
           var empty = false;
-          if (cm2.lineCount() == 1) {
-            var input = cm2.getInputField();
-            empty = input.nodeName == "TEXTAREA" ? !cm2.getLine(0).length : !/[^\u200b]/.test(input.querySelector(".CodeMirror-line").textContent);
+          if (cm.lineCount() == 1) {
+            var input = cm.getInputField();
+            empty = input.nodeName == "TEXTAREA" ? !cm.getLine(0).length : !/[^\u200b]/.test(input.querySelector(".CodeMirror-line").textContent);
           }
-          if (empty) setPlaceholder(cm2);
-          else clearPlaceholder(cm2);
+          if (empty) setPlaceholder(cm);
+          else clearPlaceholder(cm);
         }, 20);
       }
-      function onBlur(cm2) {
-        if (isEmpty(cm2)) setPlaceholder(cm2);
+      function onBlur(cm) {
+        if (isEmpty(cm)) setPlaceholder(cm);
       }
-      function onChange(cm2) {
-        var wrapper = cm2.getWrapperElement(), empty = isEmpty(cm2);
+      function onChange(cm) {
+        var wrapper = cm.getWrapperElement(), empty = isEmpty(cm);
         wrapper.className = wrapper.className.replace(" CodeMirror-empty", "") + (empty ? " CodeMirror-empty" : "");
-        if (empty) setPlaceholder(cm2);
-        else clearPlaceholder(cm2);
+        if (empty) setPlaceholder(cm);
+        else clearPlaceholder(cm);
       }
-      function isEmpty(cm2) {
-        return cm2.lineCount() === 1 && cm2.getLine(0) === "";
+      function isEmpty(cm) {
+        return cm.lineCount() === 1 && cm.getLine(0) === "";
       }
     });
   }
@@ -12522,22 +12522,22 @@ var require_autorefresh = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
-      CodeMirror3.defineOption("autoRefresh", false, function(cm2, val) {
-        if (cm2.state.autoRefresh) {
-          stopListening(cm2, cm2.state.autoRefresh);
-          cm2.state.autoRefresh = null;
+      CodeMirror2.defineOption("autoRefresh", false, function(cm, val) {
+        if (cm.state.autoRefresh) {
+          stopListening(cm, cm.state.autoRefresh);
+          cm.state.autoRefresh = null;
         }
-        if (val && cm2.display.wrapper.offsetHeight == 0)
-          startListening(cm2, cm2.state.autoRefresh = { delay: val.delay || 250 });
+        if (val && cm.display.wrapper.offsetHeight == 0)
+          startListening(cm, cm.state.autoRefresh = { delay: val.delay || 250 });
       });
-      function startListening(cm2, state) {
+      function startListening(cm, state) {
         function check() {
-          if (cm2.display.wrapper.offsetHeight) {
-            stopListening(cm2, state);
-            if (cm2.display.lastWrapHeight != cm2.display.wrapper.clientHeight)
-              cm2.refresh();
+          if (cm.display.wrapper.offsetHeight) {
+            stopListening(cm, state);
+            if (cm.display.lastWrapHeight != cm.display.wrapper.clientHeight)
+              cm.refresh();
           } else {
             state.timeout = setTimeout(check, state.delay);
           }
@@ -12547,13 +12547,13 @@ var require_autorefresh = __commonJS({
           clearTimeout(state.timeout);
           state.timeout = setTimeout(check, 50);
         };
-        CodeMirror3.on(window, "mouseup", state.hurry);
-        CodeMirror3.on(window, "keyup", state.hurry);
+        CodeMirror2.on(window, "mouseup", state.hurry);
+        CodeMirror2.on(window, "keyup", state.hurry);
       }
       function stopListening(_cm, state) {
         clearTimeout(state.timeout);
-        CodeMirror3.off(window, "mouseup", state.hurry);
-        CodeMirror3.off(window, "keyup", state.hurry);
+        CodeMirror2.off(window, "mouseup", state.hurry);
+        CodeMirror2.off(window, "keyup", state.hurry);
       }
     });
   }
@@ -12569,73 +12569,73 @@ var require_mark_selection = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
-      CodeMirror3.defineOption("styleSelectedText", false, function(cm2, val, old) {
-        var prev = old && old != CodeMirror3.Init;
+      CodeMirror2.defineOption("styleSelectedText", false, function(cm, val, old) {
+        var prev = old && old != CodeMirror2.Init;
         if (val && !prev) {
-          cm2.state.markedSelection = [];
-          cm2.state.markedSelectionStyle = typeof val == "string" ? val : "CodeMirror-selectedtext";
-          reset(cm2);
-          cm2.on("cursorActivity", onCursorActivity);
-          cm2.on("change", onChange);
+          cm.state.markedSelection = [];
+          cm.state.markedSelectionStyle = typeof val == "string" ? val : "CodeMirror-selectedtext";
+          reset(cm);
+          cm.on("cursorActivity", onCursorActivity);
+          cm.on("change", onChange);
         } else if (!val && prev) {
-          cm2.off("cursorActivity", onCursorActivity);
-          cm2.off("change", onChange);
-          clear(cm2);
-          cm2.state.markedSelection = cm2.state.markedSelectionStyle = null;
+          cm.off("cursorActivity", onCursorActivity);
+          cm.off("change", onChange);
+          clear(cm);
+          cm.state.markedSelection = cm.state.markedSelectionStyle = null;
         }
       });
-      function onCursorActivity(cm2) {
-        if (cm2.state.markedSelection)
-          cm2.operation(function() {
-            update(cm2);
+      function onCursorActivity(cm) {
+        if (cm.state.markedSelection)
+          cm.operation(function() {
+            update(cm);
           });
       }
-      function onChange(cm2) {
-        if (cm2.state.markedSelection && cm2.state.markedSelection.length)
-          cm2.operation(function() {
-            clear(cm2);
+      function onChange(cm) {
+        if (cm.state.markedSelection && cm.state.markedSelection.length)
+          cm.operation(function() {
+            clear(cm);
           });
       }
       var CHUNK_SIZE = 8;
-      var Pos = CodeMirror3.Pos;
-      var cmp = CodeMirror3.cmpPos;
-      function coverRange(cm2, from, to, addAt) {
+      var Pos = CodeMirror2.Pos;
+      var cmp = CodeMirror2.cmpPos;
+      function coverRange(cm, from, to, addAt) {
         if (cmp(from, to) == 0) return;
-        var array = cm2.state.markedSelection;
-        var cls = cm2.state.markedSelectionStyle;
+        var array = cm.state.markedSelection;
+        var cls = cm.state.markedSelectionStyle;
         for (var line = from.line; ; ) {
           var start = line == from.line ? from : Pos(line, 0);
           var endLine = line + CHUNK_SIZE, atEnd = endLine >= to.line;
           var end = atEnd ? to : Pos(endLine, 0);
-          var mark = cm2.markText(start, end, { className: cls });
+          var mark = cm.markText(start, end, { className: cls });
           if (addAt == null) array.push(mark);
           else array.splice(addAt++, 0, mark);
           if (atEnd) break;
           line = endLine;
         }
       }
-      function clear(cm2) {
-        var array = cm2.state.markedSelection;
+      function clear(cm) {
+        var array = cm.state.markedSelection;
         for (var i = 0; i < array.length; ++i) array[i].clear();
         array.length = 0;
       }
-      function reset(cm2) {
-        clear(cm2);
-        var ranges = cm2.listSelections();
+      function reset(cm) {
+        clear(cm);
+        var ranges = cm.listSelections();
         for (var i = 0; i < ranges.length; i++)
-          coverRange(cm2, ranges[i].from(), ranges[i].to());
+          coverRange(cm, ranges[i].from(), ranges[i].to());
       }
-      function update(cm2) {
-        if (!cm2.somethingSelected()) return clear(cm2);
-        if (cm2.listSelections().length > 1) return reset(cm2);
-        var from = cm2.getCursor("start"), to = cm2.getCursor("end");
-        var array = cm2.state.markedSelection;
-        if (!array.length) return coverRange(cm2, from, to);
+      function update(cm) {
+        if (!cm.somethingSelected()) return clear(cm);
+        if (cm.listSelections().length > 1) return reset(cm);
+        var from = cm.getCursor("start"), to = cm.getCursor("end");
+        var array = cm.state.markedSelection;
+        if (!array.length) return coverRange(cm, from, to);
         var coverStart = array[0].find(), coverEnd = array[array.length - 1].find();
         if (!coverStart || !coverEnd || to.line - from.line <= CHUNK_SIZE || cmp(from, coverEnd.to) >= 0 || cmp(to, coverStart.from) <= 0)
-          return reset(cm2);
+          return reset(cm);
         while (cmp(from, coverStart.from) > 0) {
           array.shift().clear();
           coverStart = array[0].find();
@@ -12643,9 +12643,9 @@ var require_mark_selection = __commonJS({
         if (cmp(from, coverStart.from) < 0) {
           if (coverStart.to.line - from.line < CHUNK_SIZE) {
             array.shift().clear();
-            coverRange(cm2, from, coverStart.to, 0);
+            coverRange(cm, from, coverStart.to, 0);
           } else {
-            coverRange(cm2, from, coverStart.from, 0);
+            coverRange(cm, from, coverStart.from, 0);
           }
         }
         while (cmp(to, coverEnd.to) < 0) {
@@ -12655,9 +12655,9 @@ var require_mark_selection = __commonJS({
         if (cmp(to, coverEnd.to) > 0) {
           if (to.line - coverEnd.from.line < CHUNK_SIZE) {
             array.pop().clear();
-            coverRange(cm2, coverEnd.from, to);
+            coverRange(cm, coverEnd.from, to);
           } else {
-            coverRange(cm2, coverEnd.to, to);
+            coverRange(cm, coverEnd.to, to);
           }
         }
       }
@@ -12675,9 +12675,9 @@ var require_searchcursor = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
-      var Pos = CodeMirror3.Pos;
+      var Pos = CodeMirror2.Pos;
       function regexpFlags(regexp) {
         var flags = regexp.flags;
         return flags != null ? flags : (regexp.ignoreCase ? "i" : "") + (regexp.global ? "g" : "") + (regexp.multiline ? "m" : "");
@@ -12921,12 +12921,12 @@ var require_searchcursor = __commonJS({
                 head.line++;
               }
             }
-            if (CodeMirror3.cmpPos(head, this.doc.clipPos(head)) != 0) {
+            if (CodeMirror2.cmpPos(head, this.doc.clipPos(head)) != 0) {
               return this.atOccurrence = false;
             }
           }
           var result = this.matches(reverse, head);
-          this.afterEmptyMatch = result && CodeMirror3.cmpPos(result.from, result.to) == 0;
+          this.afterEmptyMatch = result && CodeMirror2.cmpPos(result.from, result.to) == 0;
           if (result) {
             this.pos = result;
             this.atOccurrence = true;
@@ -12945,7 +12945,7 @@ var require_searchcursor = __commonJS({
         },
         replace: function(newText, origin) {
           if (!this.atOccurrence) return;
-          var lines = CodeMirror3.splitLines(newText);
+          var lines = CodeMirror2.splitLines(newText);
           this.doc.replaceRange(lines, this.pos.from, this.pos.to, origin);
           this.pos.to = Pos(
             this.pos.from.line + lines.length - 1,
@@ -12953,17 +12953,17 @@ var require_searchcursor = __commonJS({
           );
         }
       };
-      CodeMirror3.defineExtension("getSearchCursor", function(query, pos, caseFold) {
+      CodeMirror2.defineExtension("getSearchCursor", function(query, pos, caseFold) {
         return new SearchCursor(this.doc, query, pos, caseFold);
       });
-      CodeMirror3.defineDocExtension("getSearchCursor", function(query, pos, caseFold) {
+      CodeMirror2.defineDocExtension("getSearchCursor", function(query, pos, caseFold) {
         return new SearchCursor(this, query, pos, caseFold);
       });
-      CodeMirror3.defineExtension("selectMatches", function(query, caseFold) {
+      CodeMirror2.defineExtension("selectMatches", function(query, caseFold) {
         var ranges = [];
         var cur = this.getSearchCursor(query, this.getCursor("from"), caseFold);
         while (cur.findNext()) {
-          if (CodeMirror3.cmpPos(cur.to(), this.getCursor("to")) > 0) break;
+          if (CodeMirror2.cmpPos(cur.to(), this.getCursor("to")) > 0) break;
           ranges.push({ anchor: cur.from(), head: cur.to() });
         }
         if (ranges.length)
@@ -12983,10 +12983,10 @@ var require_gfm = __commonJS({
         define(["../../lib/codemirror", "../markdown/markdown", "../../addon/mode/overlay"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
       var urlRE = /^((?:(?:aaas?|about|acap|adiumxtra|af[ps]|aim|apt|attachment|aw|beshare|bitcoin|bolo|callto|cap|chrome(?:-extension)?|cid|coap|com-eventbrite-attendee|content|crid|cvs|data|dav|dict|dlna-(?:playcontainer|playsingle)|dns|doi|dtn|dvb|ed2k|facetime|feed|file|finger|fish|ftp|geo|gg|git|gizmoproject|go|gopher|gtalk|h323|hcp|https?|iax|icap|icon|im|imap|info|ipn|ipp|irc[6s]?|iris(?:\.beep|\.lwz|\.xpc|\.xpcs)?|itms|jar|javascript|jms|keyparc|lastfm|ldaps?|magnet|mailto|maps|market|message|mid|mms|ms-help|msnim|msrps?|mtqp|mumble|mupdate|mvn|news|nfs|nih?|nntp|notes|oid|opaquelocktoken|palm|paparazzi|platform|pop|pres|proxy|psyc|query|res(?:ource)?|rmi|rsync|rtmp|rtsp|secondlife|service|session|sftp|sgn|shttp|sieve|sips?|skype|sm[bs]|snmp|soap\.beeps?|soldat|spotify|ssh|steam|svn|tag|teamspeak|tel(?:net)?|tftp|things|thismessage|tip|tn3270|tv|udp|unreal|urn|ut2004|vemmi|ventrilo|view-source|webcal|wss?|wtai|wyciwyg|xcon(?:-userid)?|xfire|xmlrpc\.beeps?|xmpp|xri|ymsgr|z39\.50[rs]?):(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]|\([^\s()<>]*\))+(?:\([^\s()<>]*\)|[^\s`*!()\[\]{};:'".,<>?«»“”‘’]))/i;
-      CodeMirror3.defineMode("gfm", function(config, modeConfig) {
+      CodeMirror2.defineMode("gfm", function(config, modeConfig) {
         var codeDepth = 0;
         function blankLine(state) {
           state.code = false;
@@ -13077,9 +13077,9 @@ var require_gfm = __commonJS({
           markdownConfig[attr] = modeConfig[attr];
         }
         markdownConfig.name = "markdown";
-        return CodeMirror3.overlayMode(CodeMirror3.getMode(config, markdownConfig), gfmOverlay);
+        return CodeMirror2.overlayMode(CodeMirror2.getMode(config, markdownConfig), gfmOverlay);
       }, "markdown");
-      CodeMirror3.defineMIME("text/x-gfm", "gfm");
+      CodeMirror2.defineMIME("text/x-gfm", "gfm");
     });
   }
 });
@@ -16124,7 +16124,7 @@ var require_marked = __commonJS({
 var require_easymde = __commonJS({
   "node_modules/.pnpm/easymde@2.20.0/node_modules/easymde/src/js/easymde.js"(exports, module) {
     "use strict";
-    var CodeMirror3 = require_codemirror();
+    var CodeMirror2 = require_codemirror();
     require_continuelist();
     require_tablist();
     require_fullscreen();
@@ -16356,9 +16356,9 @@ var require_easymde = __commonJS({
       }
       return tooltip;
     }
-    function getState(cm2, pos) {
-      pos = pos || cm2.getCursor("start");
-      var stat = cm2.getTokenAt(pos);
+    function getState(cm, pos) {
+      pos = pos || cm.getCursor("start");
+      var stat = cm.getTokenAt(pos);
       if (!stat.type) return {};
       var types = stat.type.split(" ");
       var ret = {}, data, text;
@@ -16367,7 +16367,7 @@ var require_easymde = __commonJS({
         if (data === "strong") {
           ret.bold = true;
         } else if (data === "variable-2") {
-          text = cm2.getLine(pos.line);
+          text = cm.getLine(pos.line);
           if (/^\s*\d+\.\s/.test(text)) {
             ret["ordered-list"] = true;
           } else {
@@ -16395,20 +16395,20 @@ var require_easymde = __commonJS({
     }
     var saved_overflow = "";
     function toggleFullScreen(editor) {
-      var cm2 = editor.codemirror;
-      cm2.setOption("fullScreen", !cm2.getOption("fullScreen"));
-      if (cm2.getOption("fullScreen")) {
+      var cm = editor.codemirror;
+      cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+      if (cm.getOption("fullScreen")) {
         saved_overflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
       } else {
         document.body.style.overflow = saved_overflow;
       }
-      var wrapper = cm2.getWrapperElement();
+      var wrapper = cm.getWrapperElement();
       var sidebyside = wrapper.nextSibling;
       if (sidebyside.classList.contains("editor-preview-active-side")) {
         if (editor.options.sideBySideFullscreen === false) {
           var easyMDEContainer = wrapper.parentNode;
-          if (cm2.getOption("fullScreen")) {
+          if (cm.getOption("fullScreen")) {
             easyMDEContainer.classList.remove("sided--no-fullscreen");
           } else {
             easyMDEContainer.classList.add("sided--no-fullscreen");
@@ -16418,14 +16418,14 @@ var require_easymde = __commonJS({
         }
       }
       if (editor.options.onToggleFullScreen) {
-        editor.options.onToggleFullScreen(cm2.getOption("fullScreen") || false);
+        editor.options.onToggleFullScreen(cm.getOption("fullScreen") || false);
       }
       if (typeof editor.options.maxHeight !== "undefined") {
-        if (cm2.getOption("fullScreen")) {
-          cm2.getScrollerElement().style.removeProperty("height");
+        if (cm.getOption("fullScreen")) {
+          cm.getScrollerElement().style.removeProperty("height");
           sidebyside.style.removeProperty("height");
         } else {
-          cm2.getScrollerElement().style.height = editor.options.maxHeight;
+          cm.getScrollerElement().style.height = editor.options.maxHeight;
           editor.setPreviewMaxHeight();
         }
       }
@@ -16455,13 +16455,13 @@ var require_easymde = __commonJS({
       function token_state(token) {
         return token.state.base.base || token.state.base;
       }
-      function code_type(cm3, line_num, line2, firstTok, lastTok) {
-        line2 = line2 || cm3.getLineHandle(line_num);
-        firstTok = firstTok || cm3.getTokenAt({
+      function code_type(cm2, line_num, line2, firstTok, lastTok) {
+        line2 = line2 || cm2.getLineHandle(line_num);
+        firstTok = firstTok || cm2.getTokenAt({
           line: line_num,
           ch: 1
         });
-        lastTok = lastTok || !!line2.text && cm3.getTokenAt({
+        lastTok = lastTok || !!line2.text && cm2.getTokenAt({
           line: line_num,
           ch: line2.text.length - 1
         });
@@ -16476,7 +16476,7 @@ var require_easymde = __commonJS({
           return "single";
         }
       }
-      function insertFencingAtSelection(cm3, cur_start2, cur_end2, fenceCharsToInsert2) {
+      function insertFencingAtSelection(cm2, cur_start2, cur_end2, fenceCharsToInsert2) {
         var start_line_sel = cur_start2.line + 1, end_line_sel = cur_end2.line + 1, sel_multi2 = cur_start2.line !== cur_end2.line, repl_start = fenceCharsToInsert2 + "\n", repl_end = "\n" + fenceCharsToInsert2;
         if (sel_multi2) {
           end_line_sel++;
@@ -16485,8 +16485,8 @@ var require_easymde = __commonJS({
           repl_end = fenceCharsToInsert2 + "\n";
           end_line_sel--;
         }
-        _replaceSelection(cm3, false, [repl_start, repl_end]);
-        cm3.setSelection({
+        _replaceSelection(cm2, false, [repl_start, repl_end]);
+        cm2.setSelection({
           line: start_line_sel,
           ch: 0
         }, {
@@ -16494,14 +16494,14 @@ var require_easymde = __commonJS({
           ch: 0
         });
       }
-      var cm2 = editor.codemirror, cur_start = cm2.getCursor("start"), cur_end = cm2.getCursor("end"), tok = cm2.getTokenAt({
+      var cm = editor.codemirror, cur_start = cm.getCursor("start"), cur_end = cm.getCursor("end"), tok = cm.getTokenAt({
         line: cur_start.line,
         ch: cur_start.ch || 1
-      }), line = cm2.getLineHandle(cur_start.line), is_code = code_type(cm2, cur_start.line, line, tok);
+      }), line = cm.getLineHandle(cur_start.line), is_code = code_type(cm, cur_start.line, line, tok);
       var block_start, block_end, lineCount;
       if (is_code === "single") {
         var start = line.text.slice(0, cur_start.ch).replace("`", ""), end = line.text.slice(cur_start.ch).replace("`", "");
-        cm2.replaceRange(start + end, {
+        cm.replaceRange(start + end, {
           line: cur_start.line,
           ch: 0
         }, {
@@ -16512,40 +16512,40 @@ var require_easymde = __commonJS({
         if (cur_start !== cur_end) {
           cur_end.ch--;
         }
-        cm2.setSelection(cur_start, cur_end);
-        cm2.focus();
+        cm.setSelection(cur_start, cur_end);
+        cm.focus();
       } else if (is_code === "fenced") {
         if (cur_start.line !== cur_end.line || cur_start.ch !== cur_end.ch) {
           for (block_start = cur_start.line; block_start >= 0; block_start--) {
-            line = cm2.getLineHandle(block_start);
+            line = cm.getLineHandle(block_start);
             if (fencing_line(line)) {
               break;
             }
           }
-          var fencedTok = cm2.getTokenAt({
+          var fencedTok = cm.getTokenAt({
             line: block_start,
             ch: 1
           });
           var fence_chars = token_state(fencedTok).fencedChars;
           var start_text, start_line;
           var end_text, end_line;
-          if (fencing_line(cm2.getLineHandle(cur_start.line))) {
+          if (fencing_line(cm.getLineHandle(cur_start.line))) {
             start_text = "";
             start_line = cur_start.line;
-          } else if (fencing_line(cm2.getLineHandle(cur_start.line - 1))) {
+          } else if (fencing_line(cm.getLineHandle(cur_start.line - 1))) {
             start_text = "";
             start_line = cur_start.line - 1;
           } else {
             start_text = fence_chars + "\n";
             start_line = cur_start.line;
           }
-          if (fencing_line(cm2.getLineHandle(cur_end.line))) {
+          if (fencing_line(cm.getLineHandle(cur_end.line))) {
             end_text = "";
             end_line = cur_end.line;
             if (cur_end.ch === 0) {
               end_line += 1;
             }
-          } else if (cur_end.ch !== 0 && fencing_line(cm2.getLineHandle(cur_end.line + 1))) {
+          } else if (cur_end.ch !== 0 && fencing_line(cm.getLineHandle(cur_end.line + 1))) {
             end_text = "";
             end_line = cur_end.line + 1;
           } else {
@@ -16555,15 +16555,15 @@ var require_easymde = __commonJS({
           if (cur_end.ch === 0) {
             end_line -= 1;
           }
-          cm2.operation(function() {
-            cm2.replaceRange(end_text, {
+          cm.operation(function() {
+            cm.replaceRange(end_text, {
               line: end_line,
               ch: 0
             }, {
               line: end_line + (end_text ? 0 : 1),
               ch: 0
             });
-            cm2.replaceRange(start_text, {
+            cm.replaceRange(start_text, {
               line: start_line,
               ch: 0
             }, {
@@ -16571,18 +16571,18 @@ var require_easymde = __commonJS({
               ch: 0
             });
           });
-          cm2.setSelection({
+          cm.setSelection({
             line: start_line + (start_text ? 1 : 0),
             ch: 0
           }, {
             line: end_line + (start_text ? 1 : -1),
             ch: 0
           });
-          cm2.focus();
+          cm.focus();
         } else {
           var search_from = cur_start.line;
-          if (fencing_line(cm2.getLineHandle(cur_start.line))) {
-            if (code_type(cm2, cur_start.line + 1) === "fenced") {
+          if (fencing_line(cm.getLineHandle(cur_start.line))) {
+            if (code_type(cm, cur_start.line + 1) === "fenced") {
               block_start = cur_start.line;
               search_from = cur_start.line + 1;
             } else {
@@ -16592,30 +16592,30 @@ var require_easymde = __commonJS({
           }
           if (block_start === void 0) {
             for (block_start = search_from; block_start >= 0; block_start--) {
-              line = cm2.getLineHandle(block_start);
+              line = cm.getLineHandle(block_start);
               if (fencing_line(line)) {
                 break;
               }
             }
           }
           if (block_end === void 0) {
-            lineCount = cm2.lineCount();
+            lineCount = cm.lineCount();
             for (block_end = search_from; block_end < lineCount; block_end++) {
-              line = cm2.getLineHandle(block_end);
+              line = cm.getLineHandle(block_end);
               if (fencing_line(line)) {
                 break;
               }
             }
           }
-          cm2.operation(function() {
-            cm2.replaceRange("", {
+          cm.operation(function() {
+            cm.replaceRange("", {
               line: block_start,
               ch: 0
             }, {
               line: block_start + 1,
               ch: 0
             });
-            cm2.replaceRange("", {
+            cm.replaceRange("", {
               line: block_end - 1,
               ch: 0
             }, {
@@ -16623,7 +16623,7 @@ var require_easymde = __commonJS({
               ch: 0
             });
           });
-          cm2.focus();
+          cm.focus();
         }
       } else if (is_code === "indented") {
         if (cur_start.line !== cur_end.line || cur_start.ch !== cur_end.ch) {
@@ -16634,50 +16634,50 @@ var require_easymde = __commonJS({
           }
         } else {
           for (block_start = cur_start.line; block_start >= 0; block_start--) {
-            line = cm2.getLineHandle(block_start);
+            line = cm.getLineHandle(block_start);
             if (line.text.match(/^\s*$/)) {
               continue;
             } else {
-              if (code_type(cm2, block_start, line) !== "indented") {
+              if (code_type(cm, block_start, line) !== "indented") {
                 block_start += 1;
                 break;
               }
             }
           }
-          lineCount = cm2.lineCount();
+          lineCount = cm.lineCount();
           for (block_end = cur_start.line; block_end < lineCount; block_end++) {
-            line = cm2.getLineHandle(block_end);
+            line = cm.getLineHandle(block_end);
             if (line.text.match(/^\s*$/)) {
               continue;
             } else {
-              if (code_type(cm2, block_end, line) !== "indented") {
+              if (code_type(cm, block_end, line) !== "indented") {
                 block_end -= 1;
                 break;
               }
             }
           }
         }
-        var next_line = cm2.getLineHandle(block_end + 1), next_line_last_tok = next_line && cm2.getTokenAt({
+        var next_line = cm.getLineHandle(block_end + 1), next_line_last_tok = next_line && cm.getTokenAt({
           line: block_end + 1,
           ch: next_line.text.length - 1
         }), next_line_indented = next_line_last_tok && token_state(next_line_last_tok).indentedCode;
         if (next_line_indented) {
-          cm2.replaceRange("\n", {
+          cm.replaceRange("\n", {
             line: block_end + 1,
             ch: 0
           });
         }
         for (var i = block_start; i <= block_end; i++) {
-          cm2.indentLine(i, "subtract");
+          cm.indentLine(i, "subtract");
         }
-        cm2.focus();
+        cm.focus();
       } else {
         var no_sel_and_starting_of_line = cur_start.line === cur_end.line && cur_start.ch === cur_end.ch && cur_start.ch === 0;
         var sel_multi = cur_start.line !== cur_end.line;
         if (no_sel_and_starting_of_line || sel_multi) {
-          insertFencingAtSelection(cm2, cur_start, cur_end, fenceCharsToInsert);
+          insertFencingAtSelection(cm, cur_start, cur_end, fenceCharsToInsert);
         } else {
-          _replaceSelection(cm2, false, ["`", "`"]);
+          _replaceSelection(cm, false, ["`", "`"]);
         }
       }
     }
@@ -16709,12 +16709,12 @@ var require_easymde = __commonJS({
       _toggleHeading(editor.codemirror, void 0, 6);
     }
     function toggleUnorderedList(editor) {
-      var cm2 = editor.codemirror;
+      var cm = editor.codemirror;
       var listStyle = "*";
       if (["-", "+", "*"].includes(editor.options.unorderedListStyle)) {
         listStyle = editor.options.unorderedListStyle;
       }
-      _toggleLine(cm2, "unordered-list", listStyle);
+      _toggleLine(cm, "unordered-list", listStyle);
     }
     function toggleOrderedList(editor) {
       _toggleLine(editor.codemirror, "ordered-list");
@@ -16753,17 +16753,17 @@ var require_easymde = __commonJS({
       editor.openBrowseFileWindow();
     }
     function afterImageUploaded(editor, url) {
-      var cm2 = editor.codemirror;
-      var stat = getState(cm2);
+      var cm = editor.codemirror;
+      var stat = getState(cm);
       var options = editor.options;
       var imageName = url.substr(url.lastIndexOf("/") + 1);
       var ext = imageName.substring(imageName.lastIndexOf(".") + 1).replace(/\?.*$/, "").toLowerCase();
       if (["png", "jpg", "jpeg", "gif", "svg", "apng", "avif", "webp"].includes(ext)) {
-        _replaceSelection(cm2, stat.image, options.insertTexts.uploadedImage, url);
+        _replaceSelection(cm, stat.image, options.insertTexts.uploadedImage, url);
       } else {
         var text_link = options.insertTexts.link;
         text_link[0] = "[" + imageName;
-        _replaceSelection(cm2, stat.link, text_link, url);
+        _replaceSelection(cm, stat.link, text_link, url);
       }
       editor.updateStatusBar("upload-image", editor.options.imageTexts.sbOnUploaded.replace("#image_name#", imageName));
       setTimeout(function() {
@@ -16771,30 +16771,30 @@ var require_easymde = __commonJS({
       }, 1e3);
     }
     function drawTable(editor) {
-      var cm2 = editor.codemirror;
-      var stat = getState(cm2);
+      var cm = editor.codemirror;
+      var stat = getState(cm);
       var options = editor.options;
-      _replaceSelection(cm2, stat.table, options.insertTexts.table);
+      _replaceSelection(cm, stat.table, options.insertTexts.table);
     }
     function drawHorizontalRule(editor) {
-      var cm2 = editor.codemirror;
-      var stat = getState(cm2);
+      var cm = editor.codemirror;
+      var stat = getState(cm);
       var options = editor.options;
-      _replaceSelection(cm2, stat.image, options.insertTexts.horizontalRule);
+      _replaceSelection(cm, stat.image, options.insertTexts.horizontalRule);
     }
     function undo(editor) {
-      var cm2 = editor.codemirror;
-      cm2.undo();
-      cm2.focus();
+      var cm = editor.codemirror;
+      cm.undo();
+      cm.focus();
     }
     function redo(editor) {
-      var cm2 = editor.codemirror;
-      cm2.redo();
-      cm2.focus();
+      var cm = editor.codemirror;
+      cm.redo();
+      cm.focus();
     }
     function toggleSideBySide(editor) {
-      var cm2 = editor.codemirror;
-      var wrapper = cm2.getWrapperElement();
+      var cm = editor.codemirror;
+      var wrapper = cm.getWrapperElement();
       var preview = wrapper.nextSibling;
       var toolbarButton = editor.toolbarElements && editor.toolbarElements["side-by-side"];
       var useSideBySideListener = false;
@@ -16808,7 +16808,7 @@ var require_easymde = __commonJS({
         wrapper.classList.remove("CodeMirror-sided");
       } else {
         setTimeout(function() {
-          if (!cm2.getOption("fullScreen")) {
+          if (!cm.getOption("fullScreen")) {
             if (editor.options.sideBySideFullscreen === false) {
               easyMDEContainer.classList.add("sided--no-fullscreen");
             } else {
@@ -16835,27 +16835,27 @@ var require_easymde = __commonJS({
           preview.innerHTML = newValue2;
         }
       };
-      if (!cm2.sideBySideRenderingFunction) {
-        cm2.sideBySideRenderingFunction = sideBySideRenderingFunction;
+      if (!cm.sideBySideRenderingFunction) {
+        cm.sideBySideRenderingFunction = sideBySideRenderingFunction;
       }
       if (useSideBySideListener) {
         var newValue = editor.options.previewRender(editor.value(), preview);
         if (newValue != null) {
           preview.innerHTML = newValue;
         }
-        cm2.on("update", cm2.sideBySideRenderingFunction);
+        cm.on("update", cm.sideBySideRenderingFunction);
       } else {
-        cm2.off("update", cm2.sideBySideRenderingFunction);
+        cm.off("update", cm.sideBySideRenderingFunction);
       }
-      cm2.refresh();
+      cm.refresh();
     }
     function togglePreview(editor) {
-      var cm2 = editor.codemirror;
-      var wrapper = cm2.getWrapperElement();
+      var cm = editor.codemirror;
+      var wrapper = cm.getWrapperElement();
       var toolbar_div = editor.toolbar_div;
       var toolbar = editor.options.toolbar ? editor.toolbarElements.preview : false;
       var preview = wrapper.lastChild;
-      var sidebyside = cm2.getWrapperElement().nextSibling;
+      var sidebyside = cm.getWrapperElement().nextSibling;
       if (sidebyside.classList.contains("editor-preview-active-side"))
         toggleSideBySide(editor);
       if (!preview || !preview.classList.contains("editor-preview-full")) {
@@ -16892,46 +16892,46 @@ var require_easymde = __commonJS({
         preview.innerHTML = preview_result;
       }
     }
-    function _replaceSelection(cm2, active, startEnd, url) {
-      if (cm2.getWrapperElement().lastChild.classList.contains("editor-preview-active"))
+    function _replaceSelection(cm, active, startEnd, url) {
+      if (cm.getWrapperElement().lastChild.classList.contains("editor-preview-active"))
         return;
       var text;
       var start = startEnd[0];
       var end = startEnd[1];
       var startPoint = {}, endPoint = {};
-      Object.assign(startPoint, cm2.getCursor("start"));
-      Object.assign(endPoint, cm2.getCursor("end"));
+      Object.assign(startPoint, cm.getCursor("start"));
+      Object.assign(endPoint, cm.getCursor("end"));
       if (url) {
         start = start.replace("#url#", url);
         end = end.replace("#url#", url);
       }
       if (active) {
-        text = cm2.getLine(startPoint.line);
+        text = cm.getLine(startPoint.line);
         start = text.slice(0, startPoint.ch);
         end = text.slice(startPoint.ch);
-        cm2.replaceRange(start + end, {
+        cm.replaceRange(start + end, {
           line: startPoint.line,
           ch: 0
         });
       } else {
-        text = cm2.getSelection();
-        cm2.replaceSelection(start + text + end);
+        text = cm.getSelection();
+        cm.replaceSelection(start + text + end);
         startPoint.ch += start.length;
         if (startPoint !== endPoint) {
           endPoint.ch += start.length;
         }
       }
-      cm2.setSelection(startPoint, endPoint);
-      cm2.focus();
+      cm.setSelection(startPoint, endPoint);
+      cm.focus();
     }
-    function _toggleHeading(cm2, direction, size) {
-      if (cm2.getWrapperElement().lastChild.classList.contains("editor-preview-active"))
+    function _toggleHeading(cm, direction, size) {
+      if (cm.getWrapperElement().lastChild.classList.contains("editor-preview-active"))
         return;
-      var startPoint = cm2.getCursor("start");
-      var endPoint = cm2.getCursor("end");
+      var startPoint = cm.getCursor("start");
+      var endPoint = cm.getCursor("end");
       for (var i = startPoint.line; i <= endPoint.line; i++) {
         (function(i2) {
-          var text = cm2.getLine(i2);
+          var text = cm.getLine(i2);
           var currHeadingLevel = text.search(/[^#]/);
           if (direction !== void 0) {
             if (currHeadingLevel <= 0) {
@@ -16960,7 +16960,7 @@ var require_easymde = __commonJS({
               text = "#".repeat(size) + " " + text.substr(currHeadingLevel + 1);
             }
           }
-          cm2.replaceRange(text, {
+          cm.replaceRange(text, {
             line: i2,
             ch: 0
           }, {
@@ -16969,16 +16969,16 @@ var require_easymde = __commonJS({
           });
         })(i);
       }
-      cm2.focus();
+      cm.focus();
     }
-    function _toggleLine(cm2, name, liststyle) {
-      if (cm2.getWrapperElement().lastChild.classList.contains("editor-preview-active"))
+    function _toggleLine(cm, name, liststyle) {
+      if (cm.getWrapperElement().lastChild.classList.contains("editor-preview-active"))
         return;
       var listRegexp = /^(\s*)(\*|-|\+|\d*\.)(\s+)/;
       var whitespacesRegexp = /^\s*/;
-      var stat = getState(cm2);
-      var startPoint = cm2.getCursor("start");
-      var endPoint = cm2.getCursor("end");
+      var stat = getState(cm);
+      var startPoint = cm.getCursor("start");
+      var endPoint = cm.getCursor("end");
       var repl = {
         "quote": /^(\s*)>\s+/,
         "unordered-list": listRegexp,
@@ -17017,7 +17017,7 @@ var require_easymde = __commonJS({
       var line = 1;
       for (var i = startPoint.line; i <= endPoint.line; i++) {
         (function(i2) {
-          var text = cm2.getLine(i2);
+          var text = cm.getLine(i2);
           if (stat[name]) {
             text = text.replace(repl[name], "$1");
           } else {
@@ -17027,7 +17027,7 @@ var require_easymde = __commonJS({
             text = _toggle(name, text, false);
             line += 1;
           }
-          cm2.replaceRange(text, {
+          cm.replaceRange(text, {
             line: i2,
             ch: 0
           }, {
@@ -17036,22 +17036,22 @@ var require_easymde = __commonJS({
           });
         })(i);
       }
-      cm2.focus();
+      cm.focus();
     }
     function _toggleLink(editor, type, startEnd, url) {
       if (!editor.codemirror || editor.isPreviewActive()) {
         return;
       }
-      var cm2 = editor.codemirror;
-      var stat = getState(cm2);
+      var cm = editor.codemirror;
+      var stat = getState(cm);
       var active = stat[type];
       if (!active) {
-        _replaceSelection(cm2, active, startEnd, url);
+        _replaceSelection(cm, active, startEnd, url);
         return;
       }
-      var startPoint = cm2.getCursor("start");
-      var endPoint = cm2.getCursor("end");
-      var text = cm2.getLine(startPoint.line);
+      var startPoint = cm.getCursor("start");
+      var endPoint = cm.getCursor("end");
+      var text = cm.getLine(startPoint.line);
       var start = text.slice(0, startPoint.ch);
       var end = text.slice(startPoint.ch);
       if (type == "link") {
@@ -17060,7 +17060,7 @@ var require_easymde = __commonJS({
         start = start.replace(/(.*)!\[$/, "$1");
       }
       end = end.replace(/]\(.*?\)/, "");
-      cm2.replaceRange(start + end, {
+      cm.replaceRange(start + end, {
         line: startPoint.line,
         ch: 0
       }, {
@@ -17071,23 +17071,23 @@ var require_easymde = __commonJS({
       if (startPoint !== endPoint) {
         endPoint.ch -= startEnd[0].length;
       }
-      cm2.setSelection(startPoint, endPoint);
-      cm2.focus();
+      cm.setSelection(startPoint, endPoint);
+      cm.focus();
     }
     function _toggleBlock(editor, type, start_chars, end_chars) {
       if (!editor.codemirror || editor.isPreviewActive()) {
         return;
       }
       end_chars = typeof end_chars === "undefined" ? start_chars : end_chars;
-      var cm2 = editor.codemirror;
-      var stat = getState(cm2);
+      var cm = editor.codemirror;
+      var stat = getState(cm);
       var text;
       var start = start_chars;
       var end = end_chars;
-      var startPoint = cm2.getCursor("start");
-      var endPoint = cm2.getCursor("end");
+      var startPoint = cm.getCursor("start");
+      var endPoint = cm.getCursor("end");
       if (stat[type]) {
-        text = cm2.getLine(startPoint.line);
+        text = cm.getLine(startPoint.line);
         start = text.slice(0, startPoint.ch);
         end = text.slice(startPoint.ch);
         if (type == "bold") {
@@ -17100,7 +17100,7 @@ var require_easymde = __commonJS({
           start = start.replace(/(\*\*|~~)(?![\s\S]*(\*\*|~~))/, "");
           end = end.replace(/(\*\*|~~)/, "");
         }
-        cm2.replaceRange(start + end, {
+        cm.replaceRange(start + end, {
           line: startPoint.line,
           ch: 0
         }, {
@@ -17119,7 +17119,7 @@ var require_easymde = __commonJS({
           }
         }
       } else {
-        text = cm2.getSelection();
+        text = cm.getSelection();
         if (type == "bold") {
           text = text.split("**").join("");
           text = text.split("__").join("");
@@ -17129,23 +17129,23 @@ var require_easymde = __commonJS({
         } else if (type == "strikethrough") {
           text = text.split("~~").join("");
         }
-        cm2.replaceSelection(start + text + end);
+        cm.replaceSelection(start + text + end);
         startPoint.ch += start_chars.length;
         endPoint.ch = startPoint.ch + text.length;
       }
-      cm2.setSelection(startPoint, endPoint);
-      cm2.focus();
+      cm.setSelection(startPoint, endPoint);
+      cm.focus();
     }
-    function _cleanBlock(cm2) {
-      if (cm2.getWrapperElement().lastChild.classList.contains("editor-preview-active"))
+    function _cleanBlock(cm) {
+      if (cm.getWrapperElement().lastChild.classList.contains("editor-preview-active"))
         return;
-      var startPoint = cm2.getCursor("start");
-      var endPoint = cm2.getCursor("end");
+      var startPoint = cm.getCursor("start");
+      var endPoint = cm.getCursor("end");
       var text;
       for (var line = startPoint.line; line <= endPoint.line; line++) {
-        text = cm2.getLine(line);
+        text = cm.getLine(line);
         text = text.replace(/^[ ]*([# ]+|\*|-|[> ]+|[0-9]+(.|\)))[ ]*/, "");
-        cm2.replaceRange(text, {
+        cm.replaceRange(text, {
           line,
           ch: 0
         }, {
@@ -17550,27 +17550,27 @@ var require_easymde = __commonJS({
       }
       if (options.uploadImage) {
         var self2 = this;
-        this.codemirror.on("dragenter", function(cm2, event) {
+        this.codemirror.on("dragenter", function(cm, event) {
           self2.updateStatusBar("upload-image", self2.options.imageTexts.sbOnDragEnter);
           event.stopPropagation();
           event.preventDefault();
         });
-        this.codemirror.on("dragend", function(cm2, event) {
+        this.codemirror.on("dragend", function(cm, event) {
           self2.updateStatusBar("upload-image", self2.options.imageTexts.sbInit);
           event.stopPropagation();
           event.preventDefault();
         });
-        this.codemirror.on("dragleave", function(cm2, event) {
+        this.codemirror.on("dragleave", function(cm, event) {
           self2.updateStatusBar("upload-image", self2.options.imageTexts.sbInit);
           event.stopPropagation();
           event.preventDefault();
         });
-        this.codemirror.on("dragover", function(cm2, event) {
+        this.codemirror.on("dragover", function(cm, event) {
           self2.updateStatusBar("upload-image", self2.options.imageTexts.sbOnDragEnter);
           event.stopPropagation();
           event.preventDefault();
         });
-        this.codemirror.on("drop", function(cm2, event) {
+        this.codemirror.on("drop", function(cm, event) {
           event.stopPropagation();
           event.preventDefault();
           if (options.imageUploadFunction) {
@@ -17579,7 +17579,7 @@ var require_easymde = __commonJS({
             self2.uploadImages(event.dataTransfer.files);
           }
         });
-        this.codemirror.on("paste", function(cm2, event) {
+        this.codemirror.on("paste", function(cm, event) {
           if (options.imageUploadFunction) {
             self2.uploadImagesUsingCustomFunction(options.imageUploadFunction, event.clipboardData.files);
           } else {
@@ -17686,8 +17686,8 @@ var require_easymde = __commonJS({
       keyMaps["Enter"] = "newlineAndIndentContinueMarkdownList";
       keyMaps["Tab"] = "tabAndIndentMarkdownList";
       keyMaps["Shift-Tab"] = "shiftTabAndUnindentMarkdownList";
-      keyMaps["Esc"] = function(cm3) {
-        if (cm3.getOption("fullScreen")) toggleFullScreen(self2);
+      keyMaps["Esc"] = function(cm2) {
+        if (cm2.getOption("fullScreen")) toggleFullScreen(self2);
       };
       this.documentOnKeyDown = function(e) {
         e = e || window.event;
@@ -17698,8 +17698,8 @@ var require_easymde = __commonJS({
       document.addEventListener("keydown", this.documentOnKeyDown, false);
       var mode, backdrop;
       if (options.overlayMode) {
-        CodeMirror3.defineMode("overlay-mode", function(config) {
-          return CodeMirror3.overlayMode(CodeMirror3.getMode(config, options.spellChecker !== false ? "spell-checker" : "gfm"), options.overlayMode.mode, options.overlayMode.combine);
+        CodeMirror2.defineMode("overlay-mode", function(config) {
+          return CodeMirror2.overlayMode(CodeMirror2.getMode(config, options.spellChecker !== false ? "spell-checker" : "gfm"), options.overlayMode.mode, options.overlayMode.combine);
         });
         mode = "overlay-mode";
         backdrop = options.parsingConfig;
@@ -17716,20 +17716,20 @@ var require_easymde = __commonJS({
         backdrop.gitHubSpice = false;
         if (typeof options.spellChecker === "function") {
           options.spellChecker({
-            codeMirrorInstance: CodeMirror3
+            codeMirrorInstance: CodeMirror2
           });
         } else {
           CodeMirrorSpellChecker({
-            codeMirrorInstance: CodeMirror3
+            codeMirrorInstance: CodeMirror2
           });
         }
       }
-      function configureMouse(cm3, repeat, event) {
+      function configureMouse(cm2, repeat, event) {
         return {
           addNew: false
         };
       }
-      this.codemirror = CodeMirror3.fromTextArea(el, {
+      this.codemirror = CodeMirror2.fromTextArea(el, {
         mode,
         backdrop,
         theme: options.theme != void 0 ? options.theme : "easymde",
@@ -17755,9 +17755,9 @@ var require_easymde = __commonJS({
         this.codemirror.getScrollerElement().style.height = options.maxHeight;
       }
       if (options.forceSync === true) {
-        var cm2 = this.codemirror;
-        cm2.on("change", function() {
-          cm2.save();
+        var cm = this.codemirror;
+        cm.on("change", function() {
+          cm.save();
         });
       }
       this.gui = {};
@@ -18021,8 +18021,8 @@ var require_easymde = __commonJS({
       imageUploadFunction.apply(this, [file, onSuccess, onError]);
     };
     EasyMDE2.prototype.setPreviewMaxHeight = function() {
-      var cm2 = this.codemirror;
-      var wrapper = cm2.getWrapperElement();
+      var cm = this.codemirror;
+      var wrapper = cm.getWrapperElement();
       var preview = wrapper.nextSibling;
       var paddingTop = parseInt(window.getComputedStyle(wrapper).paddingTop);
       var borderTopWidth = parseInt(window.getComputedStyle(wrapper).borderTopWidth);
@@ -18032,8 +18032,8 @@ var require_easymde = __commonJS({
       preview.style.height = previewMaxHeight;
     };
     EasyMDE2.prototype.createSideBySide = function() {
-      var cm2 = this.codemirror;
-      var wrapper = cm2.getWrapperElement();
+      var cm = this.codemirror;
+      var wrapper = cm.getWrapperElement();
       var preview = wrapper.nextSibling;
       if (!preview || !preview.classList.contains("editor-preview-side")) {
         preview = document.createElement("div");
@@ -18055,7 +18055,7 @@ var require_easymde = __commonJS({
       if (this.options.syncSideBySidePreviewScroll === false) return preview;
       var cScroll = false;
       var pScroll = false;
-      cm2.on("scroll", function(v) {
+      cm.on("scroll", function(v) {
         if (cScroll) {
           cScroll = false;
           return;
@@ -18074,8 +18074,8 @@ var require_easymde = __commonJS({
         cScroll = true;
         var height = preview.scrollHeight - preview.clientHeight;
         var ratio = parseFloat(preview.scrollTop) / height;
-        var move = (cm2.getScrollInfo().height - cm2.getScrollInfo().clientHeight) * ratio;
-        cm2.scrollTo(0, move);
+        var move = (cm.getScrollInfo().height - cm.getScrollInfo().clientHeight) * ratio;
+        cm.scrollTo(0, move);
       };
       return preview;
     };
@@ -18139,9 +18139,9 @@ var require_easymde = __commonJS({
       }
       self2.toolbar_div = bar;
       self2.toolbarElements = toolbarData;
-      var cm2 = this.codemirror;
-      cm2.on("cursorActivity", function() {
-        var stat = getState(cm2);
+      var cm = this.codemirror;
+      cm.on("cursorActivity", function() {
+        var stat = getState(cm);
         for (var key in toolbarData) {
           (function(key2) {
             var el = toolbarData[key2];
@@ -18153,14 +18153,14 @@ var require_easymde = __commonJS({
           })(key);
         }
       });
-      var cmWrapper = cm2.getWrapperElement();
+      var cmWrapper = cm.getWrapperElement();
       cmWrapper.parentNode.insertBefore(bar, cmWrapper);
       return bar;
     };
     EasyMDE2.prototype.createStatusbar = function(status) {
       status = status || this.options.status;
       var options = this.options;
-      var cm2 = this.codemirror;
+      var cm = this.codemirror;
       if (!status || status.length === 0) {
         return;
       }
@@ -18181,24 +18181,24 @@ var require_easymde = __commonJS({
           var name = status[i];
           if (name === "words") {
             defaultValue = function(el2) {
-              el2.innerHTML = wordCount(cm2.getValue());
+              el2.innerHTML = wordCount(cm.getValue());
             };
             onUpdate = function(el2) {
-              el2.innerHTML = wordCount(cm2.getValue());
+              el2.innerHTML = wordCount(cm.getValue());
             };
           } else if (name === "lines") {
             defaultValue = function(el2) {
-              el2.innerHTML = cm2.lineCount();
+              el2.innerHTML = cm.lineCount();
             };
             onUpdate = function(el2) {
-              el2.innerHTML = cm2.lineCount();
+              el2.innerHTML = cm.lineCount();
             };
           } else if (name === "cursor") {
             defaultValue = function(el2) {
               el2.innerHTML = "1:1";
             };
             onActivity = function(el2) {
-              var pos = cm2.getCursor();
+              var pos = cm.getCursor();
               var posLine = pos.line + 1;
               var posColumn = pos.ch + 1;
               el2.innerHTML = posLine + ":" + posColumn;
@@ -18252,13 +18252,13 @@ var require_easymde = __commonJS({
       return bar;
     };
     EasyMDE2.prototype.value = function(val) {
-      var cm2 = this.codemirror;
+      var cm = this.codemirror;
       if (val === void 0) {
-        return cm2.getValue();
+        return cm.getValue();
       } else {
-        cm2.getDoc().setValue(val);
+        cm.getDoc().setValue(val);
         if (this.isPreviewActive()) {
-          var wrapper = cm2.getWrapperElement();
+          var wrapper = cm.getWrapperElement();
           var preview = wrapper.lastChild;
           var preview_result = this.options.previewRender(val, preview);
           if (preview_result !== null) {
@@ -18373,28 +18373,28 @@ var require_easymde = __commonJS({
       toggleFullScreen(this);
     };
     EasyMDE2.prototype.isPreviewActive = function() {
-      var cm2 = this.codemirror;
-      var wrapper = cm2.getWrapperElement();
+      var cm = this.codemirror;
+      var wrapper = cm.getWrapperElement();
       var preview = wrapper.lastChild;
       return preview.classList.contains("editor-preview-active");
     };
     EasyMDE2.prototype.isSideBySideActive = function() {
-      var cm2 = this.codemirror;
-      var wrapper = cm2.getWrapperElement();
+      var cm = this.codemirror;
+      var wrapper = cm.getWrapperElement();
       var preview = wrapper.nextSibling;
       return preview.classList.contains("editor-preview-active-side");
     };
     EasyMDE2.prototype.isFullscreenActive = function() {
-      var cm2 = this.codemirror;
-      return cm2.getOption("fullScreen");
+      var cm = this.codemirror;
+      return cm.getOption("fullScreen");
     };
     EasyMDE2.prototype.getState = function() {
-      var cm2 = this.codemirror;
-      return getState(cm2);
+      var cm = this.codemirror;
+      return getState(cm);
     };
     EasyMDE2.prototype.toTextArea = function() {
-      var cm2 = this.codemirror;
-      var wrapper = cm2.getWrapperElement();
+      var cm = this.codemirror;
+      var wrapper = cm.getWrapperElement();
       var easyMDEContainer = wrapper.parentNode;
       if (easyMDEContainer) {
         if (this.gui.toolbar) {
@@ -18409,7 +18409,7 @@ var require_easymde = __commonJS({
       }
       easyMDEContainer.parentNode.insertBefore(wrapper, easyMDEContainer);
       easyMDEContainer.remove();
-      cm2.toTextArea();
+      cm.toTextArea();
       if (this.autosaveTimeoutId) {
         clearTimeout(this.autosaveTimeoutId);
         this.autosaveTimeoutId = void 0;
@@ -18430,7 +18430,7 @@ var require_python = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
       function wordRegexp(words2) {
         return new RegExp("^((" + words2.join(")|(") + "))\\b");
@@ -18534,11 +18534,11 @@ var require_python = __commonJS({
         "Ellipsis",
         "__debug__"
       ];
-      CodeMirror3.registerHelper("hintWords", "python", commonKeywords.concat(commonBuiltins).concat(["exec", "print"]));
+      CodeMirror2.registerHelper("hintWords", "python", commonKeywords.concat(commonBuiltins).concat(["exec", "print"]));
       function top(state) {
         return state.scopes[state.scopes.length - 1];
       }
-      CodeMirror3.defineMode("python", function(conf, parserConf) {
+      CodeMirror2.defineMode("python", function(conf, parserConf) {
         var ERRORCLASS = "error";
         var delimiters = parserConf.delimiters || parserConf.singleDelimiters || /^[\(\)\[\]\{\}@,:`=;\.\\]/;
         var operators = [
@@ -18831,7 +18831,7 @@ var require_python = __commonJS({
           },
           indent: function(state, textAfter) {
             if (state.tokenize != tokenBase)
-              return state.tokenize.isString ? CodeMirror3.Pass : 0;
+              return state.tokenize.isString ? CodeMirror2.Pass : 0;
             var scope = top(state);
             var closing = scope.type == textAfter.charAt(0) || scope.type == "py" && !state.dedent && /^(else:|elif |except |finally:)/.test(textAfter);
             if (scope.align != null)
@@ -18846,11 +18846,11 @@ var require_python = __commonJS({
         };
         return external;
       });
-      CodeMirror3.defineMIME("text/x-python", "python");
+      CodeMirror2.defineMIME("text/x-python", "python");
       var words = function(str) {
         return str.split(" ");
       };
-      CodeMirror3.defineMIME("text/x-cython", {
+      CodeMirror2.defineMIME("text/x-cython", {
         name: "python",
         extra_keywords: words("by cdef cimport cpdef ctypedef enum except extern gil include nogil property public readonly struct union DEF IF ELIF ELSE")
       });
@@ -18868,9 +18868,9 @@ var require_javascript = __commonJS({
         define(["../../lib/codemirror"], mod);
       else
         mod(CodeMirror);
-    })(function(CodeMirror3) {
+    })(function(CodeMirror2) {
       "use strict";
-      CodeMirror3.defineMode("javascript", function(config, parserConfig) {
+      CodeMirror2.defineMode("javascript", function(config, parserConfig) {
         var indentUnit = config.indentUnit;
         var statementIndent = parserConfig.statementIndent;
         var jsonldMode = parserConfig.jsonld;
@@ -19829,7 +19829,7 @@ var require_javascript = __commonJS({
             return parseJS(state, style, type, content, stream);
           },
           indent: function(state, textAfter) {
-            if (state.tokenize == tokenComment || state.tokenize == tokenQuasi) return CodeMirror3.Pass;
+            if (state.tokenize == tokenComment || state.tokenize == tokenQuasi) return CodeMirror2.Pass;
             if (state.tokenize != tokenBase) return 0;
             var firstChar = textAfter && textAfter.charAt(0), lexical = state.lexical, top;
             if (!/^\s*else\b/.test(textAfter)) for (var i = state.cc.length - 1; i >= 0; --i) {
@@ -19864,74 +19864,4873 @@ var require_javascript = __commonJS({
           jsonMode,
           expressionAllowed,
           skipExpression: function(state) {
-            parseJS(state, "atom", "atom", "true", new CodeMirror3.StringStream("", 2, null));
+            parseJS(state, "atom", "atom", "true", new CodeMirror2.StringStream("", 2, null));
           }
         };
       });
-      CodeMirror3.registerHelper("wordChars", "javascript", /[\w$]/);
-      CodeMirror3.defineMIME("text/javascript", "javascript");
-      CodeMirror3.defineMIME("text/ecmascript", "javascript");
-      CodeMirror3.defineMIME("application/javascript", "javascript");
-      CodeMirror3.defineMIME("application/x-javascript", "javascript");
-      CodeMirror3.defineMIME("application/ecmascript", "javascript");
-      CodeMirror3.defineMIME("application/json", { name: "javascript", json: true });
-      CodeMirror3.defineMIME("application/x-json", { name: "javascript", json: true });
-      CodeMirror3.defineMIME("application/manifest+json", { name: "javascript", json: true });
-      CodeMirror3.defineMIME("application/ld+json", { name: "javascript", jsonld: true });
-      CodeMirror3.defineMIME("text/typescript", { name: "javascript", typescript: true });
-      CodeMirror3.defineMIME("application/typescript", { name: "javascript", typescript: true });
+      CodeMirror2.registerHelper("wordChars", "javascript", /[\w$]/);
+      CodeMirror2.defineMIME("text/javascript", "javascript");
+      CodeMirror2.defineMIME("text/ecmascript", "javascript");
+      CodeMirror2.defineMIME("application/javascript", "javascript");
+      CodeMirror2.defineMIME("application/x-javascript", "javascript");
+      CodeMirror2.defineMIME("application/ecmascript", "javascript");
+      CodeMirror2.defineMIME("application/json", { name: "javascript", json: true });
+      CodeMirror2.defineMIME("application/x-json", { name: "javascript", json: true });
+      CodeMirror2.defineMIME("application/manifest+json", { name: "javascript", json: true });
+      CodeMirror2.defineMIME("application/ld+json", { name: "javascript", jsonld: true });
+      CodeMirror2.defineMIME("text/typescript", { name: "javascript", typescript: true });
+      CodeMirror2.defineMIME("application/typescript", { name: "javascript", typescript: true });
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/css/css.js
+var require_css = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/css/css.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineMode("css", function(config, parserConfig) {
+        var inline = parserConfig.inline;
+        if (!parserConfig.propertyKeywords) parserConfig = CodeMirror2.resolveMode("text/css");
+        var indentUnit = config.indentUnit, tokenHooks = parserConfig.tokenHooks, documentTypes2 = parserConfig.documentTypes || {}, mediaTypes2 = parserConfig.mediaTypes || {}, mediaFeatures2 = parserConfig.mediaFeatures || {}, mediaValueKeywords2 = parserConfig.mediaValueKeywords || {}, propertyKeywords2 = parserConfig.propertyKeywords || {}, nonStandardPropertyKeywords2 = parserConfig.nonStandardPropertyKeywords || {}, fontProperties2 = parserConfig.fontProperties || {}, counterDescriptors2 = parserConfig.counterDescriptors || {}, colorKeywords2 = parserConfig.colorKeywords || {}, valueKeywords2 = parserConfig.valueKeywords || {}, allowNested = parserConfig.allowNested, lineComment = parserConfig.lineComment, supportsAtComponent = parserConfig.supportsAtComponent === true, highlightNonStandardPropertyKeywords = config.highlightNonStandardPropertyKeywords !== false;
+        var type, override;
+        function ret(style, tp) {
+          type = tp;
+          return style;
+        }
+        function tokenBase(stream, state) {
+          var ch = stream.next();
+          if (tokenHooks[ch]) {
+            var result = tokenHooks[ch](stream, state);
+            if (result !== false) return result;
+          }
+          if (ch == "@") {
+            stream.eatWhile(/[\w\\\-]/);
+            return ret("def", stream.current());
+          } else if (ch == "=" || (ch == "~" || ch == "|") && stream.eat("=")) {
+            return ret(null, "compare");
+          } else if (ch == '"' || ch == "'") {
+            state.tokenize = tokenString(ch);
+            return state.tokenize(stream, state);
+          } else if (ch == "#") {
+            stream.eatWhile(/[\w\\\-]/);
+            return ret("atom", "hash");
+          } else if (ch == "!") {
+            stream.match(/^\s*\w*/);
+            return ret("keyword", "important");
+          } else if (/\d/.test(ch) || ch == "." && stream.eat(/\d/)) {
+            stream.eatWhile(/[\w.%]/);
+            return ret("number", "unit");
+          } else if (ch === "-") {
+            if (/[\d.]/.test(stream.peek())) {
+              stream.eatWhile(/[\w.%]/);
+              return ret("number", "unit");
+            } else if (stream.match(/^-[\w\\\-]*/)) {
+              stream.eatWhile(/[\w\\\-]/);
+              if (stream.match(/^\s*:/, false))
+                return ret("variable-2", "variable-definition");
+              return ret("variable-2", "variable");
+            } else if (stream.match(/^\w+-/)) {
+              return ret("meta", "meta");
+            }
+          } else if (/[,+>*\/]/.test(ch)) {
+            return ret(null, "select-op");
+          } else if (ch == "." && stream.match(/^-?[_a-z][_a-z0-9-]*/i)) {
+            return ret("qualifier", "qualifier");
+          } else if (/[:;{}\[\]\(\)]/.test(ch)) {
+            return ret(null, ch);
+          } else if (stream.match(/^[\w-.]+(?=\()/)) {
+            if (/^(url(-prefix)?|domain|regexp)$/i.test(stream.current())) {
+              state.tokenize = tokenParenthesized;
+            }
+            return ret("variable callee", "variable");
+          } else if (/[\w\\\-]/.test(ch)) {
+            stream.eatWhile(/[\w\\\-]/);
+            return ret("property", "word");
+          } else {
+            return ret(null, null);
+          }
+        }
+        function tokenString(quote) {
+          return function(stream, state) {
+            var escaped = false, ch;
+            while ((ch = stream.next()) != null) {
+              if (ch == quote && !escaped) {
+                if (quote == ")") stream.backUp(1);
+                break;
+              }
+              escaped = !escaped && ch == "\\";
+            }
+            if (ch == quote || !escaped && quote != ")") state.tokenize = null;
+            return ret("string", "string");
+          };
+        }
+        function tokenParenthesized(stream, state) {
+          stream.next();
+          if (!stream.match(/^\s*[\"\')]/, false))
+            state.tokenize = tokenString(")");
+          else
+            state.tokenize = null;
+          return ret(null, "(");
+        }
+        function Context(type2, indent, prev) {
+          this.type = type2;
+          this.indent = indent;
+          this.prev = prev;
+        }
+        function pushContext(state, stream, type2, indent) {
+          state.context = new Context(type2, stream.indentation() + (indent === false ? 0 : indentUnit), state.context);
+          return type2;
+        }
+        function popContext(state) {
+          if (state.context.prev)
+            state.context = state.context.prev;
+          return state.context.type;
+        }
+        function pass(type2, stream, state) {
+          return states[state.context.type](type2, stream, state);
+        }
+        function popAndPass(type2, stream, state, n) {
+          for (var i = n || 1; i > 0; i--)
+            state.context = state.context.prev;
+          return pass(type2, stream, state);
+        }
+        function wordAsValue(stream) {
+          var word = stream.current().toLowerCase();
+          if (valueKeywords2.hasOwnProperty(word))
+            override = "atom";
+          else if (colorKeywords2.hasOwnProperty(word))
+            override = "keyword";
+          else
+            override = "variable";
+        }
+        var states = {};
+        states.top = function(type2, stream, state) {
+          if (type2 == "{") {
+            return pushContext(state, stream, "block");
+          } else if (type2 == "}" && state.context.prev) {
+            return popContext(state);
+          } else if (supportsAtComponent && /@component/i.test(type2)) {
+            return pushContext(state, stream, "atComponentBlock");
+          } else if (/^@(-moz-)?document$/i.test(type2)) {
+            return pushContext(state, stream, "documentTypes");
+          } else if (/^@(media|supports|(-moz-)?document|import)$/i.test(type2)) {
+            return pushContext(state, stream, "atBlock");
+          } else if (/^@(font-face|counter-style)/i.test(type2)) {
+            state.stateArg = type2;
+            return "restricted_atBlock_before";
+          } else if (/^@(-(moz|ms|o|webkit)-)?keyframes$/i.test(type2)) {
+            return "keyframes";
+          } else if (type2 && type2.charAt(0) == "@") {
+            return pushContext(state, stream, "at");
+          } else if (type2 == "hash") {
+            override = "builtin";
+          } else if (type2 == "word") {
+            override = "tag";
+          } else if (type2 == "variable-definition") {
+            return "maybeprop";
+          } else if (type2 == "interpolation") {
+            return pushContext(state, stream, "interpolation");
+          } else if (type2 == ":") {
+            return "pseudo";
+          } else if (allowNested && type2 == "(") {
+            return pushContext(state, stream, "parens");
+          }
+          return state.context.type;
+        };
+        states.block = function(type2, stream, state) {
+          if (type2 == "word") {
+            var word = stream.current().toLowerCase();
+            if (propertyKeywords2.hasOwnProperty(word)) {
+              override = "property";
+              return "maybeprop";
+            } else if (nonStandardPropertyKeywords2.hasOwnProperty(word)) {
+              override = highlightNonStandardPropertyKeywords ? "string-2" : "property";
+              return "maybeprop";
+            } else if (allowNested) {
+              override = stream.match(/^\s*:(?:\s|$)/, false) ? "property" : "tag";
+              return "block";
+            } else {
+              override += " error";
+              return "maybeprop";
+            }
+          } else if (type2 == "meta") {
+            return "block";
+          } else if (!allowNested && (type2 == "hash" || type2 == "qualifier")) {
+            override = "error";
+            return "block";
+          } else {
+            return states.top(type2, stream, state);
+          }
+        };
+        states.maybeprop = function(type2, stream, state) {
+          if (type2 == ":") return pushContext(state, stream, "prop");
+          return pass(type2, stream, state);
+        };
+        states.prop = function(type2, stream, state) {
+          if (type2 == ";") return popContext(state);
+          if (type2 == "{" && allowNested) return pushContext(state, stream, "propBlock");
+          if (type2 == "}" || type2 == "{") return popAndPass(type2, stream, state);
+          if (type2 == "(") return pushContext(state, stream, "parens");
+          if (type2 == "hash" && !/^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(stream.current())) {
+            override += " error";
+          } else if (type2 == "word") {
+            wordAsValue(stream);
+          } else if (type2 == "interpolation") {
+            return pushContext(state, stream, "interpolation");
+          }
+          return "prop";
+        };
+        states.propBlock = function(type2, _stream, state) {
+          if (type2 == "}") return popContext(state);
+          if (type2 == "word") {
+            override = "property";
+            return "maybeprop";
+          }
+          return state.context.type;
+        };
+        states.parens = function(type2, stream, state) {
+          if (type2 == "{" || type2 == "}") return popAndPass(type2, stream, state);
+          if (type2 == ")") return popContext(state);
+          if (type2 == "(") return pushContext(state, stream, "parens");
+          if (type2 == "interpolation") return pushContext(state, stream, "interpolation");
+          if (type2 == "word") wordAsValue(stream);
+          return "parens";
+        };
+        states.pseudo = function(type2, stream, state) {
+          if (type2 == "meta") return "pseudo";
+          if (type2 == "word") {
+            override = "variable-3";
+            return state.context.type;
+          }
+          return pass(type2, stream, state);
+        };
+        states.documentTypes = function(type2, stream, state) {
+          if (type2 == "word" && documentTypes2.hasOwnProperty(stream.current())) {
+            override = "tag";
+            return state.context.type;
+          } else {
+            return states.atBlock(type2, stream, state);
+          }
+        };
+        states.atBlock = function(type2, stream, state) {
+          if (type2 == "(") return pushContext(state, stream, "atBlock_parens");
+          if (type2 == "}" || type2 == ";") return popAndPass(type2, stream, state);
+          if (type2 == "{") return popContext(state) && pushContext(state, stream, allowNested ? "block" : "top");
+          if (type2 == "interpolation") return pushContext(state, stream, "interpolation");
+          if (type2 == "word") {
+            var word = stream.current().toLowerCase();
+            if (word == "only" || word == "not" || word == "and" || word == "or")
+              override = "keyword";
+            else if (mediaTypes2.hasOwnProperty(word))
+              override = "attribute";
+            else if (mediaFeatures2.hasOwnProperty(word))
+              override = "property";
+            else if (mediaValueKeywords2.hasOwnProperty(word))
+              override = "keyword";
+            else if (propertyKeywords2.hasOwnProperty(word))
+              override = "property";
+            else if (nonStandardPropertyKeywords2.hasOwnProperty(word))
+              override = highlightNonStandardPropertyKeywords ? "string-2" : "property";
+            else if (valueKeywords2.hasOwnProperty(word))
+              override = "atom";
+            else if (colorKeywords2.hasOwnProperty(word))
+              override = "keyword";
+            else
+              override = "error";
+          }
+          return state.context.type;
+        };
+        states.atComponentBlock = function(type2, stream, state) {
+          if (type2 == "}")
+            return popAndPass(type2, stream, state);
+          if (type2 == "{")
+            return popContext(state) && pushContext(state, stream, allowNested ? "block" : "top", false);
+          if (type2 == "word")
+            override = "error";
+          return state.context.type;
+        };
+        states.atBlock_parens = function(type2, stream, state) {
+          if (type2 == ")") return popContext(state);
+          if (type2 == "{" || type2 == "}") return popAndPass(type2, stream, state, 2);
+          return states.atBlock(type2, stream, state);
+        };
+        states.restricted_atBlock_before = function(type2, stream, state) {
+          if (type2 == "{")
+            return pushContext(state, stream, "restricted_atBlock");
+          if (type2 == "word" && state.stateArg == "@counter-style") {
+            override = "variable";
+            return "restricted_atBlock_before";
+          }
+          return pass(type2, stream, state);
+        };
+        states.restricted_atBlock = function(type2, stream, state) {
+          if (type2 == "}") {
+            state.stateArg = null;
+            return popContext(state);
+          }
+          if (type2 == "word") {
+            if (state.stateArg == "@font-face" && !fontProperties2.hasOwnProperty(stream.current().toLowerCase()) || state.stateArg == "@counter-style" && !counterDescriptors2.hasOwnProperty(stream.current().toLowerCase()))
+              override = "error";
+            else
+              override = "property";
+            return "maybeprop";
+          }
+          return "restricted_atBlock";
+        };
+        states.keyframes = function(type2, stream, state) {
+          if (type2 == "word") {
+            override = "variable";
+            return "keyframes";
+          }
+          if (type2 == "{") return pushContext(state, stream, "top");
+          return pass(type2, stream, state);
+        };
+        states.at = function(type2, stream, state) {
+          if (type2 == ";") return popContext(state);
+          if (type2 == "{" || type2 == "}") return popAndPass(type2, stream, state);
+          if (type2 == "word") override = "tag";
+          else if (type2 == "hash") override = "builtin";
+          return "at";
+        };
+        states.interpolation = function(type2, stream, state) {
+          if (type2 == "}") return popContext(state);
+          if (type2 == "{" || type2 == ";") return popAndPass(type2, stream, state);
+          if (type2 == "word") override = "variable";
+          else if (type2 != "variable" && type2 != "(" && type2 != ")") override = "error";
+          return "interpolation";
+        };
+        return {
+          startState: function(base) {
+            return {
+              tokenize: null,
+              state: inline ? "block" : "top",
+              stateArg: null,
+              context: new Context(inline ? "block" : "top", base || 0, null)
+            };
+          },
+          token: function(stream, state) {
+            if (!state.tokenize && stream.eatSpace()) return null;
+            var style = (state.tokenize || tokenBase)(stream, state);
+            if (style && typeof style == "object") {
+              type = style[1];
+              style = style[0];
+            }
+            override = style;
+            if (type != "comment")
+              state.state = states[state.state](type, stream, state);
+            return override;
+          },
+          indent: function(state, textAfter) {
+            var cx = state.context, ch = textAfter && textAfter.charAt(0);
+            var indent = cx.indent;
+            if (cx.type == "prop" && (ch == "}" || ch == ")")) cx = cx.prev;
+            if (cx.prev) {
+              if (ch == "}" && (cx.type == "block" || cx.type == "top" || cx.type == "interpolation" || cx.type == "restricted_atBlock")) {
+                cx = cx.prev;
+                indent = cx.indent;
+              } else if (ch == ")" && (cx.type == "parens" || cx.type == "atBlock_parens") || ch == "{" && (cx.type == "at" || cx.type == "atBlock")) {
+                indent = Math.max(0, cx.indent - indentUnit);
+              }
+            }
+            return indent;
+          },
+          electricChars: "}",
+          blockCommentStart: "/*",
+          blockCommentEnd: "*/",
+          blockCommentContinue: " * ",
+          lineComment,
+          fold: "brace"
+        };
+      });
+      function keySet(array) {
+        var keys = {};
+        for (var i = 0; i < array.length; ++i) {
+          keys[array[i].toLowerCase()] = true;
+        }
+        return keys;
+      }
+      var documentTypes_ = [
+        "domain",
+        "regexp",
+        "url",
+        "url-prefix"
+      ], documentTypes = keySet(documentTypes_);
+      var mediaTypes_ = [
+        "all",
+        "aural",
+        "braille",
+        "handheld",
+        "print",
+        "projection",
+        "screen",
+        "tty",
+        "tv",
+        "embossed"
+      ], mediaTypes = keySet(mediaTypes_);
+      var mediaFeatures_ = [
+        "width",
+        "min-width",
+        "max-width",
+        "height",
+        "min-height",
+        "max-height",
+        "device-width",
+        "min-device-width",
+        "max-device-width",
+        "device-height",
+        "min-device-height",
+        "max-device-height",
+        "aspect-ratio",
+        "min-aspect-ratio",
+        "max-aspect-ratio",
+        "device-aspect-ratio",
+        "min-device-aspect-ratio",
+        "max-device-aspect-ratio",
+        "color",
+        "min-color",
+        "max-color",
+        "color-index",
+        "min-color-index",
+        "max-color-index",
+        "monochrome",
+        "min-monochrome",
+        "max-monochrome",
+        "resolution",
+        "min-resolution",
+        "max-resolution",
+        "scan",
+        "grid",
+        "orientation",
+        "device-pixel-ratio",
+        "min-device-pixel-ratio",
+        "max-device-pixel-ratio",
+        "pointer",
+        "any-pointer",
+        "hover",
+        "any-hover",
+        "prefers-color-scheme",
+        "dynamic-range",
+        "video-dynamic-range"
+      ], mediaFeatures = keySet(mediaFeatures_);
+      var mediaValueKeywords_ = [
+        "landscape",
+        "portrait",
+        "none",
+        "coarse",
+        "fine",
+        "on-demand",
+        "hover",
+        "interlace",
+        "progressive",
+        "dark",
+        "light",
+        "standard",
+        "high"
+      ], mediaValueKeywords = keySet(mediaValueKeywords_);
+      var propertyKeywords_ = [
+        "align-content",
+        "align-items",
+        "align-self",
+        "alignment-adjust",
+        "alignment-baseline",
+        "all",
+        "anchor-point",
+        "animation",
+        "animation-delay",
+        "animation-direction",
+        "animation-duration",
+        "animation-fill-mode",
+        "animation-iteration-count",
+        "animation-name",
+        "animation-play-state",
+        "animation-timing-function",
+        "appearance",
+        "azimuth",
+        "backdrop-filter",
+        "backface-visibility",
+        "background",
+        "background-attachment",
+        "background-blend-mode",
+        "background-clip",
+        "background-color",
+        "background-image",
+        "background-origin",
+        "background-position",
+        "background-position-x",
+        "background-position-y",
+        "background-repeat",
+        "background-size",
+        "baseline-shift",
+        "binding",
+        "bleed",
+        "block-size",
+        "bookmark-label",
+        "bookmark-level",
+        "bookmark-state",
+        "bookmark-target",
+        "border",
+        "border-bottom",
+        "border-bottom-color",
+        "border-bottom-left-radius",
+        "border-bottom-right-radius",
+        "border-bottom-style",
+        "border-bottom-width",
+        "border-collapse",
+        "border-color",
+        "border-image",
+        "border-image-outset",
+        "border-image-repeat",
+        "border-image-slice",
+        "border-image-source",
+        "border-image-width",
+        "border-left",
+        "border-left-color",
+        "border-left-style",
+        "border-left-width",
+        "border-radius",
+        "border-right",
+        "border-right-color",
+        "border-right-style",
+        "border-right-width",
+        "border-spacing",
+        "border-style",
+        "border-top",
+        "border-top-color",
+        "border-top-left-radius",
+        "border-top-right-radius",
+        "border-top-style",
+        "border-top-width",
+        "border-width",
+        "bottom",
+        "box-decoration-break",
+        "box-shadow",
+        "box-sizing",
+        "break-after",
+        "break-before",
+        "break-inside",
+        "caption-side",
+        "caret-color",
+        "clear",
+        "clip",
+        "color",
+        "color-profile",
+        "column-count",
+        "column-fill",
+        "column-gap",
+        "column-rule",
+        "column-rule-color",
+        "column-rule-style",
+        "column-rule-width",
+        "column-span",
+        "column-width",
+        "columns",
+        "contain",
+        "content",
+        "counter-increment",
+        "counter-reset",
+        "crop",
+        "cue",
+        "cue-after",
+        "cue-before",
+        "cursor",
+        "direction",
+        "display",
+        "dominant-baseline",
+        "drop-initial-after-adjust",
+        "drop-initial-after-align",
+        "drop-initial-before-adjust",
+        "drop-initial-before-align",
+        "drop-initial-size",
+        "drop-initial-value",
+        "elevation",
+        "empty-cells",
+        "fit",
+        "fit-content",
+        "fit-position",
+        "flex",
+        "flex-basis",
+        "flex-direction",
+        "flex-flow",
+        "flex-grow",
+        "flex-shrink",
+        "flex-wrap",
+        "float",
+        "float-offset",
+        "flow-from",
+        "flow-into",
+        "font",
+        "font-family",
+        "font-feature-settings",
+        "font-kerning",
+        "font-language-override",
+        "font-optical-sizing",
+        "font-size",
+        "font-size-adjust",
+        "font-stretch",
+        "font-style",
+        "font-synthesis",
+        "font-variant",
+        "font-variant-alternates",
+        "font-variant-caps",
+        "font-variant-east-asian",
+        "font-variant-ligatures",
+        "font-variant-numeric",
+        "font-variant-position",
+        "font-variation-settings",
+        "font-weight",
+        "gap",
+        "grid",
+        "grid-area",
+        "grid-auto-columns",
+        "grid-auto-flow",
+        "grid-auto-rows",
+        "grid-column",
+        "grid-column-end",
+        "grid-column-gap",
+        "grid-column-start",
+        "grid-gap",
+        "grid-row",
+        "grid-row-end",
+        "grid-row-gap",
+        "grid-row-start",
+        "grid-template",
+        "grid-template-areas",
+        "grid-template-columns",
+        "grid-template-rows",
+        "hanging-punctuation",
+        "height",
+        "hyphens",
+        "icon",
+        "image-orientation",
+        "image-rendering",
+        "image-resolution",
+        "inline-box-align",
+        "inset",
+        "inset-block",
+        "inset-block-end",
+        "inset-block-start",
+        "inset-inline",
+        "inset-inline-end",
+        "inset-inline-start",
+        "isolation",
+        "justify-content",
+        "justify-items",
+        "justify-self",
+        "left",
+        "letter-spacing",
+        "line-break",
+        "line-height",
+        "line-height-step",
+        "line-stacking",
+        "line-stacking-ruby",
+        "line-stacking-shift",
+        "line-stacking-strategy",
+        "list-style",
+        "list-style-image",
+        "list-style-position",
+        "list-style-type",
+        "margin",
+        "margin-bottom",
+        "margin-left",
+        "margin-right",
+        "margin-top",
+        "marks",
+        "marquee-direction",
+        "marquee-loop",
+        "marquee-play-count",
+        "marquee-speed",
+        "marquee-style",
+        "mask-clip",
+        "mask-composite",
+        "mask-image",
+        "mask-mode",
+        "mask-origin",
+        "mask-position",
+        "mask-repeat",
+        "mask-size",
+        "mask-type",
+        "max-block-size",
+        "max-height",
+        "max-inline-size",
+        "max-width",
+        "min-block-size",
+        "min-height",
+        "min-inline-size",
+        "min-width",
+        "mix-blend-mode",
+        "move-to",
+        "nav-down",
+        "nav-index",
+        "nav-left",
+        "nav-right",
+        "nav-up",
+        "object-fit",
+        "object-position",
+        "offset",
+        "offset-anchor",
+        "offset-distance",
+        "offset-path",
+        "offset-position",
+        "offset-rotate",
+        "opacity",
+        "order",
+        "orphans",
+        "outline",
+        "outline-color",
+        "outline-offset",
+        "outline-style",
+        "outline-width",
+        "overflow",
+        "overflow-style",
+        "overflow-wrap",
+        "overflow-x",
+        "overflow-y",
+        "padding",
+        "padding-bottom",
+        "padding-left",
+        "padding-right",
+        "padding-top",
+        "page",
+        "page-break-after",
+        "page-break-before",
+        "page-break-inside",
+        "page-policy",
+        "pause",
+        "pause-after",
+        "pause-before",
+        "perspective",
+        "perspective-origin",
+        "pitch",
+        "pitch-range",
+        "place-content",
+        "place-items",
+        "place-self",
+        "play-during",
+        "position",
+        "presentation-level",
+        "punctuation-trim",
+        "quotes",
+        "region-break-after",
+        "region-break-before",
+        "region-break-inside",
+        "region-fragment",
+        "rendering-intent",
+        "resize",
+        "rest",
+        "rest-after",
+        "rest-before",
+        "richness",
+        "right",
+        "rotate",
+        "rotation",
+        "rotation-point",
+        "row-gap",
+        "ruby-align",
+        "ruby-overhang",
+        "ruby-position",
+        "ruby-span",
+        "scale",
+        "scroll-behavior",
+        "scroll-margin",
+        "scroll-margin-block",
+        "scroll-margin-block-end",
+        "scroll-margin-block-start",
+        "scroll-margin-bottom",
+        "scroll-margin-inline",
+        "scroll-margin-inline-end",
+        "scroll-margin-inline-start",
+        "scroll-margin-left",
+        "scroll-margin-right",
+        "scroll-margin-top",
+        "scroll-padding",
+        "scroll-padding-block",
+        "scroll-padding-block-end",
+        "scroll-padding-block-start",
+        "scroll-padding-bottom",
+        "scroll-padding-inline",
+        "scroll-padding-inline-end",
+        "scroll-padding-inline-start",
+        "scroll-padding-left",
+        "scroll-padding-right",
+        "scroll-padding-top",
+        "scroll-snap-align",
+        "scroll-snap-type",
+        "shape-image-threshold",
+        "shape-inside",
+        "shape-margin",
+        "shape-outside",
+        "size",
+        "speak",
+        "speak-as",
+        "speak-header",
+        "speak-numeral",
+        "speak-punctuation",
+        "speech-rate",
+        "stress",
+        "string-set",
+        "tab-size",
+        "table-layout",
+        "target",
+        "target-name",
+        "target-new",
+        "target-position",
+        "text-align",
+        "text-align-last",
+        "text-combine-upright",
+        "text-decoration",
+        "text-decoration-color",
+        "text-decoration-line",
+        "text-decoration-skip",
+        "text-decoration-skip-ink",
+        "text-decoration-style",
+        "text-emphasis",
+        "text-emphasis-color",
+        "text-emphasis-position",
+        "text-emphasis-style",
+        "text-height",
+        "text-indent",
+        "text-justify",
+        "text-orientation",
+        "text-outline",
+        "text-overflow",
+        "text-rendering",
+        "text-shadow",
+        "text-size-adjust",
+        "text-space-collapse",
+        "text-transform",
+        "text-underline-position",
+        "text-wrap",
+        "top",
+        "touch-action",
+        "transform",
+        "transform-origin",
+        "transform-style",
+        "transition",
+        "transition-delay",
+        "transition-duration",
+        "transition-property",
+        "transition-timing-function",
+        "translate",
+        "unicode-bidi",
+        "user-select",
+        "vertical-align",
+        "visibility",
+        "voice-balance",
+        "voice-duration",
+        "voice-family",
+        "voice-pitch",
+        "voice-range",
+        "voice-rate",
+        "voice-stress",
+        "voice-volume",
+        "volume",
+        "white-space",
+        "widows",
+        "width",
+        "will-change",
+        "word-break",
+        "word-spacing",
+        "word-wrap",
+        "writing-mode",
+        "z-index",
+        // SVG-specific
+        "clip-path",
+        "clip-rule",
+        "mask",
+        "enable-background",
+        "filter",
+        "flood-color",
+        "flood-opacity",
+        "lighting-color",
+        "stop-color",
+        "stop-opacity",
+        "pointer-events",
+        "color-interpolation",
+        "color-interpolation-filters",
+        "color-rendering",
+        "fill",
+        "fill-opacity",
+        "fill-rule",
+        "image-rendering",
+        "marker",
+        "marker-end",
+        "marker-mid",
+        "marker-start",
+        "paint-order",
+        "shape-rendering",
+        "stroke",
+        "stroke-dasharray",
+        "stroke-dashoffset",
+        "stroke-linecap",
+        "stroke-linejoin",
+        "stroke-miterlimit",
+        "stroke-opacity",
+        "stroke-width",
+        "text-rendering",
+        "baseline-shift",
+        "dominant-baseline",
+        "glyph-orientation-horizontal",
+        "glyph-orientation-vertical",
+        "text-anchor",
+        "writing-mode"
+      ], propertyKeywords = keySet(propertyKeywords_);
+      var nonStandardPropertyKeywords_ = [
+        "accent-color",
+        "aspect-ratio",
+        "border-block",
+        "border-block-color",
+        "border-block-end",
+        "border-block-end-color",
+        "border-block-end-style",
+        "border-block-end-width",
+        "border-block-start",
+        "border-block-start-color",
+        "border-block-start-style",
+        "border-block-start-width",
+        "border-block-style",
+        "border-block-width",
+        "border-inline",
+        "border-inline-color",
+        "border-inline-end",
+        "border-inline-end-color",
+        "border-inline-end-style",
+        "border-inline-end-width",
+        "border-inline-start",
+        "border-inline-start-color",
+        "border-inline-start-style",
+        "border-inline-start-width",
+        "border-inline-style",
+        "border-inline-width",
+        "content-visibility",
+        "margin-block",
+        "margin-block-end",
+        "margin-block-start",
+        "margin-inline",
+        "margin-inline-end",
+        "margin-inline-start",
+        "overflow-anchor",
+        "overscroll-behavior",
+        "padding-block",
+        "padding-block-end",
+        "padding-block-start",
+        "padding-inline",
+        "padding-inline-end",
+        "padding-inline-start",
+        "scroll-snap-stop",
+        "scrollbar-3d-light-color",
+        "scrollbar-arrow-color",
+        "scrollbar-base-color",
+        "scrollbar-dark-shadow-color",
+        "scrollbar-face-color",
+        "scrollbar-highlight-color",
+        "scrollbar-shadow-color",
+        "scrollbar-track-color",
+        "searchfield-cancel-button",
+        "searchfield-decoration",
+        "searchfield-results-button",
+        "searchfield-results-decoration",
+        "shape-inside",
+        "zoom"
+      ], nonStandardPropertyKeywords = keySet(nonStandardPropertyKeywords_);
+      var fontProperties_ = [
+        "font-display",
+        "font-family",
+        "src",
+        "unicode-range",
+        "font-variant",
+        "font-feature-settings",
+        "font-stretch",
+        "font-weight",
+        "font-style"
+      ], fontProperties = keySet(fontProperties_);
+      var counterDescriptors_ = [
+        "additive-symbols",
+        "fallback",
+        "negative",
+        "pad",
+        "prefix",
+        "range",
+        "speak-as",
+        "suffix",
+        "symbols",
+        "system"
+      ], counterDescriptors = keySet(counterDescriptors_);
+      var colorKeywords_ = [
+        "aliceblue",
+        "antiquewhite",
+        "aqua",
+        "aquamarine",
+        "azure",
+        "beige",
+        "bisque",
+        "black",
+        "blanchedalmond",
+        "blue",
+        "blueviolet",
+        "brown",
+        "burlywood",
+        "cadetblue",
+        "chartreuse",
+        "chocolate",
+        "coral",
+        "cornflowerblue",
+        "cornsilk",
+        "crimson",
+        "cyan",
+        "darkblue",
+        "darkcyan",
+        "darkgoldenrod",
+        "darkgray",
+        "darkgreen",
+        "darkgrey",
+        "darkkhaki",
+        "darkmagenta",
+        "darkolivegreen",
+        "darkorange",
+        "darkorchid",
+        "darkred",
+        "darksalmon",
+        "darkseagreen",
+        "darkslateblue",
+        "darkslategray",
+        "darkslategrey",
+        "darkturquoise",
+        "darkviolet",
+        "deeppink",
+        "deepskyblue",
+        "dimgray",
+        "dimgrey",
+        "dodgerblue",
+        "firebrick",
+        "floralwhite",
+        "forestgreen",
+        "fuchsia",
+        "gainsboro",
+        "ghostwhite",
+        "gold",
+        "goldenrod",
+        "gray",
+        "grey",
+        "green",
+        "greenyellow",
+        "honeydew",
+        "hotpink",
+        "indianred",
+        "indigo",
+        "ivory",
+        "khaki",
+        "lavender",
+        "lavenderblush",
+        "lawngreen",
+        "lemonchiffon",
+        "lightblue",
+        "lightcoral",
+        "lightcyan",
+        "lightgoldenrodyellow",
+        "lightgray",
+        "lightgreen",
+        "lightgrey",
+        "lightpink",
+        "lightsalmon",
+        "lightseagreen",
+        "lightskyblue",
+        "lightslategray",
+        "lightslategrey",
+        "lightsteelblue",
+        "lightyellow",
+        "lime",
+        "limegreen",
+        "linen",
+        "magenta",
+        "maroon",
+        "mediumaquamarine",
+        "mediumblue",
+        "mediumorchid",
+        "mediumpurple",
+        "mediumseagreen",
+        "mediumslateblue",
+        "mediumspringgreen",
+        "mediumturquoise",
+        "mediumvioletred",
+        "midnightblue",
+        "mintcream",
+        "mistyrose",
+        "moccasin",
+        "navajowhite",
+        "navy",
+        "oldlace",
+        "olive",
+        "olivedrab",
+        "orange",
+        "orangered",
+        "orchid",
+        "palegoldenrod",
+        "palegreen",
+        "paleturquoise",
+        "palevioletred",
+        "papayawhip",
+        "peachpuff",
+        "peru",
+        "pink",
+        "plum",
+        "powderblue",
+        "purple",
+        "rebeccapurple",
+        "red",
+        "rosybrown",
+        "royalblue",
+        "saddlebrown",
+        "salmon",
+        "sandybrown",
+        "seagreen",
+        "seashell",
+        "sienna",
+        "silver",
+        "skyblue",
+        "slateblue",
+        "slategray",
+        "slategrey",
+        "snow",
+        "springgreen",
+        "steelblue",
+        "tan",
+        "teal",
+        "thistle",
+        "tomato",
+        "turquoise",
+        "violet",
+        "wheat",
+        "white",
+        "whitesmoke",
+        "yellow",
+        "yellowgreen"
+      ], colorKeywords = keySet(colorKeywords_);
+      var valueKeywords_ = [
+        "above",
+        "absolute",
+        "activeborder",
+        "additive",
+        "activecaption",
+        "afar",
+        "after-white-space",
+        "ahead",
+        "alias",
+        "all",
+        "all-scroll",
+        "alphabetic",
+        "alternate",
+        "always",
+        "amharic",
+        "amharic-abegede",
+        "antialiased",
+        "appworkspace",
+        "arabic-indic",
+        "armenian",
+        "asterisks",
+        "attr",
+        "auto",
+        "auto-flow",
+        "avoid",
+        "avoid-column",
+        "avoid-page",
+        "avoid-region",
+        "axis-pan",
+        "background",
+        "backwards",
+        "baseline",
+        "below",
+        "bidi-override",
+        "binary",
+        "bengali",
+        "blink",
+        "block",
+        "block-axis",
+        "blur",
+        "bold",
+        "bolder",
+        "border",
+        "border-box",
+        "both",
+        "bottom",
+        "break",
+        "break-all",
+        "break-word",
+        "brightness",
+        "bullets",
+        "button",
+        "buttonface",
+        "buttonhighlight",
+        "buttonshadow",
+        "buttontext",
+        "calc",
+        "cambodian",
+        "capitalize",
+        "caps-lock-indicator",
+        "caption",
+        "captiontext",
+        "caret",
+        "cell",
+        "center",
+        "checkbox",
+        "circle",
+        "cjk-decimal",
+        "cjk-earthly-branch",
+        "cjk-heavenly-stem",
+        "cjk-ideographic",
+        "clear",
+        "clip",
+        "close-quote",
+        "col-resize",
+        "collapse",
+        "color",
+        "color-burn",
+        "color-dodge",
+        "column",
+        "column-reverse",
+        "compact",
+        "condensed",
+        "conic-gradient",
+        "contain",
+        "content",
+        "contents",
+        "content-box",
+        "context-menu",
+        "continuous",
+        "contrast",
+        "copy",
+        "counter",
+        "counters",
+        "cover",
+        "crop",
+        "cross",
+        "crosshair",
+        "cubic-bezier",
+        "currentcolor",
+        "cursive",
+        "cyclic",
+        "darken",
+        "dashed",
+        "decimal",
+        "decimal-leading-zero",
+        "default",
+        "default-button",
+        "dense",
+        "destination-atop",
+        "destination-in",
+        "destination-out",
+        "destination-over",
+        "devanagari",
+        "difference",
+        "disc",
+        "discard",
+        "disclosure-closed",
+        "disclosure-open",
+        "document",
+        "dot-dash",
+        "dot-dot-dash",
+        "dotted",
+        "double",
+        "down",
+        "drop-shadow",
+        "e-resize",
+        "ease",
+        "ease-in",
+        "ease-in-out",
+        "ease-out",
+        "element",
+        "ellipse",
+        "ellipsis",
+        "embed",
+        "end",
+        "ethiopic",
+        "ethiopic-abegede",
+        "ethiopic-abegede-am-et",
+        "ethiopic-abegede-gez",
+        "ethiopic-abegede-ti-er",
+        "ethiopic-abegede-ti-et",
+        "ethiopic-halehame-aa-er",
+        "ethiopic-halehame-aa-et",
+        "ethiopic-halehame-am-et",
+        "ethiopic-halehame-gez",
+        "ethiopic-halehame-om-et",
+        "ethiopic-halehame-sid-et",
+        "ethiopic-halehame-so-et",
+        "ethiopic-halehame-ti-er",
+        "ethiopic-halehame-ti-et",
+        "ethiopic-halehame-tig",
+        "ethiopic-numeric",
+        "ew-resize",
+        "exclusion",
+        "expanded",
+        "extends",
+        "extra-condensed",
+        "extra-expanded",
+        "fantasy",
+        "fast",
+        "fill",
+        "fill-box",
+        "fixed",
+        "flat",
+        "flex",
+        "flex-end",
+        "flex-start",
+        "footnotes",
+        "forwards",
+        "from",
+        "geometricPrecision",
+        "georgian",
+        "grayscale",
+        "graytext",
+        "grid",
+        "groove",
+        "gujarati",
+        "gurmukhi",
+        "hand",
+        "hangul",
+        "hangul-consonant",
+        "hard-light",
+        "hebrew",
+        "help",
+        "hidden",
+        "hide",
+        "higher",
+        "highlight",
+        "highlighttext",
+        "hiragana",
+        "hiragana-iroha",
+        "horizontal",
+        "hsl",
+        "hsla",
+        "hue",
+        "hue-rotate",
+        "icon",
+        "ignore",
+        "inactiveborder",
+        "inactivecaption",
+        "inactivecaptiontext",
+        "infinite",
+        "infobackground",
+        "infotext",
+        "inherit",
+        "initial",
+        "inline",
+        "inline-axis",
+        "inline-block",
+        "inline-flex",
+        "inline-grid",
+        "inline-table",
+        "inset",
+        "inside",
+        "intrinsic",
+        "invert",
+        "italic",
+        "japanese-formal",
+        "japanese-informal",
+        "justify",
+        "kannada",
+        "katakana",
+        "katakana-iroha",
+        "keep-all",
+        "khmer",
+        "korean-hangul-formal",
+        "korean-hanja-formal",
+        "korean-hanja-informal",
+        "landscape",
+        "lao",
+        "large",
+        "larger",
+        "left",
+        "level",
+        "lighter",
+        "lighten",
+        "line-through",
+        "linear",
+        "linear-gradient",
+        "lines",
+        "list-item",
+        "listbox",
+        "listitem",
+        "local",
+        "logical",
+        "loud",
+        "lower",
+        "lower-alpha",
+        "lower-armenian",
+        "lower-greek",
+        "lower-hexadecimal",
+        "lower-latin",
+        "lower-norwegian",
+        "lower-roman",
+        "lowercase",
+        "ltr",
+        "luminosity",
+        "malayalam",
+        "manipulation",
+        "match",
+        "matrix",
+        "matrix3d",
+        "media-play-button",
+        "media-slider",
+        "media-sliderthumb",
+        "media-volume-slider",
+        "media-volume-sliderthumb",
+        "medium",
+        "menu",
+        "menulist",
+        "menulist-button",
+        "menutext",
+        "message-box",
+        "middle",
+        "min-intrinsic",
+        "mix",
+        "mongolian",
+        "monospace",
+        "move",
+        "multiple",
+        "multiple_mask_images",
+        "multiply",
+        "myanmar",
+        "n-resize",
+        "narrower",
+        "ne-resize",
+        "nesw-resize",
+        "no-close-quote",
+        "no-drop",
+        "no-open-quote",
+        "no-repeat",
+        "none",
+        "normal",
+        "not-allowed",
+        "nowrap",
+        "ns-resize",
+        "numbers",
+        "numeric",
+        "nw-resize",
+        "nwse-resize",
+        "oblique",
+        "octal",
+        "opacity",
+        "open-quote",
+        "optimizeLegibility",
+        "optimizeSpeed",
+        "oriya",
+        "oromo",
+        "outset",
+        "outside",
+        "outside-shape",
+        "overlay",
+        "overline",
+        "padding",
+        "padding-box",
+        "painted",
+        "page",
+        "paused",
+        "persian",
+        "perspective",
+        "pinch-zoom",
+        "plus-darker",
+        "plus-lighter",
+        "pointer",
+        "polygon",
+        "portrait",
+        "pre",
+        "pre-line",
+        "pre-wrap",
+        "preserve-3d",
+        "progress",
+        "push-button",
+        "radial-gradient",
+        "radio",
+        "read-only",
+        "read-write",
+        "read-write-plaintext-only",
+        "rectangle",
+        "region",
+        "relative",
+        "repeat",
+        "repeating-linear-gradient",
+        "repeating-radial-gradient",
+        "repeating-conic-gradient",
+        "repeat-x",
+        "repeat-y",
+        "reset",
+        "reverse",
+        "rgb",
+        "rgba",
+        "ridge",
+        "right",
+        "rotate",
+        "rotate3d",
+        "rotateX",
+        "rotateY",
+        "rotateZ",
+        "round",
+        "row",
+        "row-resize",
+        "row-reverse",
+        "rtl",
+        "run-in",
+        "running",
+        "s-resize",
+        "sans-serif",
+        "saturate",
+        "saturation",
+        "scale",
+        "scale3d",
+        "scaleX",
+        "scaleY",
+        "scaleZ",
+        "screen",
+        "scroll",
+        "scrollbar",
+        "scroll-position",
+        "se-resize",
+        "searchfield",
+        "searchfield-cancel-button",
+        "searchfield-decoration",
+        "searchfield-results-button",
+        "searchfield-results-decoration",
+        "self-start",
+        "self-end",
+        "semi-condensed",
+        "semi-expanded",
+        "separate",
+        "sepia",
+        "serif",
+        "show",
+        "sidama",
+        "simp-chinese-formal",
+        "simp-chinese-informal",
+        "single",
+        "skew",
+        "skewX",
+        "skewY",
+        "skip-white-space",
+        "slide",
+        "slider-horizontal",
+        "slider-vertical",
+        "sliderthumb-horizontal",
+        "sliderthumb-vertical",
+        "slow",
+        "small",
+        "small-caps",
+        "small-caption",
+        "smaller",
+        "soft-light",
+        "solid",
+        "somali",
+        "source-atop",
+        "source-in",
+        "source-out",
+        "source-over",
+        "space",
+        "space-around",
+        "space-between",
+        "space-evenly",
+        "spell-out",
+        "square",
+        "square-button",
+        "start",
+        "static",
+        "status-bar",
+        "stretch",
+        "stroke",
+        "stroke-box",
+        "sub",
+        "subpixel-antialiased",
+        "svg_masks",
+        "super",
+        "sw-resize",
+        "symbolic",
+        "symbols",
+        "system-ui",
+        "table",
+        "table-caption",
+        "table-cell",
+        "table-column",
+        "table-column-group",
+        "table-footer-group",
+        "table-header-group",
+        "table-row",
+        "table-row-group",
+        "tamil",
+        "telugu",
+        "text",
+        "text-bottom",
+        "text-top",
+        "textarea",
+        "textfield",
+        "thai",
+        "thick",
+        "thin",
+        "threeddarkshadow",
+        "threedface",
+        "threedhighlight",
+        "threedlightshadow",
+        "threedshadow",
+        "tibetan",
+        "tigre",
+        "tigrinya-er",
+        "tigrinya-er-abegede",
+        "tigrinya-et",
+        "tigrinya-et-abegede",
+        "to",
+        "top",
+        "trad-chinese-formal",
+        "trad-chinese-informal",
+        "transform",
+        "translate",
+        "translate3d",
+        "translateX",
+        "translateY",
+        "translateZ",
+        "transparent",
+        "ultra-condensed",
+        "ultra-expanded",
+        "underline",
+        "unidirectional-pan",
+        "unset",
+        "up",
+        "upper-alpha",
+        "upper-armenian",
+        "upper-greek",
+        "upper-hexadecimal",
+        "upper-latin",
+        "upper-norwegian",
+        "upper-roman",
+        "uppercase",
+        "urdu",
+        "url",
+        "var",
+        "vertical",
+        "vertical-text",
+        "view-box",
+        "visible",
+        "visibleFill",
+        "visiblePainted",
+        "visibleStroke",
+        "visual",
+        "w-resize",
+        "wait",
+        "wave",
+        "wider",
+        "window",
+        "windowframe",
+        "windowtext",
+        "words",
+        "wrap",
+        "wrap-reverse",
+        "x-large",
+        "x-small",
+        "xor",
+        "xx-large",
+        "xx-small"
+      ], valueKeywords = keySet(valueKeywords_);
+      var allWords = documentTypes_.concat(mediaTypes_).concat(mediaFeatures_).concat(mediaValueKeywords_).concat(propertyKeywords_).concat(nonStandardPropertyKeywords_).concat(colorKeywords_).concat(valueKeywords_);
+      CodeMirror2.registerHelper("hintWords", "css", allWords);
+      function tokenCComment(stream, state) {
+        var maybeEnd = false, ch;
+        while ((ch = stream.next()) != null) {
+          if (maybeEnd && ch == "/") {
+            state.tokenize = null;
+            break;
+          }
+          maybeEnd = ch == "*";
+        }
+        return ["comment", "comment"];
+      }
+      CodeMirror2.defineMIME("text/css", {
+        documentTypes,
+        mediaTypes,
+        mediaFeatures,
+        mediaValueKeywords,
+        propertyKeywords,
+        nonStandardPropertyKeywords,
+        fontProperties,
+        counterDescriptors,
+        colorKeywords,
+        valueKeywords,
+        tokenHooks: {
+          "/": function(stream, state) {
+            if (!stream.eat("*")) return false;
+            state.tokenize = tokenCComment;
+            return tokenCComment(stream, state);
+          }
+        },
+        name: "css"
+      });
+      CodeMirror2.defineMIME("text/x-scss", {
+        mediaTypes,
+        mediaFeatures,
+        mediaValueKeywords,
+        propertyKeywords,
+        nonStandardPropertyKeywords,
+        colorKeywords,
+        valueKeywords,
+        fontProperties,
+        allowNested: true,
+        lineComment: "//",
+        tokenHooks: {
+          "/": function(stream, state) {
+            if (stream.eat("/")) {
+              stream.skipToEnd();
+              return ["comment", "comment"];
+            } else if (stream.eat("*")) {
+              state.tokenize = tokenCComment;
+              return tokenCComment(stream, state);
+            } else {
+              return ["operator", "operator"];
+            }
+          },
+          ":": function(stream) {
+            if (stream.match(/^\s*\{/, false))
+              return [null, null];
+            return false;
+          },
+          "$": function(stream) {
+            stream.match(/^[\w-]+/);
+            if (stream.match(/^\s*:/, false))
+              return ["variable-2", "variable-definition"];
+            return ["variable-2", "variable"];
+          },
+          "#": function(stream) {
+            if (!stream.eat("{")) return false;
+            return [null, "interpolation"];
+          }
+        },
+        name: "css",
+        helperType: "scss"
+      });
+      CodeMirror2.defineMIME("text/x-less", {
+        mediaTypes,
+        mediaFeatures,
+        mediaValueKeywords,
+        propertyKeywords,
+        nonStandardPropertyKeywords,
+        colorKeywords,
+        valueKeywords,
+        fontProperties,
+        allowNested: true,
+        lineComment: "//",
+        tokenHooks: {
+          "/": function(stream, state) {
+            if (stream.eat("/")) {
+              stream.skipToEnd();
+              return ["comment", "comment"];
+            } else if (stream.eat("*")) {
+              state.tokenize = tokenCComment;
+              return tokenCComment(stream, state);
+            } else {
+              return ["operator", "operator"];
+            }
+          },
+          "@": function(stream) {
+            if (stream.eat("{")) return [null, "interpolation"];
+            if (stream.match(/^(charset|document|font-face|import|(-(moz|ms|o|webkit)-)?keyframes|media|namespace|page|supports)\b/i, false)) return false;
+            stream.eatWhile(/[\w\\\-]/);
+            if (stream.match(/^\s*:/, false))
+              return ["variable-2", "variable-definition"];
+            return ["variable-2", "variable"];
+          },
+          "&": function() {
+            return ["atom", "atom"];
+          }
+        },
+        name: "css",
+        helperType: "less"
+      });
+      CodeMirror2.defineMIME("text/x-gss", {
+        documentTypes,
+        mediaTypes,
+        mediaFeatures,
+        propertyKeywords,
+        nonStandardPropertyKeywords,
+        fontProperties,
+        counterDescriptors,
+        colorKeywords,
+        valueKeywords,
+        supportsAtComponent: true,
+        tokenHooks: {
+          "/": function(stream, state) {
+            if (!stream.eat("*")) return false;
+            state.tokenize = tokenCComment;
+            return tokenCComment(stream, state);
+          }
+        },
+        name: "css",
+        helperType: "gss"
+      });
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/htmlmixed/htmlmixed.js
+var require_htmlmixed = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/htmlmixed/htmlmixed.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror(), require_xml(), require_javascript(), require_css());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror", "../xml/xml", "../javascript/javascript", "../css/css"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      var defaultTags = {
+        script: [
+          ["lang", /(javascript|babel)/i, "javascript"],
+          ["type", /^(?:text|application)\/(?:x-)?(?:java|ecma)script$|^module$|^$/i, "javascript"],
+          ["type", /./, "text/plain"],
+          [null, null, "javascript"]
+        ],
+        style: [
+          ["lang", /^css$/i, "css"],
+          ["type", /^(text\/)?(x-)?(stylesheet|css)$/i, "css"],
+          ["type", /./, "text/plain"],
+          [null, null, "css"]
+        ]
+      };
+      function maybeBackup(stream, pat, style) {
+        var cur = stream.current(), close = cur.search(pat);
+        if (close > -1) {
+          stream.backUp(cur.length - close);
+        } else if (cur.match(/<\/?$/)) {
+          stream.backUp(cur.length);
+          if (!stream.match(pat, false)) stream.match(cur);
+        }
+        return style;
+      }
+      var attrRegexpCache = {};
+      function getAttrRegexp(attr) {
+        var regexp = attrRegexpCache[attr];
+        if (regexp) return regexp;
+        return attrRegexpCache[attr] = new RegExp("\\s+" + attr + `\\s*=\\s*('|")?([^'"]+)('|")?\\s*`);
+      }
+      function getAttrValue(text, attr) {
+        var match = text.match(getAttrRegexp(attr));
+        return match ? /^\s*(.*?)\s*$/.exec(match[2])[1] : "";
+      }
+      function getTagRegexp(tagName, anchored) {
+        return new RegExp((anchored ? "^" : "") + "</\\s*" + tagName + "\\s*>", "i");
+      }
+      function addTags(from, to) {
+        for (var tag in from) {
+          var dest = to[tag] || (to[tag] = []);
+          var source = from[tag];
+          for (var i = source.length - 1; i >= 0; i--)
+            dest.unshift(source[i]);
+        }
+      }
+      function findMatchingMode(tagInfo, tagText) {
+        for (var i = 0; i < tagInfo.length; i++) {
+          var spec = tagInfo[i];
+          if (!spec[0] || spec[1].test(getAttrValue(tagText, spec[0]))) return spec[2];
+        }
+      }
+      CodeMirror2.defineMode("htmlmixed", function(config, parserConfig) {
+        var htmlMode = CodeMirror2.getMode(config, {
+          name: "xml",
+          htmlMode: true,
+          multilineTagIndentFactor: parserConfig.multilineTagIndentFactor,
+          multilineTagIndentPastTag: parserConfig.multilineTagIndentPastTag,
+          allowMissingTagName: parserConfig.allowMissingTagName
+        });
+        var tags = {};
+        var configTags = parserConfig && parserConfig.tags, configScript = parserConfig && parserConfig.scriptTypes;
+        addTags(defaultTags, tags);
+        if (configTags) addTags(configTags, tags);
+        if (configScript) for (var i = configScript.length - 1; i >= 0; i--)
+          tags.script.unshift(["type", configScript[i].matches, configScript[i].mode]);
+        function html(stream, state) {
+          var style = htmlMode.token(stream, state.htmlState), tag = /\btag\b/.test(style), tagName;
+          if (tag && !/[<>\s\/]/.test(stream.current()) && (tagName = state.htmlState.tagName && state.htmlState.tagName.toLowerCase()) && tags.hasOwnProperty(tagName)) {
+            state.inTag = tagName + " ";
+          } else if (state.inTag && tag && />$/.test(stream.current())) {
+            var inTag = /^([\S]+) (.*)/.exec(state.inTag);
+            state.inTag = null;
+            var modeSpec = stream.current() == ">" && findMatchingMode(tags[inTag[1]], inTag[2]);
+            var mode = CodeMirror2.getMode(config, modeSpec);
+            var endTagA = getTagRegexp(inTag[1], true), endTag = getTagRegexp(inTag[1], false);
+            state.token = function(stream2, state2) {
+              if (stream2.match(endTagA, false)) {
+                state2.token = html;
+                state2.localState = state2.localMode = null;
+                return null;
+              }
+              return maybeBackup(stream2, endTag, state2.localMode.token(stream2, state2.localState));
+            };
+            state.localMode = mode;
+            state.localState = CodeMirror2.startState(mode, htmlMode.indent(state.htmlState, "", ""));
+          } else if (state.inTag) {
+            state.inTag += stream.current();
+            if (stream.eol()) state.inTag += " ";
+          }
+          return style;
+        }
+        ;
+        return {
+          startState: function() {
+            var state = CodeMirror2.startState(htmlMode);
+            return { token: html, inTag: null, localMode: null, localState: null, htmlState: state };
+          },
+          copyState: function(state) {
+            var local;
+            if (state.localState) {
+              local = CodeMirror2.copyState(state.localMode, state.localState);
+            }
+            return {
+              token: state.token,
+              inTag: state.inTag,
+              localMode: state.localMode,
+              localState: local,
+              htmlState: CodeMirror2.copyState(htmlMode, state.htmlState)
+            };
+          },
+          token: function(stream, state) {
+            return state.token(stream, state);
+          },
+          indent: function(state, textAfter, line) {
+            if (!state.localMode || /^\s*<\//.test(textAfter))
+              return htmlMode.indent(state.htmlState, textAfter, line);
+            else if (state.localMode.indent)
+              return state.localMode.indent(state.localState, textAfter, line);
+            else
+              return CodeMirror2.Pass;
+          },
+          innerMode: function(state) {
+            return { state: state.localState || state.htmlState, mode: state.localMode || htmlMode };
+          }
+        };
+      }, "xml", "javascript", "css");
+      CodeMirror2.defineMIME("text/html", "htmlmixed");
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/shell/shell.js
+var require_shell = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/shell/shell.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineMode("shell", function() {
+        var words = {};
+        function define2(style, dict) {
+          for (var i = 0; i < dict.length; i++) {
+            words[dict[i]] = style;
+          }
+        }
+        ;
+        var commonAtoms = ["true", "false"];
+        var commonKeywords = [
+          "if",
+          "then",
+          "do",
+          "else",
+          "elif",
+          "while",
+          "until",
+          "for",
+          "in",
+          "esac",
+          "fi",
+          "fin",
+          "fil",
+          "done",
+          "exit",
+          "set",
+          "unset",
+          "export",
+          "function"
+        ];
+        var commonCommands = [
+          "ab",
+          "awk",
+          "bash",
+          "beep",
+          "cat",
+          "cc",
+          "cd",
+          "chown",
+          "chmod",
+          "chroot",
+          "clear",
+          "cp",
+          "curl",
+          "cut",
+          "diff",
+          "echo",
+          "find",
+          "gawk",
+          "gcc",
+          "get",
+          "git",
+          "grep",
+          "hg",
+          "kill",
+          "killall",
+          "ln",
+          "ls",
+          "make",
+          "mkdir",
+          "openssl",
+          "mv",
+          "nc",
+          "nl",
+          "node",
+          "npm",
+          "ping",
+          "ps",
+          "restart",
+          "rm",
+          "rmdir",
+          "sed",
+          "service",
+          "sh",
+          "shopt",
+          "shred",
+          "source",
+          "sort",
+          "sleep",
+          "ssh",
+          "start",
+          "stop",
+          "su",
+          "sudo",
+          "svn",
+          "tee",
+          "telnet",
+          "top",
+          "touch",
+          "vi",
+          "vim",
+          "wall",
+          "wc",
+          "wget",
+          "who",
+          "write",
+          "yes",
+          "zsh"
+        ];
+        CodeMirror2.registerHelper("hintWords", "shell", commonAtoms.concat(commonKeywords, commonCommands));
+        define2("atom", commonAtoms);
+        define2("keyword", commonKeywords);
+        define2("builtin", commonCommands);
+        function tokenBase(stream, state) {
+          if (stream.eatSpace()) return null;
+          var sol = stream.sol();
+          var ch = stream.next();
+          if (ch === "\\") {
+            stream.next();
+            return null;
+          }
+          if (ch === "'" || ch === '"' || ch === "`") {
+            state.tokens.unshift(tokenString(ch, ch === "`" ? "quote" : "string"));
+            return tokenize(stream, state);
+          }
+          if (ch === "#") {
+            if (sol && stream.eat("!")) {
+              stream.skipToEnd();
+              return "meta";
+            }
+            stream.skipToEnd();
+            return "comment";
+          }
+          if (ch === "$") {
+            state.tokens.unshift(tokenDollar);
+            return tokenize(stream, state);
+          }
+          if (ch === "+" || ch === "=") {
+            return "operator";
+          }
+          if (ch === "-") {
+            stream.eat("-");
+            stream.eatWhile(/\w/);
+            return "attribute";
+          }
+          if (ch == "<") {
+            if (stream.match("<<")) return "operator";
+            var heredoc = stream.match(/^<-?\s*['"]?([^'"]*)['"]?/);
+            if (heredoc) {
+              state.tokens.unshift(tokenHeredoc(heredoc[1]));
+              return "string-2";
+            }
+          }
+          if (/\d/.test(ch)) {
+            stream.eatWhile(/\d/);
+            if (stream.eol() || !/\w/.test(stream.peek())) {
+              return "number";
+            }
+          }
+          stream.eatWhile(/[\w-]/);
+          var cur = stream.current();
+          if (stream.peek() === "=" && /\w+/.test(cur)) return "def";
+          return words.hasOwnProperty(cur) ? words[cur] : null;
+        }
+        function tokenString(quote, style) {
+          var close = quote == "(" ? ")" : quote == "{" ? "}" : quote;
+          return function(stream, state) {
+            var next, escaped = false;
+            while ((next = stream.next()) != null) {
+              if (next === close && !escaped) {
+                state.tokens.shift();
+                break;
+              } else if (next === "$" && !escaped && quote !== "'" && stream.peek() != close) {
+                escaped = true;
+                stream.backUp(1);
+                state.tokens.unshift(tokenDollar);
+                break;
+              } else if (!escaped && quote !== close && next === quote) {
+                state.tokens.unshift(tokenString(quote, style));
+                return tokenize(stream, state);
+              } else if (!escaped && /['"]/.test(next) && !/['"]/.test(quote)) {
+                state.tokens.unshift(tokenStringStart(next, "string"));
+                stream.backUp(1);
+                break;
+              }
+              escaped = !escaped && next === "\\";
+            }
+            return style;
+          };
+        }
+        ;
+        function tokenStringStart(quote, style) {
+          return function(stream, state) {
+            state.tokens[0] = tokenString(quote, style);
+            stream.next();
+            return tokenize(stream, state);
+          };
+        }
+        var tokenDollar = function(stream, state) {
+          if (state.tokens.length > 1) stream.eat("$");
+          var ch = stream.next();
+          if (/['"({]/.test(ch)) {
+            state.tokens[0] = tokenString(ch, ch == "(" ? "quote" : ch == "{" ? "def" : "string");
+            return tokenize(stream, state);
+          }
+          if (!/\d/.test(ch)) stream.eatWhile(/\w/);
+          state.tokens.shift();
+          return "def";
+        };
+        function tokenHeredoc(delim) {
+          return function(stream, state) {
+            if (stream.sol() && stream.string == delim) state.tokens.shift();
+            stream.skipToEnd();
+            return "string-2";
+          };
+        }
+        function tokenize(stream, state) {
+          return (state.tokens[0] || tokenBase)(stream, state);
+        }
+        ;
+        return {
+          startState: function() {
+            return { tokens: [] };
+          },
+          token: function(stream, state) {
+            return tokenize(stream, state);
+          },
+          closeBrackets: "()[]{}''\"\"``",
+          lineComment: "#",
+          fold: "brace"
+        };
+      });
+      CodeMirror2.defineMIME("text/x-sh", "shell");
+      CodeMirror2.defineMIME("application/x-sh", "shell");
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/sql/sql.js
+var require_sql = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/sql/sql.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineMode("sql", function(config, parserConfig) {
+        var client = parserConfig.client || {}, atoms = parserConfig.atoms || { "false": true, "true": true, "null": true }, builtin = parserConfig.builtin || set(defaultBuiltin), keywords = parserConfig.keywords || set(sqlKeywords), operatorChars = parserConfig.operatorChars || /^[*+\-%<>!=&|~^\/]/, support = parserConfig.support || {}, hooks = parserConfig.hooks || {}, dateSQL = parserConfig.dateSQL || { "date": true, "time": true, "timestamp": true }, backslashStringEscapes = parserConfig.backslashStringEscapes !== false, brackets = parserConfig.brackets || /^[\{}\(\)\[\]]/, punctuation = parserConfig.punctuation || /^[;.,:]/;
+        function tokenBase(stream, state) {
+          var ch = stream.next();
+          if (hooks[ch]) {
+            var result = hooks[ch](stream, state);
+            if (result !== false) return result;
+          }
+          if (support.hexNumber && (ch == "0" && stream.match(/^[xX][0-9a-fA-F]+/) || (ch == "x" || ch == "X") && stream.match(/^'[0-9a-fA-F]*'/))) {
+            return "number";
+          } else if (support.binaryNumber && ((ch == "b" || ch == "B") && stream.match(/^'[01]*'/) || ch == "0" && stream.match(/^b[01]+/))) {
+            return "number";
+          } else if (ch.charCodeAt(0) > 47 && ch.charCodeAt(0) < 58) {
+            stream.match(/^[0-9]*(\.[0-9]+)?([eE][-+]?[0-9]+)?/);
+            support.decimallessFloat && stream.match(/^\.(?!\.)/);
+            return "number";
+          } else if (ch == "?" && (stream.eatSpace() || stream.eol() || stream.eat(";"))) {
+            return "variable-3";
+          } else if (ch == "'" || ch == '"' && support.doubleQuote) {
+            state.tokenize = tokenLiteral(ch);
+            return state.tokenize(stream, state);
+          } else if ((support.nCharCast && (ch == "n" || ch == "N") || support.charsetCast && ch == "_" && stream.match(/[a-z][a-z0-9]*/i)) && (stream.peek() == "'" || stream.peek() == '"')) {
+            return "keyword";
+          } else if (support.escapeConstant && (ch == "e" || ch == "E") && (stream.peek() == "'" || stream.peek() == '"' && support.doubleQuote)) {
+            state.tokenize = function(stream2, state2) {
+              return (state2.tokenize = tokenLiteral(stream2.next(), true))(stream2, state2);
+            };
+            return "keyword";
+          } else if (support.commentSlashSlash && ch == "/" && stream.eat("/")) {
+            stream.skipToEnd();
+            return "comment";
+          } else if (support.commentHash && ch == "#" || ch == "-" && stream.eat("-") && (!support.commentSpaceRequired || stream.eat(" "))) {
+            stream.skipToEnd();
+            return "comment";
+          } else if (ch == "/" && stream.eat("*")) {
+            state.tokenize = tokenComment(1);
+            return state.tokenize(stream, state);
+          } else if (ch == ".") {
+            if (support.zerolessFloat && stream.match(/^(?:\d+(?:e[+-]?\d+)?)/i))
+              return "number";
+            if (stream.match(/^\.+/))
+              return null;
+            if (stream.match(/^[\w\d_$#]+/))
+              return "variable-2";
+          } else if (operatorChars.test(ch)) {
+            stream.eatWhile(operatorChars);
+            return "operator";
+          } else if (brackets.test(ch)) {
+            return "bracket";
+          } else if (punctuation.test(ch)) {
+            stream.eatWhile(punctuation);
+            return "punctuation";
+          } else if (ch == "{" && (stream.match(/^( )*(d|D|t|T|ts|TS)( )*'[^']*'( )*}/) || stream.match(/^( )*(d|D|t|T|ts|TS)( )*"[^"]*"( )*}/))) {
+            return "number";
+          } else {
+            stream.eatWhile(/^[_\w\d]/);
+            var word = stream.current().toLowerCase();
+            if (dateSQL.hasOwnProperty(word) && (stream.match(/^( )+'[^']*'/) || stream.match(/^( )+"[^"]*"/)))
+              return "number";
+            if (atoms.hasOwnProperty(word)) return "atom";
+            if (builtin.hasOwnProperty(word)) return "type";
+            if (keywords.hasOwnProperty(word)) return "keyword";
+            if (client.hasOwnProperty(word)) return "builtin";
+            return null;
+          }
+        }
+        function tokenLiteral(quote, backslashEscapes) {
+          return function(stream, state) {
+            var escaped = false, ch;
+            while ((ch = stream.next()) != null) {
+              if (ch == quote && !escaped) {
+                state.tokenize = tokenBase;
+                break;
+              }
+              escaped = (backslashStringEscapes || backslashEscapes) && !escaped && ch == "\\";
+            }
+            return "string";
+          };
+        }
+        function tokenComment(depth) {
+          return function(stream, state) {
+            var m = stream.match(/^.*?(\/\*|\*\/)/);
+            if (!m) stream.skipToEnd();
+            else if (m[1] == "/*") state.tokenize = tokenComment(depth + 1);
+            else if (depth > 1) state.tokenize = tokenComment(depth - 1);
+            else state.tokenize = tokenBase;
+            return "comment";
+          };
+        }
+        function pushContext(stream, state, type) {
+          state.context = {
+            prev: state.context,
+            indent: stream.indentation(),
+            col: stream.column(),
+            type
+          };
+        }
+        function popContext(state) {
+          state.indent = state.context.indent;
+          state.context = state.context.prev;
+        }
+        return {
+          startState: function() {
+            return { tokenize: tokenBase, context: null };
+          },
+          token: function(stream, state) {
+            if (stream.sol()) {
+              if (state.context && state.context.align == null)
+                state.context.align = false;
+            }
+            if (state.tokenize == tokenBase && stream.eatSpace()) return null;
+            var style = state.tokenize(stream, state);
+            if (style == "comment") return style;
+            if (state.context && state.context.align == null)
+              state.context.align = true;
+            var tok = stream.current();
+            if (tok == "(")
+              pushContext(stream, state, ")");
+            else if (tok == "[")
+              pushContext(stream, state, "]");
+            else if (state.context && state.context.type == tok)
+              popContext(state);
+            return style;
+          },
+          indent: function(state, textAfter) {
+            var cx = state.context;
+            if (!cx) return CodeMirror2.Pass;
+            var closing = textAfter.charAt(0) == cx.type;
+            if (cx.align) return cx.col + (closing ? 0 : 1);
+            else return cx.indent + (closing ? 0 : config.indentUnit);
+          },
+          blockCommentStart: "/*",
+          blockCommentEnd: "*/",
+          lineComment: support.commentSlashSlash ? "//" : support.commentHash ? "#" : "--",
+          closeBrackets: "()[]{}''\"\"``",
+          config: parserConfig
+        };
+      });
+      function hookIdentifier(stream) {
+        var ch;
+        while ((ch = stream.next()) != null) {
+          if (ch == "`" && !stream.eat("`")) return "variable-2";
+        }
+        stream.backUp(stream.current().length - 1);
+        return stream.eatWhile(/\w/) ? "variable-2" : null;
+      }
+      function hookIdentifierDoublequote(stream) {
+        var ch;
+        while ((ch = stream.next()) != null) {
+          if (ch == '"' && !stream.eat('"')) return "variable-2";
+        }
+        stream.backUp(stream.current().length - 1);
+        return stream.eatWhile(/\w/) ? "variable-2" : null;
+      }
+      function hookVar(stream) {
+        if (stream.eat("@")) {
+          stream.match("session.");
+          stream.match("local.");
+          stream.match("global.");
+        }
+        if (stream.eat("'")) {
+          stream.match(/^.*'/);
+          return "variable-2";
+        } else if (stream.eat('"')) {
+          stream.match(/^.*"/);
+          return "variable-2";
+        } else if (stream.eat("`")) {
+          stream.match(/^.*`/);
+          return "variable-2";
+        } else if (stream.match(/^[0-9a-zA-Z$\.\_]+/)) {
+          return "variable-2";
+        }
+        return null;
+      }
+      ;
+      function hookClient(stream) {
+        if (stream.eat("N")) {
+          return "atom";
+        }
+        return stream.match(/^[a-zA-Z.#!?]/) ? "variable-2" : null;
+      }
+      var sqlKeywords = "alter and as asc between by count create delete desc distinct drop from group having in insert into is join like not on or order select set table union update values where limit ";
+      function set(str) {
+        var obj = {}, words = str.split(" ");
+        for (var i = 0; i < words.length; ++i) obj[words[i]] = true;
+        return obj;
+      }
+      var defaultBuiltin = "bool boolean bit blob enum long longblob longtext medium mediumblob mediumint mediumtext time timestamp tinyblob tinyint tinytext text bigint int int1 int2 int3 int4 int8 integer float float4 float8 double char varbinary varchar varcharacter precision real date datetime year unsigned signed decimal numeric";
+      CodeMirror2.defineMIME("text/x-sql", {
+        name: "sql",
+        keywords: set(sqlKeywords + "begin"),
+        builtin: set(defaultBuiltin),
+        atoms: set("false true null unknown"),
+        dateSQL: set("date time timestamp"),
+        support: set("doubleQuote binaryNumber hexNumber")
+      });
+      CodeMirror2.defineMIME("text/x-mssql", {
+        name: "sql",
+        client: set("$partition binary_checksum checksum connectionproperty context_info current_request_id error_line error_message error_number error_procedure error_severity error_state formatmessage get_filestream_transaction_context getansinull host_id host_name isnull isnumeric min_active_rowversion newid newsequentialid rowcount_big xact_state object_id"),
+        keywords: set(sqlKeywords + "begin trigger proc view index for add constraint key primary foreign collate clustered nonclustered declare exec go if use index holdlock nolock nowait paglock readcommitted readcommittedlock readpast readuncommitted repeatableread rowlock serializable snapshot tablock tablockx updlock with"),
+        builtin: set("bigint numeric bit smallint decimal smallmoney int tinyint money float real char varchar text nchar nvarchar ntext binary varbinary image cursor timestamp hierarchyid uniqueidentifier sql_variant xml table "),
+        atoms: set("is not null like and or in left right between inner outer join all any some cross unpivot pivot exists"),
+        operatorChars: /^[*+\-%<>!=^\&|\/]/,
+        brackets: /^[\{}\(\)]/,
+        punctuation: /^[;.,:/]/,
+        backslashStringEscapes: false,
+        dateSQL: set("date datetimeoffset datetime2 smalldatetime datetime time"),
+        hooks: {
+          "@": hookVar
+        }
+      });
+      CodeMirror2.defineMIME("text/x-mysql", {
+        name: "sql",
+        client: set("charset clear connect edit ego exit go help nopager notee nowarning pager print prompt quit rehash source status system tee"),
+        keywords: set(sqlKeywords + "accessible action add after algorithm all analyze asensitive at authors auto_increment autocommit avg avg_row_length before binary binlog both btree cache call cascade cascaded case catalog_name chain change changed character check checkpoint checksum class_origin client_statistics close coalesce code collate collation collations column columns comment commit committed completion concurrent condition connection consistent constraint contains continue contributors convert cross current current_date current_time current_timestamp current_user cursor data database databases day_hour day_microsecond day_minute day_second deallocate dec declare default delay_key_write delayed delimiter des_key_file describe deterministic dev_pop dev_samp deviance diagnostics directory disable discard distinctrow div dual dumpfile each elseif enable enclosed end ends engine engines enum errors escape escaped even event events every execute exists exit explain extended fast fetch field fields first flush for force foreign found_rows full fulltext function general get global grant grants group group_concat handler hash help high_priority hosts hour_microsecond hour_minute hour_second if ignore ignore_server_ids import index index_statistics infile inner innodb inout insensitive insert_method install interval invoker isolation iterate key keys kill language last leading leave left level limit linear lines list load local localtime localtimestamp lock logs low_priority master master_heartbeat_period master_ssl_verify_server_cert masters match max max_rows maxvalue message_text middleint migrate min min_rows minute_microsecond minute_second mod mode modifies modify mutex mysql_errno natural next no no_write_to_binlog offline offset one online open optimize option optionally out outer outfile pack_keys parser partition partitions password phase plugin plugins prepare preserve prev primary privileges procedure processlist profile profiles purge query quick range read read_write reads real rebuild recover references regexp relaylog release remove rename reorganize repair repeatable replace require resignal restrict resume return returns revoke right rlike rollback rollup row row_format rtree savepoint schedule schema schema_name schemas second_microsecond security sensitive separator serializable server session share show signal slave slow smallint snapshot soname spatial specific sql sql_big_result sql_buffer_result sql_cache sql_calc_found_rows sql_no_cache sql_small_result sqlexception sqlstate sqlwarning ssl start starting starts status std stddev stddev_pop stddev_samp storage straight_join subclass_origin sum suspend table_name table_statistics tables tablespace temporary terminated to trailing transaction trigger triggers truncate uncommitted undo uninstall unique unlock upgrade usage use use_frm user user_resources user_statistics using utc_date utc_time utc_timestamp value variables varying view views warnings when while with work write xa xor year_month zerofill begin do then else loop repeat"),
+        builtin: set("bool boolean bit blob decimal double float long longblob longtext medium mediumblob mediumint mediumtext time timestamp tinyblob tinyint tinytext text bigint int int1 int2 int3 int4 int8 integer float float4 float8 double char varbinary varchar varcharacter precision date datetime year unsigned signed numeric"),
+        atoms: set("false true null unknown"),
+        operatorChars: /^[*+\-%<>!=&|^]/,
+        dateSQL: set("date time timestamp"),
+        support: set("decimallessFloat zerolessFloat binaryNumber hexNumber doubleQuote nCharCast charsetCast commentHash commentSpaceRequired"),
+        hooks: {
+          "@": hookVar,
+          "`": hookIdentifier,
+          "\\": hookClient
+        }
+      });
+      CodeMirror2.defineMIME("text/x-mariadb", {
+        name: "sql",
+        client: set("charset clear connect edit ego exit go help nopager notee nowarning pager print prompt quit rehash source status system tee"),
+        keywords: set(sqlKeywords + "accessible action add after algorithm all always analyze asensitive at authors auto_increment autocommit avg avg_row_length before binary binlog both btree cache call cascade cascaded case catalog_name chain change changed character check checkpoint checksum class_origin client_statistics close coalesce code collate collation collations column columns comment commit committed completion concurrent condition connection consistent constraint contains continue contributors convert cross current current_date current_time current_timestamp current_user cursor data database databases day_hour day_microsecond day_minute day_second deallocate dec declare default delay_key_write delayed delimiter des_key_file describe deterministic dev_pop dev_samp deviance diagnostics directory disable discard distinctrow div dual dumpfile each elseif enable enclosed end ends engine engines enum errors escape escaped even event events every execute exists exit explain extended fast fetch field fields first flush for force foreign found_rows full fulltext function general generated get global grant grants group group_concat handler hard hash help high_priority hosts hour_microsecond hour_minute hour_second if ignore ignore_server_ids import index index_statistics infile inner innodb inout insensitive insert_method install interval invoker isolation iterate key keys kill language last leading leave left level limit linear lines list load local localtime localtimestamp lock logs low_priority master master_heartbeat_period master_ssl_verify_server_cert masters match max max_rows maxvalue message_text middleint migrate min min_rows minute_microsecond minute_second mod mode modifies modify mutex mysql_errno natural next no no_write_to_binlog offline offset one online open optimize option optionally out outer outfile pack_keys parser partition partitions password persistent phase plugin plugins prepare preserve prev primary privileges procedure processlist profile profiles purge query quick range read read_write reads real rebuild recover references regexp relaylog release remove rename reorganize repair repeatable replace require resignal restrict resume return returns revoke right rlike rollback rollup row row_format rtree savepoint schedule schema schema_name schemas second_microsecond security sensitive separator serializable server session share show shutdown signal slave slow smallint snapshot soft soname spatial specific sql sql_big_result sql_buffer_result sql_cache sql_calc_found_rows sql_no_cache sql_small_result sqlexception sqlstate sqlwarning ssl start starting starts status std stddev stddev_pop stddev_samp storage straight_join subclass_origin sum suspend table_name table_statistics tables tablespace temporary terminated to trailing transaction trigger triggers truncate uncommitted undo uninstall unique unlock upgrade usage use use_frm user user_resources user_statistics using utc_date utc_time utc_timestamp value variables varying view views virtual warnings when while with work write xa xor year_month zerofill begin do then else loop repeat"),
+        builtin: set("bool boolean bit blob decimal double float long longblob longtext medium mediumblob mediumint mediumtext time timestamp tinyblob tinyint tinytext text bigint int int1 int2 int3 int4 int8 integer float float4 float8 double char varbinary varchar varcharacter precision date datetime year unsigned signed numeric"),
+        atoms: set("false true null unknown"),
+        operatorChars: /^[*+\-%<>!=&|^]/,
+        dateSQL: set("date time timestamp"),
+        support: set("decimallessFloat zerolessFloat binaryNumber hexNumber doubleQuote nCharCast charsetCast commentHash commentSpaceRequired"),
+        hooks: {
+          "@": hookVar,
+          "`": hookIdentifier,
+          "\\": hookClient
+        }
+      });
+      CodeMirror2.defineMIME("text/x-sqlite", {
+        name: "sql",
+        // commands of the official SQLite client, ref: https://www.sqlite.org/cli.html#dotcmd
+        client: set("auth backup bail binary changes check clone databases dbinfo dump echo eqp exit explain fullschema headers help import imposter indexes iotrace limit lint load log mode nullvalue once open output print prompt quit read restore save scanstats schema separator session shell show stats system tables testcase timeout timer trace vfsinfo vfslist vfsname width"),
+        // ref: http://sqlite.org/lang_keywords.html
+        keywords: set(sqlKeywords + "abort action add after all analyze attach autoincrement before begin cascade case cast check collate column commit conflict constraint cross current_date current_time current_timestamp database default deferrable deferred detach each else end escape except exclusive exists explain fail for foreign full glob if ignore immediate index indexed initially inner instead intersect isnull key left limit match natural no notnull null of offset outer plan pragma primary query raise recursive references regexp reindex release rename replace restrict right rollback row savepoint temp temporary then to transaction trigger unique using vacuum view virtual when with without"),
+        // SQLite is weakly typed, ref: http://sqlite.org/datatype3.html. This is just a list of some common types.
+        builtin: set("bool boolean bit blob decimal double float long longblob longtext medium mediumblob mediumint mediumtext time timestamp tinyblob tinyint tinytext text clob bigint int int2 int8 integer float double char varchar date datetime year unsigned signed numeric real"),
+        // ref: http://sqlite.org/syntax/literal-value.html
+        atoms: set("null current_date current_time current_timestamp"),
+        // ref: http://sqlite.org/lang_expr.html#binaryops
+        operatorChars: /^[*+\-%<>!=&|/~]/,
+        // SQLite is weakly typed, ref: http://sqlite.org/datatype3.html. This is just a list of some common types.
+        dateSQL: set("date time timestamp datetime"),
+        support: set("decimallessFloat zerolessFloat"),
+        identifierQuote: '"',
+        //ref: http://sqlite.org/lang_keywords.html
+        hooks: {
+          // bind-parameters ref:http://sqlite.org/lang_expr.html#varparam
+          "@": hookVar,
+          ":": hookVar,
+          "?": hookVar,
+          "$": hookVar,
+          // The preferred way to escape Identifiers is using double quotes, ref: http://sqlite.org/lang_keywords.html
+          '"': hookIdentifierDoublequote,
+          // there is also support for backticks, ref: http://sqlite.org/lang_keywords.html
+          "`": hookIdentifier
+        }
+      });
+      CodeMirror2.defineMIME("text/x-cassandra", {
+        name: "sql",
+        client: {},
+        keywords: set("add all allow alter and any apply as asc authorize batch begin by clustering columnfamily compact consistency count create custom delete desc distinct drop each_quorum exists filtering from grant if in index insert into key keyspace keyspaces level limit local_one local_quorum modify nan norecursive nosuperuser not of on one order password permission permissions primary quorum rename revoke schema select set storage superuser table three to token truncate ttl two type unlogged update use user users using values where with writetime"),
+        builtin: set("ascii bigint blob boolean counter decimal double float frozen inet int list map static text timestamp timeuuid tuple uuid varchar varint"),
+        atoms: set("false true infinity NaN"),
+        operatorChars: /^[<>=]/,
+        dateSQL: {},
+        support: set("commentSlashSlash decimallessFloat"),
+        hooks: {}
+      });
+      CodeMirror2.defineMIME("text/x-plsql", {
+        name: "sql",
+        client: set("appinfo arraysize autocommit autoprint autorecovery autotrace blockterminator break btitle cmdsep colsep compatibility compute concat copycommit copytypecheck define describe echo editfile embedded escape exec execute feedback flagger flush heading headsep instance linesize lno loboffset logsource long longchunksize markup native newpage numformat numwidth pagesize pause pno recsep recsepchar release repfooter repheader serveroutput shiftinout show showmode size spool sqlblanklines sqlcase sqlcode sqlcontinue sqlnumber sqlpluscompatibility sqlprefix sqlprompt sqlterminator suffix tab term termout time timing trimout trimspool ttitle underline verify version wrap"),
+        keywords: set("abort accept access add all alter and any array arraylen as asc assert assign at attributes audit authorization avg base_table begin between binary_integer body boolean by case cast char char_base check close cluster clusters colauth column comment commit compress connect connected constant constraint crash create current currval cursor data_base database date dba deallocate debugoff debugon decimal declare default definition delay delete desc digits dispose distinct do drop else elseif elsif enable end entry escape exception exception_init exchange exclusive exists exit external fast fetch file for force form from function generic goto grant group having identified if immediate in increment index indexes indicator initial initrans insert interface intersect into is key level library like limited local lock log logging long loop master maxextents maxtrans member minextents minus mislabel mode modify multiset new next no noaudit nocompress nologging noparallel not nowait number_base object of off offline on online only open option or order out package parallel partition pctfree pctincrease pctused pls_integer positive positiven pragma primary prior private privileges procedure public raise range raw read rebuild record ref references refresh release rename replace resource restrict return returning returns reverse revoke rollback row rowid rowlabel rownum rows run savepoint schema segment select separate session set share snapshot some space split sql start statement storage subtype successful synonym tabauth table tables tablespace task terminate then to trigger truncate type union unique unlimited unrecoverable unusable update use using validate value values variable view views when whenever where while with work"),
+        builtin: set("abs acos add_months ascii asin atan atan2 average bfile bfilename bigserial bit blob ceil character chartorowid chr clob concat convert cos cosh count dec decode deref dual dump dup_val_on_index empty error exp false float floor found glb greatest hextoraw initcap instr instrb int integer isopen last_day least length lengthb ln lower lpad ltrim lub make_ref max min mlslabel mod months_between natural naturaln nchar nclob new_time next_day nextval nls_charset_decl_len nls_charset_id nls_charset_name nls_initcap nls_lower nls_sort nls_upper nlssort no_data_found notfound null number numeric nvarchar2 nvl others power rawtohex real reftohex round rowcount rowidtochar rowtype rpad rtrim serial sign signtype sin sinh smallint soundex sqlcode sqlerrm sqrt stddev string substr substrb sum sysdate tan tanh to_char text to_date to_label to_multi_byte to_number to_single_byte translate true trunc uid unlogged upper user userenv varchar varchar2 variance varying vsize xml"),
+        operatorChars: /^[*\/+\-%<>!=~]/,
+        dateSQL: set("date time timestamp"),
+        support: set("doubleQuote nCharCast zerolessFloat binaryNumber hexNumber")
+      });
+      CodeMirror2.defineMIME("text/x-hive", {
+        name: "sql",
+        keywords: set("select alter $elem$ $key$ $value$ add after all analyze and archive as asc before between binary both bucket buckets by cascade case cast change cluster clustered clusterstatus collection column columns comment compute concatenate continue create cross cursor data database databases dbproperties deferred delete delimited desc describe directory disable distinct distribute drop else enable end escaped exclusive exists explain export extended external fetch fields fileformat first format formatted from full function functions grant group having hold_ddltime idxproperties if import in index indexes inpath inputdriver inputformat insert intersect into is items join keys lateral left like limit lines load local location lock locks mapjoin materialized minus msck no_drop nocompress not of offline on option or order out outer outputdriver outputformat overwrite partition partitioned partitions percent plus preserve procedure purge range rcfile read readonly reads rebuild recordreader recordwriter recover reduce regexp rename repair replace restrict revoke right rlike row schema schemas semi sequencefile serde serdeproperties set shared show show_database sort sorted ssl statistics stored streamtable table tables tablesample tblproperties temporary terminated textfile then tmp to touch transform trigger unarchive undo union uniquejoin unlock update use using utc utc_tmestamp view when where while with admin authorization char compact compactions conf cube current current_date current_timestamp day decimal defined dependency directories elem_type exchange file following for grouping hour ignore inner interval jar less logical macro minute month more none noscan over owner partialscan preceding pretty principals protection reload rewrite role roles rollup rows second server sets skewed transactions truncate unbounded unset uri user values window year"),
+        builtin: set("bool boolean long timestamp tinyint smallint bigint int float double date datetime unsigned string array struct map uniontype key_type utctimestamp value_type varchar"),
+        atoms: set("false true null unknown"),
+        operatorChars: /^[*+\-%<>!=]/,
+        dateSQL: set("date timestamp"),
+        support: set("doubleQuote binaryNumber hexNumber")
+      });
+      CodeMirror2.defineMIME("text/x-pgsql", {
+        name: "sql",
+        client: set("source"),
+        // For PostgreSQL - https://www.postgresql.org/docs/11/sql-keywords-appendix.html
+        // For pl/pgsql lang - https://github.com/postgres/postgres/blob/REL_11_2/src/pl/plpgsql/src/pl_scanner.c
+        keywords: set(sqlKeywords + "a abort abs absent absolute access according action ada add admin after aggregate alias all allocate also alter always analyse analyze and any are array array_agg array_max_cardinality as asc asensitive assert assertion assignment asymmetric at atomic attach attribute attributes authorization avg backward base64 before begin begin_frame begin_partition bernoulli between bigint binary bit bit_length blob blocked bom boolean both breadth by c cache call called cardinality cascade cascaded case cast catalog catalog_name ceil ceiling chain char char_length character character_length character_set_catalog character_set_name character_set_schema characteristics characters check checkpoint class class_origin clob close cluster coalesce cobol collate collation collation_catalog collation_name collation_schema collect column column_name columns command_function command_function_code comment comments commit committed concurrently condition condition_number configuration conflict connect connection connection_name constant constraint constraint_catalog constraint_name constraint_schema constraints constructor contains content continue control conversion convert copy corr corresponding cost count covar_pop covar_samp create cross csv cube cume_dist current current_catalog current_date current_default_transform_group current_path current_role current_row current_schema current_time current_timestamp current_transform_group_for_type current_user cursor cursor_name cycle data database datalink datatype date datetime_interval_code datetime_interval_precision day db deallocate debug dec decimal declare default defaults deferrable deferred defined definer degree delete delimiter delimiters dense_rank depends depth deref derived desc describe descriptor detach detail deterministic diagnostics dictionary disable discard disconnect dispatch distinct dlnewcopy dlpreviouscopy dlurlcomplete dlurlcompleteonly dlurlcompletewrite dlurlpath dlurlpathonly dlurlpathwrite dlurlscheme dlurlserver dlvalue do document domain double drop dump dynamic dynamic_function dynamic_function_code each element else elseif elsif empty enable encoding encrypted end end_frame end_partition endexec enforced enum equals errcode error escape event every except exception exclude excluding exclusive exec execute exists exit exp explain expression extension external extract false family fetch file filter final first first_value flag float floor following for force foreach foreign fortran forward found frame_row free freeze from fs full function functions fusion g general generated get global go goto grant granted greatest group grouping groups handler having header hex hierarchy hint hold hour id identity if ignore ilike immediate immediately immutable implementation implicit import in include including increment indent index indexes indicator info inherit inherits initially inline inner inout input insensitive insert instance instantiable instead int integer integrity intersect intersection interval into invoker is isnull isolation join k key key_member key_type label lag language large last last_value lateral lead leading leakproof least left length level library like like_regex limit link listen ln load local localtime localtimestamp location locator lock locked log logged loop lower m map mapping match matched materialized max max_cardinality maxvalue member merge message message_length message_octet_length message_text method min minute minvalue mod mode modifies module month more move multiset mumps name names namespace national natural nchar nclob nesting new next nfc nfd nfkc nfkd nil no none normalize normalized not nothing notice notify notnull nowait nth_value ntile null nullable nullif nulls number numeric object occurrences_regex octet_length octets of off offset oids old on only open operator option options or order ordering ordinality others out outer output over overlaps overlay overriding owned owner p pad parallel parameter parameter_mode parameter_name parameter_ordinal_position parameter_specific_catalog parameter_specific_name parameter_specific_schema parser partial partition pascal passing passthrough password path percent percent_rank percentile_cont percentile_disc perform period permission pg_context pg_datatype_name pg_exception_context pg_exception_detail pg_exception_hint placing plans pli policy portion position position_regex power precedes preceding precision prepare prepared preserve primary print_strict_params prior privileges procedural procedure procedures program public publication query quote raise range rank read reads real reassign recheck recovery recursive ref references referencing refresh regr_avgx regr_avgy regr_count regr_intercept regr_r2 regr_slope regr_sxx regr_sxy regr_syy reindex relative release rename repeatable replace replica requiring reset respect restart restore restrict result result_oid return returned_cardinality returned_length returned_octet_length returned_sqlstate returning returns reverse revoke right role rollback rollup routine routine_catalog routine_name routine_schema routines row row_count row_number rows rowtype rule savepoint scale schema schema_name schemas scope scope_catalog scope_name scope_schema scroll search second section security select selective self sensitive sequence sequences serializable server server_name session session_user set setof sets share show similar simple size skip slice smallint snapshot some source space specific specific_name specifictype sql sqlcode sqlerror sqlexception sqlstate sqlwarning sqrt stable stacked standalone start state statement static statistics stddev_pop stddev_samp stdin stdout storage strict strip structure style subclass_origin submultiset subscription substring substring_regex succeeds sum symmetric sysid system system_time system_user t table table_name tables tablesample tablespace temp template temporary text then ties time timestamp timezone_hour timezone_minute to token top_level_count trailing transaction transaction_active transactions_committed transactions_rolled_back transform transforms translate translate_regex translation treat trigger trigger_catalog trigger_name trigger_schema trim trim_array true truncate trusted type types uescape unbounded uncommitted under unencrypted union unique unknown unlink unlisten unlogged unnamed unnest until untyped update upper uri usage use_column use_variable user user_defined_type_catalog user_defined_type_code user_defined_type_name user_defined_type_schema using vacuum valid validate validator value value_of values var_pop var_samp varbinary varchar variable_conflict variadic varying verbose version versioning view views volatile warning when whenever where while whitespace width_bucket window with within without work wrapper write xml xmlagg xmlattributes xmlbinary xmlcast xmlcomment xmlconcat xmldeclaration xmldocument xmlelement xmlexists xmlforest xmliterate xmlnamespaces xmlparse xmlpi xmlquery xmlroot xmlschema xmlserialize xmltable xmltext xmlvalidate year yes zone"),
+        // https://www.postgresql.org/docs/11/datatype.html
+        builtin: set("bigint int8 bigserial serial8 bit varying varbit boolean bool box bytea character char varchar cidr circle date double precision float8 inet integer int int4 interval json jsonb line lseg macaddr macaddr8 money numeric decimal path pg_lsn point polygon real float4 smallint int2 smallserial serial2 serial serial4 text time zone timetz timestamp timestamptz tsquery tsvector txid_snapshot uuid xml"),
+        atoms: set("false true null unknown"),
+        operatorChars: /^[*\/+\-%<>!=&|^\/#@?~]/,
+        backslashStringEscapes: false,
+        identifierQuote: '"',
+        // https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
+        hooks: {
+          '"': hookIdentifierDoublequote
+        },
+        dateSQL: set("date time timestamp"),
+        support: set("decimallessFloat zerolessFloat binaryNumber hexNumber nCharCast charsetCast escapeConstant")
+      });
+      CodeMirror2.defineMIME("text/x-gql", {
+        name: "sql",
+        keywords: set("ancestor and asc by contains desc descendant distinct from group has in is limit offset on order select superset where"),
+        atoms: set("false true"),
+        builtin: set("blob datetime first key __key__ string integer double boolean null"),
+        operatorChars: /^[*+\-%<>!=]/
+      });
+      CodeMirror2.defineMIME("text/x-gpsql", {
+        name: "sql",
+        client: set("source"),
+        //https://github.com/greenplum-db/gpdb/blob/master/src/include/parser/kwlist.h
+        keywords: set("abort absolute access action active add admin after aggregate all also alter always analyse analyze and any array as asc assertion assignment asymmetric at authorization backward before begin between bigint binary bit boolean both by cache called cascade cascaded case cast chain char character characteristics check checkpoint class close cluster coalesce codegen collate column comment commit committed concurrency concurrently configuration connection constraint constraints contains content continue conversion copy cost cpu_rate_limit create createdb createexttable createrole createuser cross csv cube current current_catalog current_date current_role current_schema current_time current_timestamp current_user cursor cycle data database day deallocate dec decimal declare decode default defaults deferrable deferred definer delete delimiter delimiters deny desc dictionary disable discard distinct distributed do document domain double drop dxl each else enable encoding encrypted end enum errors escape every except exchange exclude excluding exclusive execute exists explain extension external extract false family fetch fields filespace fill filter first float following for force foreign format forward freeze from full function global grant granted greatest group group_id grouping handler hash having header hold host hour identity if ignore ilike immediate immutable implicit in including inclusive increment index indexes inherit inherits initially inline inner inout input insensitive insert instead int integer intersect interval into invoker is isnull isolation join key language large last leading least left level like limit list listen load local localtime localtimestamp location lock log login mapping master match maxvalue median merge minute minvalue missing mode modifies modify month move name names national natural nchar new newline next no nocreatedb nocreateexttable nocreaterole nocreateuser noinherit nologin none noovercommit nosuperuser not nothing notify notnull nowait null nullif nulls numeric object of off offset oids old on only operator option options or order ordered others out outer over overcommit overlaps overlay owned owner parser partial partition partitions passing password percent percentile_cont percentile_disc placing plans position preceding precision prepare prepared preserve primary prior privileges procedural procedure protocol queue quote randomly range read readable reads real reassign recheck recursive ref references reindex reject relative release rename repeatable replace replica reset resource restart restrict returning returns revoke right role rollback rollup rootpartition row rows rule savepoint scatter schema scroll search second security segment select sequence serializable session session_user set setof sets share show similar simple smallint some split sql stable standalone start statement statistics stdin stdout storage strict strip subpartition subpartitions substring superuser symmetric sysid system table tablespace temp template temporary text then threshold ties time timestamp to trailing transaction treat trigger trim true truncate trusted type unbounded uncommitted unencrypted union unique unknown unlisten until update user using vacuum valid validation validator value values varchar variadic varying verbose version view volatile web when where whitespace window with within without work writable write xml xmlattributes xmlconcat xmlelement xmlexists xmlforest xmlparse xmlpi xmlroot xmlserialize year yes zone"),
+        builtin: set("bigint int8 bigserial serial8 bit varying varbit boolean bool box bytea character char varchar cidr circle date double precision float float8 inet integer int int4 interval json jsonb line lseg macaddr macaddr8 money numeric decimal path pg_lsn point polygon real float4 smallint int2 smallserial serial2 serial serial4 text time without zone with timetz timestamp timestamptz tsquery tsvector txid_snapshot uuid xml"),
+        atoms: set("false true null unknown"),
+        operatorChars: /^[*+\-%<>!=&|^\/#@?~]/,
+        dateSQL: set("date time timestamp"),
+        support: set("decimallessFloat zerolessFloat binaryNumber hexNumber nCharCast charsetCast")
+      });
+      CodeMirror2.defineMIME("text/x-sparksql", {
+        name: "sql",
+        keywords: set("add after all alter analyze and anti archive array as asc at between bucket buckets by cache cascade case cast change clear cluster clustered codegen collection column columns comment commit compact compactions compute concatenate cost create cross cube current current_date current_timestamp database databases data dbproperties defined delete delimited deny desc describe dfs directories distinct distribute drop else end escaped except exchange exists explain export extended external false fields fileformat first following for format formatted from full function functions global grant group grouping having if ignore import in index indexes inner inpath inputformat insert intersect interval into is items join keys last lateral lazy left like limit lines list load local location lock locks logical macro map minus msck natural no not null nulls of on optimize option options or order out outer outputformat over overwrite partition partitioned partitions percent preceding principals purge range recordreader recordwriter recover reduce refresh regexp rename repair replace reset restrict revoke right rlike role roles rollback rollup row rows schema schemas select semi separated serde serdeproperties set sets show skewed sort sorted start statistics stored stratify struct table tables tablesample tblproperties temp temporary terminated then to touch transaction transactions transform true truncate unarchive unbounded uncache union unlock unset use using values view when where window with"),
+        builtin: set("abs acos acosh add_months aggregate and any approx_count_distinct approx_percentile array array_contains array_distinct array_except array_intersect array_join array_max array_min array_position array_remove array_repeat array_sort array_union arrays_overlap arrays_zip ascii asin asinh assert_true atan atan2 atanh avg base64 between bigint bin binary bit_and bit_count bit_get bit_length bit_or bit_xor bool_and bool_or boolean bround btrim cardinality case cast cbrt ceil ceiling char char_length character_length chr coalesce collect_list collect_set concat concat_ws conv corr cos cosh cot count count_if count_min_sketch covar_pop covar_samp crc32 cume_dist current_catalog current_database current_date current_timestamp current_timezone current_user date date_add date_format date_from_unix_date date_part date_sub date_trunc datediff day dayofmonth dayofweek dayofyear decimal decode degrees delimited dense_rank div double e element_at elt encode every exists exp explode explode_outer expm1 extract factorial filter find_in_set first first_value flatten float floor forall format_number format_string from_csv from_json from_unixtime from_utc_timestamp get_json_object getbit greatest grouping grouping_id hash hex hour hypot if ifnull in initcap inline inline_outer input_file_block_length input_file_block_start input_file_name inputformat instr int isnan isnotnull isnull java_method json_array_length json_object_keys json_tuple kurtosis lag last last_day last_value lcase lead least left length levenshtein like ln locate log log10 log1p log2 lower lpad ltrim make_date make_dt_interval make_interval make_timestamp make_ym_interval map map_concat map_entries map_filter map_from_arrays map_from_entries map_keys map_values map_zip_with max max_by md5 mean min min_by minute mod monotonically_increasing_id month months_between named_struct nanvl negative next_day not now nth_value ntile nullif nvl nvl2 octet_length or outputformat overlay parse_url percent_rank percentile percentile_approx pi pmod posexplode posexplode_outer position positive pow power printf quarter radians raise_error rand randn random rank rcfile reflect regexp regexp_extract regexp_extract_all regexp_like regexp_replace repeat replace reverse right rint rlike round row_number rpad rtrim schema_of_csv schema_of_json second sentences sequence sequencefile serde session_window sha sha1 sha2 shiftleft shiftright shiftrightunsigned shuffle sign signum sin sinh size skewness slice smallint some sort_array soundex space spark_partition_id split sqrt stack std stddev stddev_pop stddev_samp str_to_map string struct substr substring substring_index sum tan tanh textfile timestamp timestamp_micros timestamp_millis timestamp_seconds tinyint to_csv to_date to_json to_timestamp to_unix_timestamp to_utc_timestamp transform transform_keys transform_values translate trim trunc try_add try_divide typeof ucase unbase64 unhex uniontype unix_date unix_micros unix_millis unix_seconds unix_timestamp upper uuid var_pop var_samp variance version weekday weekofyear when width_bucket window xpath xpath_boolean xpath_double xpath_float xpath_int xpath_long xpath_number xpath_short xpath_string xxhash64 year zip_with"),
+        atoms: set("false true null"),
+        operatorChars: /^[*\/+\-%<>!=~&|^]/,
+        dateSQL: set("date time timestamp"),
+        support: set("doubleQuote zerolessFloat")
+      });
+      CodeMirror2.defineMIME("text/x-esper", {
+        name: "sql",
+        client: set("source"),
+        // http://www.espertech.com/esper/release-5.5.0/esper-reference/html/appendix_keywords.html
+        keywords: set("alter and as asc between by count create delete desc distinct drop from group having in insert into is join like not on or order select set table union update values where limit after all and as at asc avedev avg between by case cast coalesce count create current_timestamp day days delete define desc distinct else end escape events every exists false first from full group having hour hours in inner insert instanceof into irstream is istream join last lastweekday left limit like max match_recognize matches median measures metadatasql min minute minutes msec millisecond milliseconds not null offset on or order outer output partition pattern prev prior regexp retain-union retain-intersection right rstream sec second seconds select set some snapshot sql stddev sum then true unidirectional until update variable weekday when where window"),
+        builtin: {},
+        atoms: set("false true null"),
+        operatorChars: /^[*+\-%<>!=&|^\/#@?~]/,
+        dateSQL: set("time"),
+        support: set("decimallessFloat zerolessFloat binaryNumber hexNumber")
+      });
+      CodeMirror2.defineMIME("text/x-trino", {
+        name: "sql",
+        // https://github.com/trinodb/trino/blob/bc7a4eeedde28684c7ae6f74cefcaf7c6e782174/core/trino-parser/src/main/antlr4/io/trino/sql/parser/SqlBase.g4#L859-L1129
+        // https://github.com/trinodb/trino/blob/bc7a4eeedde28684c7ae6f74cefcaf7c6e782174/docs/src/main/sphinx/functions/list.rst
+        keywords: set("abs absent acos add admin after all all_match alter analyze and any any_match approx_distinct approx_most_frequent approx_percentile approx_set arbitrary array_agg array_distinct array_except array_intersect array_join array_max array_min array_position array_remove array_sort array_union arrays_overlap as asc asin at at_timezone atan atan2 authorization avg bar bernoulli beta_cdf between bing_tile bing_tile_at bing_tile_coordinates bing_tile_polygon bing_tile_quadkey bing_tile_zoom_level bing_tiles_around bit_count bitwise_and bitwise_and_agg bitwise_left_shift bitwise_not bitwise_or bitwise_or_agg bitwise_right_shift bitwise_right_shift_arithmetic bitwise_xor bool_and bool_or both by call cardinality cascade case cast catalogs cbrt ceil ceiling char2hexint checksum chr classify coalesce codepoint column columns combinations comment commit committed concat concat_ws conditional constraint contains contains_sequence convex_hull_agg copartition corr cos cosh cosine_similarity count count_if covar_pop covar_samp crc32 create cross cube cume_dist current current_catalog current_date current_groups current_path current_role current_schema current_time current_timestamp current_timezone current_user data date_add date_diff date_format date_parse date_trunc day day_of_month day_of_week day_of_year deallocate default define definer degrees delete dense_rank deny desc describe descriptor distinct distributed dow doy drop e element_at else empty empty_approx_set encoding end error escape evaluate_classifier_predictions every except excluding execute exists exp explain extract false features fetch filter final first first_value flatten floor following for format format_datetime format_number from from_base from_base32 from_base64 from_base64url from_big_endian_32 from_big_endian_64 from_encoded_polyline from_geojson_geometry from_hex from_ieee754_32 from_ieee754_64 from_iso8601_date from_iso8601_timestamp from_iso8601_timestamp_nanos from_unixtime from_unixtime_nanos from_utf8 full functions geometric_mean geometry_from_hadoop_shape geometry_invalid_reason geometry_nearest_points geometry_to_bing_tiles geometry_union geometry_union_agg grant granted grants graphviz great_circle_distance greatest group grouping groups hamming_distance hash_counts having histogram hmac_md5 hmac_sha1 hmac_sha256 hmac_sha512 hour human_readable_seconds if ignore in including index infinity initial inner input insert intersect intersection_cardinality into inverse_beta_cdf inverse_normal_cdf invoker io is is_finite is_infinite is_json_scalar is_nan isolation jaccard_index join json_array json_array_contains json_array_get json_array_length json_exists json_extract json_extract_scalar json_format json_object json_parse json_query json_size json_value keep key keys kurtosis lag last last_day_of_month last_value lateral lead leading learn_classifier learn_libsvm_classifier learn_libsvm_regressor learn_regressor least left length level levenshtein_distance like limit line_interpolate_point line_interpolate_points line_locate_point listagg ln local localtime localtimestamp log log10 log2 logical lower lpad ltrim luhn_check make_set_digest map_agg map_concat map_entries map_filter map_from_entries map_keys map_union map_values map_zip_with match match_recognize matched matches materialized max max_by md5 measures merge merge_set_digest millisecond min min_by minute mod month multimap_agg multimap_from_entries murmur3 nan natural next nfc nfd nfkc nfkd ngrams no none none_match normal_cdf normalize not now nth_value ntile null nullif nulls numeric_histogram object objectid_timestamp of offset omit on one only option or order ordinality outer output over overflow parse_data_size parse_datetime parse_duration partition partitions passing past path pattern per percent_rank permute pi position pow power preceding prepare privileges properties prune qdigest_agg quarter quotes radians rand random range rank read recursive reduce reduce_agg refresh regexp_count regexp_extract regexp_extract_all regexp_like regexp_position regexp_replace regexp_split regr_intercept regr_slope regress rename render repeat repeatable replace reset respect restrict returning reverse revoke rgb right role roles rollback rollup round row_number rows rpad rtrim running scalar schema schemas second security seek select sequence serializable session set sets sha1 sha256 sha512 show shuffle sign simplify_geometry sin skewness skip slice some soundex spatial_partitioning spatial_partitions split split_part split_to_map split_to_multimap spooky_hash_v2_32 spooky_hash_v2_64 sqrt st_area st_asbinary st_astext st_boundary st_buffer st_centroid st_contains st_convexhull st_coorddim st_crosses st_difference st_dimension st_disjoint st_distance st_endpoint st_envelope st_envelopeaspts st_equals st_exteriorring st_geometries st_geometryfromtext st_geometryn st_geometrytype st_geomfrombinary st_interiorringn st_interiorrings st_intersection st_intersects st_isclosed st_isempty st_isring st_issimple st_isvalid st_length st_linefromtext st_linestring st_multipoint st_numgeometries st_numinteriorring st_numpoints st_overlaps st_point st_pointn st_points st_polygon st_relate st_startpoint st_symdifference st_touches st_union st_within st_x st_xmax st_xmin st_y st_ymax st_ymin start starts_with stats stddev stddev_pop stddev_samp string strpos subset substr substring sum system table tables tablesample tan tanh tdigest_agg text then ties timestamp_objectid timezone_hour timezone_minute to to_base to_base32 to_base64 to_base64url to_big_endian_32 to_big_endian_64 to_char to_date to_encoded_polyline to_geojson_geometry to_geometry to_hex to_ieee754_32 to_ieee754_64 to_iso8601 to_milliseconds to_spherical_geography to_timestamp to_unixtime to_utf8 trailing transaction transform transform_keys transform_values translate trim trim_array true truncate try try_cast type typeof uescape unbounded uncommitted unconditional union unique unknown unmatched unnest update upper url_decode url_encode url_extract_fragment url_extract_host url_extract_parameter url_extract_path url_extract_port url_extract_protocol url_extract_query use user using utf16 utf32 utf8 validate value value_at_quantile values values_at_quantiles var_pop var_samp variance verbose version view week week_of_year when where width_bucket wilson_interval_lower wilson_interval_upper window with with_timezone within without word_stem work wrapper write xxhash64 year year_of_week yow zip zip_with"),
+        // https://github.com/trinodb/trino/blob/bc7a4eeedde28684c7ae6f74cefcaf7c6e782174/core/trino-main/src/main/java/io/trino/metadata/TypeRegistry.java#L131-L168
+        // https://github.com/trinodb/trino/blob/bc7a4eeedde28684c7ae6f74cefcaf7c6e782174/plugin/trino-ml/src/main/java/io/trino/plugin/ml/MLPlugin.java#L35
+        // https://github.com/trinodb/trino/blob/bc7a4eeedde28684c7ae6f74cefcaf7c6e782174/plugin/trino-mongodb/src/main/java/io/trino/plugin/mongodb/MongoPlugin.java#L32
+        // https://github.com/trinodb/trino/blob/bc7a4eeedde28684c7ae6f74cefcaf7c6e782174/plugin/trino-geospatial/src/main/java/io/trino/plugin/geospatial/GeoPlugin.java#L37
+        builtin: set("array bigint bingtile boolean char codepoints color date decimal double function geometry hyperloglog int integer interval ipaddress joniregexp json json2016 jsonpath kdbtree likepattern map model objectid p4hyperloglog precision qdigest re2jregexp real regressor row setdigest smallint sphericalgeography tdigest time timestamp tinyint uuid varbinary varchar zone"),
+        atoms: set("false true null unknown"),
+        // https://trino.io/docs/current/functions/list.html#id1
+        operatorChars: /^[[\]|<>=!\-+*/%]/,
+        dateSQL: set("date time timestamp zone"),
+        // hexNumber is necessary for VARBINARY literals, e.g. X'65683F'
+        // but it also enables 0xFF hex numbers, which Trino doesn't support.
+        support: set("decimallessFloat zerolessFloat hexNumber")
+      });
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/yaml/yaml.js
+var require_yaml = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/yaml/yaml.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineMode("yaml", function() {
+        var cons = ["true", "false", "on", "off", "yes", "no"];
+        var keywordRegex = new RegExp("\\b((" + cons.join(")|(") + "))$", "i");
+        return {
+          token: function(stream, state) {
+            var ch = stream.peek();
+            var esc = state.escaped;
+            state.escaped = false;
+            if (ch == "#" && (stream.pos == 0 || /\s/.test(stream.string.charAt(stream.pos - 1)))) {
+              stream.skipToEnd();
+              return "comment";
+            }
+            if (stream.match(/^('([^']|\\.)*'?|"([^"]|\\.)*"?)/))
+              return "string";
+            if (state.literal && stream.indentation() > state.keyCol) {
+              stream.skipToEnd();
+              return "string";
+            } else if (state.literal) {
+              state.literal = false;
+            }
+            if (stream.sol()) {
+              state.keyCol = 0;
+              state.pair = false;
+              state.pairStart = false;
+              if (stream.match("---")) {
+                return "def";
+              }
+              if (stream.match("...")) {
+                return "def";
+              }
+              if (stream.match(/\s*-\s+/)) {
+                return "meta";
+              }
+            }
+            if (stream.match(/^(\{|\}|\[|\])/)) {
+              if (ch == "{")
+                state.inlinePairs++;
+              else if (ch == "}")
+                state.inlinePairs--;
+              else if (ch == "[")
+                state.inlineList++;
+              else
+                state.inlineList--;
+              return "meta";
+            }
+            if (state.inlineList > 0 && !esc && ch == ",") {
+              stream.next();
+              return "meta";
+            }
+            if (state.inlinePairs > 0 && !esc && ch == ",") {
+              state.keyCol = 0;
+              state.pair = false;
+              state.pairStart = false;
+              stream.next();
+              return "meta";
+            }
+            if (state.pairStart) {
+              if (stream.match(/^\s*(\||\>)\s*/)) {
+                state.literal = true;
+                return "meta";
+              }
+              ;
+              if (stream.match(/^\s*(\&|\*)[a-z0-9\._-]+\b/i)) {
+                return "variable-2";
+              }
+              if (state.inlinePairs == 0 && stream.match(/^\s*-?[0-9\.\,]+\s?$/)) {
+                return "number";
+              }
+              if (state.inlinePairs > 0 && stream.match(/^\s*-?[0-9\.\,]+\s?(?=(,|}))/)) {
+                return "number";
+              }
+              if (stream.match(keywordRegex)) {
+                return "keyword";
+              }
+            }
+            if (!state.pair && stream.match(/^\s*(?:[,\[\]{}&*!|>'"%@`][^\s'":]|[^\s,\[\]{}#&*!|>'"%@`])[^#:]*(?=:($|\s))/)) {
+              state.pair = true;
+              state.keyCol = stream.indentation();
+              return "atom";
+            }
+            if (state.pair && stream.match(/^:\s*/)) {
+              state.pairStart = true;
+              return "meta";
+            }
+            state.pairStart = false;
+            state.escaped = ch == "\\";
+            stream.next();
+            return null;
+          },
+          startState: function() {
+            return {
+              pair: false,
+              pairStart: false,
+              keyCol: 0,
+              inlinePairs: 0,
+              inlineList: 0,
+              literal: false,
+              escaped: false
+            };
+          },
+          lineComment: "#",
+          fold: "indent"
+        };
+      });
+      CodeMirror2.defineMIME("text/x-yaml", "yaml");
+      CodeMirror2.defineMIME("text/yaml", "yaml");
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/properties/properties.js
+var require_properties = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/properties/properties.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineMode("properties", function() {
+        return {
+          token: function(stream, state) {
+            var sol = stream.sol() || state.afterSection;
+            var eol = stream.eol();
+            state.afterSection = false;
+            if (sol) {
+              if (state.nextMultiline) {
+                state.inMultiline = true;
+                state.nextMultiline = false;
+              } else {
+                state.position = "def";
+              }
+            }
+            if (eol && !state.nextMultiline) {
+              state.inMultiline = false;
+              state.position = "def";
+            }
+            if (sol) {
+              while (stream.eatSpace()) {
+              }
+            }
+            var ch = stream.next();
+            if (sol && (ch === "#" || ch === "!" || ch === ";")) {
+              state.position = "comment";
+              stream.skipToEnd();
+              return "comment";
+            } else if (sol && ch === "[") {
+              state.afterSection = true;
+              stream.skipTo("]");
+              stream.eat("]");
+              return "header";
+            } else if (ch === "=" || ch === ":") {
+              state.position = "quote";
+              return null;
+            } else if (ch === "\\" && state.position === "quote") {
+              if (stream.eol()) {
+                state.nextMultiline = true;
+              }
+            }
+            return state.position;
+          },
+          startState: function() {
+            return {
+              position: "def",
+              // Current position, "def", "quote" or "comment"
+              nextMultiline: false,
+              // Is the next line multiline value
+              inMultiline: false,
+              // Is the current line a multiline value
+              afterSection: false
+              // Did we just open a section
+            };
+          }
+        };
+      });
+      CodeMirror2.defineMIME("text/x-properties", "properties");
+      CodeMirror2.defineMIME("text/x-ini", "properties");
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/toml/toml.js
+var require_toml = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/toml/toml.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineMode("toml", function() {
+        return {
+          startState: function() {
+            return {
+              inString: false,
+              stringType: "",
+              lhs: true,
+              inArray: 0
+            };
+          },
+          token: function(stream, state) {
+            if (!state.inString && (stream.peek() == '"' || stream.peek() == "'")) {
+              state.stringType = stream.peek();
+              stream.next();
+              state.inString = true;
+            }
+            if (stream.sol() && state.inArray === 0) {
+              state.lhs = true;
+            }
+            if (state.inString) {
+              while (state.inString && !stream.eol()) {
+                if (stream.peek() === state.stringType) {
+                  stream.next();
+                  state.inString = false;
+                } else if (stream.peek() === "\\") {
+                  stream.next();
+                  stream.next();
+                } else {
+                  stream.match(/^.[^\\\"\']*/);
+                }
+              }
+              return state.lhs ? "property string" : "string";
+            } else if (state.inArray && stream.peek() === "]") {
+              stream.next();
+              state.inArray--;
+              return "bracket";
+            } else if (state.lhs && stream.peek() === "[" && stream.skipTo("]")) {
+              stream.next();
+              if (stream.peek() === "]") stream.next();
+              return "atom";
+            } else if (stream.peek() === "#") {
+              stream.skipToEnd();
+              return "comment";
+            } else if (stream.eatSpace()) {
+              return null;
+            } else if (state.lhs && stream.eatWhile(function(c) {
+              return c != "=" && c != " ";
+            })) {
+              return "property";
+            } else if (state.lhs && stream.peek() === "=") {
+              stream.next();
+              state.lhs = false;
+              return null;
+            } else if (!state.lhs && stream.match(/^\d\d\d\d[\d\-\:\.T]*Z/)) {
+              return "atom";
+            } else if (!state.lhs && (stream.match("true") || stream.match("false"))) {
+              return "atom";
+            } else if (!state.lhs && stream.peek() === "[") {
+              state.inArray++;
+              stream.next();
+              return "bracket";
+            } else if (!state.lhs && stream.match(/^\-?\d+(?:\.\d+)?/)) {
+              return "number";
+            } else if (!stream.eatSpace()) {
+              stream.next();
+            }
+            return null;
+          }
+        };
+      });
+      CodeMirror2.defineMIME("text/x-toml", "toml");
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/addon/mode/simple.js
+var require_simple = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/addon/mode/simple.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineSimpleMode = function(name, states) {
+        CodeMirror2.defineMode(name, function(config) {
+          return CodeMirror2.simpleMode(config, states);
+        });
+      };
+      CodeMirror2.simpleMode = function(config, states) {
+        ensureState(states, "start");
+        var states_ = {}, meta = states.meta || {}, hasIndentation = false;
+        for (var state in states) if (state != meta && states.hasOwnProperty(state)) {
+          var list = states_[state] = [], orig = states[state];
+          for (var i = 0; i < orig.length; i++) {
+            var data = orig[i];
+            list.push(new Rule(data, states));
+            if (data.indent || data.dedent) hasIndentation = true;
+          }
+        }
+        var mode = {
+          startState: function() {
+            return {
+              state: "start",
+              pending: null,
+              local: null,
+              localState: null,
+              indent: hasIndentation ? [] : null
+            };
+          },
+          copyState: function(state2) {
+            var s = {
+              state: state2.state,
+              pending: state2.pending,
+              local: state2.local,
+              localState: null,
+              indent: state2.indent && state2.indent.slice(0)
+            };
+            if (state2.localState)
+              s.localState = CodeMirror2.copyState(state2.local.mode, state2.localState);
+            if (state2.stack)
+              s.stack = state2.stack.slice(0);
+            for (var pers = state2.persistentStates; pers; pers = pers.next)
+              s.persistentStates = {
+                mode: pers.mode,
+                spec: pers.spec,
+                state: pers.state == state2.localState ? s.localState : CodeMirror2.copyState(pers.mode, pers.state),
+                next: s.persistentStates
+              };
+            return s;
+          },
+          token: tokenFunction(states_, config),
+          innerMode: function(state2) {
+            return state2.local && { mode: state2.local.mode, state: state2.localState };
+          },
+          indent: indentFunction(states_, meta)
+        };
+        if (meta) {
+          for (var prop in meta) if (meta.hasOwnProperty(prop))
+            mode[prop] = meta[prop];
+        }
+        return mode;
+      };
+      function ensureState(states, name) {
+        if (!states.hasOwnProperty(name))
+          throw new Error("Undefined state " + name + " in simple mode");
+      }
+      function toRegex(val, caret) {
+        if (!val) return /(?:)/;
+        var flags = "";
+        if (val instanceof RegExp) {
+          if (val.ignoreCase) flags = "i";
+          if (val.unicode) flags += "u";
+          val = val.source;
+        } else {
+          val = String(val);
+        }
+        return new RegExp((caret === false ? "" : "^") + "(?:" + val + ")", flags);
+      }
+      function asToken(val) {
+        if (!val) return null;
+        if (val.apply) return val;
+        if (typeof val == "string") return val.replace(/\./g, " ");
+        var result = [];
+        for (var i = 0; i < val.length; i++)
+          result.push(val[i] && val[i].replace(/\./g, " "));
+        return result;
+      }
+      function Rule(data, states) {
+        if (data.next || data.push) ensureState(states, data.next || data.push);
+        this.regex = toRegex(data.regex);
+        this.token = asToken(data.token);
+        this.data = data;
+      }
+      function tokenFunction(states, config) {
+        return function(stream, state) {
+          if (state.pending) {
+            var pend = state.pending.shift();
+            if (state.pending.length == 0) state.pending = null;
+            stream.pos += pend.text.length;
+            return pend.token;
+          }
+          if (state.local) {
+            if (state.local.end && stream.match(state.local.end)) {
+              var tok = state.local.endToken || null;
+              state.local = state.localState = null;
+              return tok;
+            } else {
+              var tok = state.local.mode.token(stream, state.localState), m;
+              if (state.local.endScan && (m = state.local.endScan.exec(stream.current())))
+                stream.pos = stream.start + m.index;
+              return tok;
+            }
+          }
+          var curState = states[state.state];
+          for (var i = 0; i < curState.length; i++) {
+            var rule = curState[i];
+            var matches = (!rule.data.sol || stream.sol()) && stream.match(rule.regex);
+            if (matches) {
+              if (rule.data.next) {
+                state.state = rule.data.next;
+              } else if (rule.data.push) {
+                (state.stack || (state.stack = [])).push(state.state);
+                state.state = rule.data.push;
+              } else if (rule.data.pop && state.stack && state.stack.length) {
+                state.state = state.stack.pop();
+              }
+              if (rule.data.mode)
+                enterLocalMode(config, state, rule.data.mode, rule.token);
+              if (rule.data.indent)
+                state.indent.push(stream.indentation() + config.indentUnit);
+              if (rule.data.dedent)
+                state.indent.pop();
+              var token = rule.token;
+              if (token && token.apply) token = token(matches);
+              if (matches.length > 2 && rule.token && typeof rule.token != "string") {
+                for (var j = 2; j < matches.length; j++)
+                  if (matches[j])
+                    (state.pending || (state.pending = [])).push({ text: matches[j], token: rule.token[j - 1] });
+                stream.backUp(matches[0].length - (matches[1] ? matches[1].length : 0));
+                return token[0];
+              } else if (token && token.join) {
+                return token[0];
+              } else {
+                return token;
+              }
+            }
+          }
+          stream.next();
+          return null;
+        };
+      }
+      function cmp(a, b) {
+        if (a === b) return true;
+        if (!a || typeof a != "object" || !b || typeof b != "object") return false;
+        var props = 0;
+        for (var prop in a) if (a.hasOwnProperty(prop)) {
+          if (!b.hasOwnProperty(prop) || !cmp(a[prop], b[prop])) return false;
+          props++;
+        }
+        for (var prop in b) if (b.hasOwnProperty(prop)) props--;
+        return props == 0;
+      }
+      function enterLocalMode(config, state, spec, token) {
+        var pers;
+        if (spec.persistent) {
+          for (var p = state.persistentStates; p && !pers; p = p.next)
+            if (spec.spec ? cmp(spec.spec, p.spec) : spec.mode == p.mode) pers = p;
+        }
+        var mode = pers ? pers.mode : spec.mode || CodeMirror2.getMode(config, spec.spec);
+        var lState = pers ? pers.state : CodeMirror2.startState(mode);
+        if (spec.persistent && !pers)
+          state.persistentStates = { mode, spec: spec.spec, state: lState, next: state.persistentStates };
+        state.localState = lState;
+        state.local = {
+          mode,
+          end: spec.end && toRegex(spec.end),
+          endScan: spec.end && spec.forceEnd !== false && toRegex(spec.end, false),
+          endToken: token && token.join ? token[token.length - 1] : token
+        };
+      }
+      function indexOf(val, arr) {
+        for (var i = 0; i < arr.length; i++) if (arr[i] === val) return true;
+      }
+      function indentFunction(states, meta) {
+        return function(state, textAfter, line) {
+          if (state.local && state.local.mode.indent)
+            return state.local.mode.indent(state.localState, textAfter, line);
+          if (state.indent == null || state.local || meta.dontIndentStates && indexOf(state.state, meta.dontIndentStates) > -1)
+            return CodeMirror2.Pass;
+          var pos = state.indent.length - 1, rules = states[state.state];
+          scan: for (; ; ) {
+            for (var i = 0; i < rules.length; i++) {
+              var rule = rules[i];
+              if (rule.data.dedent && rule.data.dedentIfLineStart !== false) {
+                var m = rule.regex.exec(textAfter);
+                if (m && m[0]) {
+                  pos--;
+                  if (rule.next || rule.push) rules = states[rule.next || rule.push];
+                  textAfter = textAfter.slice(m[0].length);
+                  continue scan;
+                }
+              }
+            }
+            break;
+          }
+          return pos < 0 ? 0 : state.indent[pos];
+        };
+      }
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/rust/rust.js
+var require_rust = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/rust/rust.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror(), require_simple());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror", "../../addon/mode/simple"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineSimpleMode("rust", {
+        start: [
+          // string and byte string
+          { regex: /b?"/, token: "string", next: "string" },
+          // raw string and raw byte string
+          { regex: /b?r"/, token: "string", next: "string_raw" },
+          { regex: /b?r#+"/, token: "string", next: "string_raw_hash" },
+          // character
+          { regex: /'(?:[^'\\]|\\(?:[nrt0'"]|x[\da-fA-F]{2}|u\{[\da-fA-F]{6}\}))'/, token: "string-2" },
+          // byte
+          { regex: /b'(?:[^']|\\(?:['\\nrt0]|x[\da-fA-F]{2}))'/, token: "string-2" },
+          {
+            regex: /(?:(?:[0-9][0-9_]*)(?:(?:[Ee][+-]?[0-9_]+)|\.[0-9_]+(?:[Ee][+-]?[0-9_]+)?)(?:f32|f64)?)|(?:0(?:b[01_]+|(?:o[0-7_]+)|(?:x[0-9a-fA-F_]+))|(?:[0-9][0-9_]*))(?:u8|u16|u32|u64|i8|i16|i32|i64|isize|usize)?/,
+            token: "number"
+          },
+          { regex: /(let(?:\s+mut)?|fn|enum|mod|struct|type|union)(\s+)([a-zA-Z_][a-zA-Z0-9_]*)/, token: ["keyword", null, "def"] },
+          { regex: /(?:abstract|alignof|as|async|await|box|break|continue|const|crate|do|dyn|else|enum|extern|fn|for|final|if|impl|in|loop|macro|match|mod|move|offsetof|override|priv|proc|pub|pure|ref|return|self|sizeof|static|struct|super|trait|type|typeof|union|unsafe|unsized|use|virtual|where|while|yield)\b/, token: "keyword" },
+          { regex: /\b(?:Self|isize|usize|char|bool|u8|u16|u32|u64|f16|f32|f64|i8|i16|i32|i64|str|Option)\b/, token: "atom" },
+          { regex: /\b(?:true|false|Some|None|Ok|Err)\b/, token: "builtin" },
+          {
+            regex: /\b(fn)(\s+)([a-zA-Z_][a-zA-Z0-9_]*)/,
+            token: ["keyword", null, "def"]
+          },
+          { regex: /#!?\[.*\]/, token: "meta" },
+          { regex: /\/\/.*/, token: "comment" },
+          { regex: /\/\*/, token: "comment", next: "comment" },
+          { regex: /[-+\/*=<>!]+/, token: "operator" },
+          { regex: /[a-zA-Z_]\w*!/, token: "variable-3" },
+          { regex: /[a-zA-Z_]\w*/, token: "variable" },
+          { regex: /[\{\[\(]/, indent: true },
+          { regex: /[\}\]\)]/, dedent: true }
+        ],
+        string: [
+          { regex: /"/, token: "string", next: "start" },
+          { regex: /(?:[^\\"]|\\(?:.|$))*/, token: "string" }
+        ],
+        string_raw: [
+          { regex: /"/, token: "string", next: "start" },
+          { regex: /[^"]*/, token: "string" }
+        ],
+        string_raw_hash: [
+          { regex: /"#+/, token: "string", next: "start" },
+          { regex: /(?:[^"]|"(?!#))*/, token: "string" }
+        ],
+        comment: [
+          { regex: /.*?\*\//, token: "comment", next: "start" },
+          { regex: /.*/, token: "comment" }
+        ],
+        meta: {
+          dontIndentStates: ["comment"],
+          electricInput: /^\s*\}$/,
+          blockCommentStart: "/*",
+          blockCommentEnd: "*/",
+          lineComment: "//",
+          fold: "brace"
+        }
+      });
+      CodeMirror2.defineMIME("text/x-rustsrc", "rust");
+      CodeMirror2.defineMIME("text/rust", "rust");
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/go/go.js
+var require_go = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/go/go.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineMode("go", function(config) {
+        var indentUnit = config.indentUnit;
+        var keywords = {
+          "break": true,
+          "case": true,
+          "chan": true,
+          "const": true,
+          "continue": true,
+          "default": true,
+          "defer": true,
+          "else": true,
+          "fallthrough": true,
+          "for": true,
+          "func": true,
+          "go": true,
+          "goto": true,
+          "if": true,
+          "import": true,
+          "interface": true,
+          "map": true,
+          "package": true,
+          "range": true,
+          "return": true,
+          "select": true,
+          "struct": true,
+          "switch": true,
+          "type": true,
+          "var": true,
+          "bool": true,
+          "byte": true,
+          "complex64": true,
+          "complex128": true,
+          "float32": true,
+          "float64": true,
+          "int8": true,
+          "int16": true,
+          "int32": true,
+          "int64": true,
+          "string": true,
+          "uint8": true,
+          "uint16": true,
+          "uint32": true,
+          "uint64": true,
+          "int": true,
+          "uint": true,
+          "uintptr": true,
+          "error": true,
+          "rune": true,
+          "any": true,
+          "comparable": true
+        };
+        var atoms = {
+          "true": true,
+          "false": true,
+          "iota": true,
+          "nil": true,
+          "append": true,
+          "cap": true,
+          "close": true,
+          "complex": true,
+          "copy": true,
+          "delete": true,
+          "imag": true,
+          "len": true,
+          "make": true,
+          "new": true,
+          "panic": true,
+          "print": true,
+          "println": true,
+          "real": true,
+          "recover": true
+        };
+        var isOperatorChar = /[+\-*&^%:=<>!|\/]/;
+        var curPunc;
+        function tokenBase(stream, state) {
+          var ch = stream.next();
+          if (ch == '"' || ch == "'" || ch == "`") {
+            state.tokenize = tokenString(ch);
+            return state.tokenize(stream, state);
+          }
+          if (/[\d\.]/.test(ch)) {
+            if (ch == ".") {
+              stream.match(/^[0-9_]+([eE][\-+]?[0-9_]+)?/);
+            } else if (ch == "0") {
+              stream.match(/^[xX][0-9a-fA-F_]+/) || stream.match(/^[0-7_]+/);
+            } else {
+              stream.match(/^[0-9_]*\.?[0-9_]*([eE][\-+]?[0-9_]+)?/);
+            }
+            return "number";
+          }
+          if (/[\[\]{}\(\),;\:\.]/.test(ch)) {
+            curPunc = ch;
+            return null;
+          }
+          if (ch == "/") {
+            if (stream.eat("*")) {
+              state.tokenize = tokenComment;
+              return tokenComment(stream, state);
+            }
+            if (stream.eat("/")) {
+              stream.skipToEnd();
+              return "comment";
+            }
+          }
+          if (isOperatorChar.test(ch)) {
+            stream.eatWhile(isOperatorChar);
+            return "operator";
+          }
+          stream.eatWhile(/[\w\$_\xa1-\uffff]/);
+          var cur = stream.current();
+          if (keywords.propertyIsEnumerable(cur)) {
+            if (cur == "case" || cur == "default") curPunc = "case";
+            return "keyword";
+          }
+          if (atoms.propertyIsEnumerable(cur)) return "atom";
+          return "variable";
+        }
+        function tokenString(quote) {
+          return function(stream, state) {
+            var escaped = false, next, end = false;
+            while ((next = stream.next()) != null) {
+              if (next == quote && !escaped) {
+                end = true;
+                break;
+              }
+              escaped = !escaped && quote != "`" && next == "\\";
+            }
+            if (end || !(escaped || quote == "`"))
+              state.tokenize = tokenBase;
+            return "string";
+          };
+        }
+        function tokenComment(stream, state) {
+          var maybeEnd = false, ch;
+          while (ch = stream.next()) {
+            if (ch == "/" && maybeEnd) {
+              state.tokenize = tokenBase;
+              break;
+            }
+            maybeEnd = ch == "*";
+          }
+          return "comment";
+        }
+        function Context(indented, column, type, align, prev) {
+          this.indented = indented;
+          this.column = column;
+          this.type = type;
+          this.align = align;
+          this.prev = prev;
+        }
+        function pushContext(state, col, type) {
+          return state.context = new Context(state.indented, col, type, null, state.context);
+        }
+        function popContext(state) {
+          if (!state.context.prev) return;
+          var t = state.context.type;
+          if (t == ")" || t == "]" || t == "}")
+            state.indented = state.context.indented;
+          return state.context = state.context.prev;
+        }
+        return {
+          startState: function(basecolumn) {
+            return {
+              tokenize: null,
+              context: new Context((basecolumn || 0) - indentUnit, 0, "top", false),
+              indented: 0,
+              startOfLine: true
+            };
+          },
+          token: function(stream, state) {
+            var ctx = state.context;
+            if (stream.sol()) {
+              if (ctx.align == null) ctx.align = false;
+              state.indented = stream.indentation();
+              state.startOfLine = true;
+              if (ctx.type == "case") ctx.type = "}";
+            }
+            if (stream.eatSpace()) return null;
+            curPunc = null;
+            var style = (state.tokenize || tokenBase)(stream, state);
+            if (style == "comment") return style;
+            if (ctx.align == null) ctx.align = true;
+            if (curPunc == "{") pushContext(state, stream.column(), "}");
+            else if (curPunc == "[") pushContext(state, stream.column(), "]");
+            else if (curPunc == "(") pushContext(state, stream.column(), ")");
+            else if (curPunc == "case") ctx.type = "case";
+            else if (curPunc == "}" && ctx.type == "}") popContext(state);
+            else if (curPunc == ctx.type) popContext(state);
+            state.startOfLine = false;
+            return style;
+          },
+          indent: function(state, textAfter) {
+            if (state.tokenize != tokenBase && state.tokenize != null) return CodeMirror2.Pass;
+            var ctx = state.context, firstChar = textAfter && textAfter.charAt(0);
+            if (ctx.type == "case" && /^(?:case|default)\b/.test(textAfter)) {
+              state.context.type = "}";
+              return ctx.indented;
+            }
+            var closing = firstChar == ctx.type;
+            if (ctx.align) return ctx.column + (closing ? 0 : 1);
+            else return ctx.indented + (closing ? 0 : indentUnit);
+          },
+          electricChars: "{}):",
+          closeBrackets: "()[]{}''\"\"``",
+          fold: "brace",
+          blockCommentStart: "/*",
+          blockCommentEnd: "*/",
+          lineComment: "//"
+        };
+      });
+      CodeMirror2.defineMIME("text/x-go", "go");
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/clike/clike.js
+var require_clike = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/clike/clike.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      function Context(indented, column, type, info, align, prev) {
+        this.indented = indented;
+        this.column = column;
+        this.type = type;
+        this.info = info;
+        this.align = align;
+        this.prev = prev;
+      }
+      function pushContext(state, col, type, info) {
+        var indent = state.indented;
+        if (state.context && state.context.type == "statement" && type != "statement")
+          indent = state.context.indented;
+        return state.context = new Context(indent, col, type, info, null, state.context);
+      }
+      function popContext(state) {
+        var t = state.context.type;
+        if (t == ")" || t == "]" || t == "}")
+          state.indented = state.context.indented;
+        return state.context = state.context.prev;
+      }
+      function typeBefore(stream, state, pos) {
+        if (state.prevToken == "variable" || state.prevToken == "type") return true;
+        if (/\S(?:[^- ]>|[*\]])\s*$|\*$/.test(stream.string.slice(0, pos))) return true;
+        if (state.typeAtEndOfLine && stream.column() == stream.indentation()) return true;
+      }
+      function isTopScope(context) {
+        for (; ; ) {
+          if (!context || context.type == "top") return true;
+          if (context.type == "}" && context.prev.info != "namespace") return false;
+          context = context.prev;
+        }
+      }
+      CodeMirror2.defineMode("clike", function(config, parserConfig) {
+        var indentUnit = config.indentUnit, statementIndentUnit = parserConfig.statementIndentUnit || indentUnit, dontAlignCalls = parserConfig.dontAlignCalls, keywords = parserConfig.keywords || {}, types = parserConfig.types || {}, builtin = parserConfig.builtin || {}, blockKeywords = parserConfig.blockKeywords || {}, defKeywords = parserConfig.defKeywords || {}, atoms = parserConfig.atoms || {}, hooks = parserConfig.hooks || {}, multiLineStrings = parserConfig.multiLineStrings, indentStatements = parserConfig.indentStatements !== false, indentSwitch = parserConfig.indentSwitch !== false, namespaceSeparator = parserConfig.namespaceSeparator, isPunctuationChar = parserConfig.isPunctuationChar || /[\[\]{}\(\),;\:\.]/, numberStart = parserConfig.numberStart || /[\d\.]/, number = parserConfig.number || /^(?:0x[a-f\d]+|0b[01]+|(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)(u|ll?|l|f)?/i, isOperatorChar = parserConfig.isOperatorChar || /[+\-*&%=<>!?|\/]/, isIdentifierChar = parserConfig.isIdentifierChar || /[\w\$_\xa1-\uffff]/, isReservedIdentifier = parserConfig.isReservedIdentifier || false;
+        var curPunc, isDefKeyword;
+        function tokenBase(stream, state) {
+          var ch = stream.next();
+          if (hooks[ch]) {
+            var result = hooks[ch](stream, state);
+            if (result !== false) return result;
+          }
+          if (ch == '"' || ch == "'") {
+            state.tokenize = tokenString(ch);
+            return state.tokenize(stream, state);
+          }
+          if (numberStart.test(ch)) {
+            stream.backUp(1);
+            if (stream.match(number)) return "number";
+            stream.next();
+          }
+          if (isPunctuationChar.test(ch)) {
+            curPunc = ch;
+            return null;
+          }
+          if (ch == "/") {
+            if (stream.eat("*")) {
+              state.tokenize = tokenComment;
+              return tokenComment(stream, state);
+            }
+            if (stream.eat("/")) {
+              stream.skipToEnd();
+              return "comment";
+            }
+          }
+          if (isOperatorChar.test(ch)) {
+            while (!stream.match(/^\/[\/*]/, false) && stream.eat(isOperatorChar)) {
+            }
+            return "operator";
+          }
+          stream.eatWhile(isIdentifierChar);
+          if (namespaceSeparator) while (stream.match(namespaceSeparator))
+            stream.eatWhile(isIdentifierChar);
+          var cur = stream.current();
+          if (contains(keywords, cur)) {
+            if (contains(blockKeywords, cur)) curPunc = "newstatement";
+            if (contains(defKeywords, cur)) isDefKeyword = true;
+            return "keyword";
+          }
+          if (contains(types, cur)) return "type";
+          if (contains(builtin, cur) || isReservedIdentifier && isReservedIdentifier(cur)) {
+            if (contains(blockKeywords, cur)) curPunc = "newstatement";
+            return "builtin";
+          }
+          if (contains(atoms, cur)) return "atom";
+          return "variable";
+        }
+        function tokenString(quote) {
+          return function(stream, state) {
+            var escaped = false, next, end = false;
+            while ((next = stream.next()) != null) {
+              if (next == quote && !escaped) {
+                end = true;
+                break;
+              }
+              escaped = !escaped && next == "\\";
+            }
+            if (end || !(escaped || multiLineStrings))
+              state.tokenize = null;
+            return "string";
+          };
+        }
+        function tokenComment(stream, state) {
+          var maybeEnd = false, ch;
+          while (ch = stream.next()) {
+            if (ch == "/" && maybeEnd) {
+              state.tokenize = null;
+              break;
+            }
+            maybeEnd = ch == "*";
+          }
+          return "comment";
+        }
+        function maybeEOL(stream, state) {
+          if (parserConfig.typeFirstDefinitions && stream.eol() && isTopScope(state.context))
+            state.typeAtEndOfLine = typeBefore(stream, state, stream.pos);
+        }
+        return {
+          startState: function(basecolumn) {
+            return {
+              tokenize: null,
+              context: new Context((basecolumn || 0) - indentUnit, 0, "top", null, false),
+              indented: 0,
+              startOfLine: true,
+              prevToken: null
+            };
+          },
+          token: function(stream, state) {
+            var ctx = state.context;
+            if (stream.sol()) {
+              if (ctx.align == null) ctx.align = false;
+              state.indented = stream.indentation();
+              state.startOfLine = true;
+            }
+            if (stream.eatSpace()) {
+              maybeEOL(stream, state);
+              return null;
+            }
+            curPunc = isDefKeyword = null;
+            var style = (state.tokenize || tokenBase)(stream, state);
+            if (style == "comment" || style == "meta") return style;
+            if (ctx.align == null) ctx.align = true;
+            if (curPunc == ";" || curPunc == ":" || curPunc == "," && stream.match(/^\s*(?:\/\/.*)?$/, false))
+              while (state.context.type == "statement") popContext(state);
+            else if (curPunc == "{") pushContext(state, stream.column(), "}");
+            else if (curPunc == "[") pushContext(state, stream.column(), "]");
+            else if (curPunc == "(") pushContext(state, stream.column(), ")");
+            else if (curPunc == "}") {
+              while (ctx.type == "statement") ctx = popContext(state);
+              if (ctx.type == "}") ctx = popContext(state);
+              while (ctx.type == "statement") ctx = popContext(state);
+            } else if (curPunc == ctx.type) popContext(state);
+            else if (indentStatements && ((ctx.type == "}" || ctx.type == "top") && curPunc != ";" || ctx.type == "statement" && curPunc == "newstatement")) {
+              pushContext(state, stream.column(), "statement", stream.current());
+            }
+            if (style == "variable" && (state.prevToken == "def" || parserConfig.typeFirstDefinitions && typeBefore(stream, state, stream.start) && isTopScope(state.context) && stream.match(/^\s*\(/, false)))
+              style = "def";
+            if (hooks.token) {
+              var result = hooks.token(stream, state, style);
+              if (result !== void 0) style = result;
+            }
+            if (style == "def" && parserConfig.styleDefs === false) style = "variable";
+            state.startOfLine = false;
+            state.prevToken = isDefKeyword ? "def" : style || curPunc;
+            maybeEOL(stream, state);
+            return style;
+          },
+          indent: function(state, textAfter) {
+            if (state.tokenize != tokenBase && state.tokenize != null || state.typeAtEndOfLine && isTopScope(state.context))
+              return CodeMirror2.Pass;
+            var ctx = state.context, firstChar = textAfter && textAfter.charAt(0);
+            var closing = firstChar == ctx.type;
+            if (ctx.type == "statement" && firstChar == "}") ctx = ctx.prev;
+            if (parserConfig.dontIndentStatements)
+              while (ctx.type == "statement" && parserConfig.dontIndentStatements.test(ctx.info))
+                ctx = ctx.prev;
+            if (hooks.indent) {
+              var hook = hooks.indent(state, ctx, textAfter, indentUnit);
+              if (typeof hook == "number") return hook;
+            }
+            var switchBlock = ctx.prev && ctx.prev.info == "switch";
+            if (parserConfig.allmanIndentation && /[{(]/.test(firstChar)) {
+              while (ctx.type != "top" && ctx.type != "}") ctx = ctx.prev;
+              return ctx.indented;
+            }
+            if (ctx.type == "statement")
+              return ctx.indented + (firstChar == "{" ? 0 : statementIndentUnit);
+            if (ctx.align && (!dontAlignCalls || ctx.type != ")"))
+              return ctx.column + (closing ? 0 : 1);
+            if (ctx.type == ")" && !closing)
+              return ctx.indented + statementIndentUnit;
+            return ctx.indented + (closing ? 0 : indentUnit) + (!closing && switchBlock && !/^(?:case|default)\b/.test(textAfter) ? indentUnit : 0);
+          },
+          electricInput: indentSwitch ? /^\s*(?:case .*?:|default:|\{\}?|\})$/ : /^\s*[{}]$/,
+          blockCommentStart: "/*",
+          blockCommentEnd: "*/",
+          blockCommentContinue: " * ",
+          lineComment: "//",
+          fold: "brace"
+        };
+      });
+      function words(str) {
+        var obj = {}, words2 = str.split(" ");
+        for (var i = 0; i < words2.length; ++i) obj[words2[i]] = true;
+        return obj;
+      }
+      function contains(words2, word) {
+        if (typeof words2 === "function") {
+          return words2(word);
+        } else {
+          return words2.propertyIsEnumerable(word);
+        }
+      }
+      var cKeywords = "auto if break case register continue return default do sizeof static else struct switch extern typedef union for goto while enum const volatile inline restrict asm fortran";
+      var cppKeywords = "alignas alignof and and_eq audit axiom bitand bitor catch class compl concept constexpr const_cast decltype delete dynamic_cast explicit export final friend import module mutable namespace new noexcept not not_eq operator or or_eq override private protected public reinterpret_cast requires static_assert static_cast template this thread_local throw try typeid typename using virtual xor xor_eq";
+      var objCKeywords = "bycopy byref in inout oneway out self super atomic nonatomic retain copy readwrite readonly strong weak assign typeof nullable nonnull null_resettable _cmd @interface @implementation @end @protocol @encode @property @synthesize @dynamic @class @public @package @private @protected @required @optional @try @catch @finally @import @selector @encode @defs @synchronized @autoreleasepool @compatibility_alias @available";
+      var objCBuiltins = "FOUNDATION_EXPORT FOUNDATION_EXTERN NS_INLINE NS_FORMAT_FUNCTION  NS_RETURNS_RETAINEDNS_ERROR_ENUM NS_RETURNS_NOT_RETAINED NS_RETURNS_INNER_POINTER NS_DESIGNATED_INITIALIZER NS_ENUM NS_OPTIONS NS_REQUIRES_NIL_TERMINATION NS_ASSUME_NONNULL_BEGIN NS_ASSUME_NONNULL_END NS_SWIFT_NAME NS_REFINED_FOR_SWIFT";
+      var basicCTypes = words("int long char short double float unsigned signed void bool");
+      var basicObjCTypes = words("SEL instancetype id Class Protocol BOOL");
+      function cTypes(identifier) {
+        return contains(basicCTypes, identifier) || /.+_t$/.test(identifier);
+      }
+      function objCTypes(identifier) {
+        return cTypes(identifier) || contains(basicObjCTypes, identifier);
+      }
+      var cBlockKeywords = "case do else for if switch while struct enum union";
+      var cDefKeywords = "struct enum union";
+      function cppHook(stream, state) {
+        if (!state.startOfLine) return false;
+        for (var ch, next = null; ch = stream.peek(); ) {
+          if (ch == "\\" && stream.match(/^.$/)) {
+            next = cppHook;
+            break;
+          } else if (ch == "/" && stream.match(/^\/[\/\*]/, false)) {
+            break;
+          }
+          stream.next();
+        }
+        state.tokenize = next;
+        return "meta";
+      }
+      function pointerHook(_stream, state) {
+        if (state.prevToken == "type") return "type";
+        return false;
+      }
+      function cIsReservedIdentifier(token) {
+        if (!token || token.length < 2) return false;
+        if (token[0] != "_") return false;
+        return token[1] == "_" || token[1] !== token[1].toLowerCase();
+      }
+      function cpp14Literal(stream) {
+        stream.eatWhile(/[\w\.']/);
+        return "number";
+      }
+      function cpp11StringHook(stream, state) {
+        stream.backUp(1);
+        if (stream.match(/^(?:R|u8R|uR|UR|LR)/)) {
+          var match = stream.match(/^"([^\s\\()]{0,16})\(/);
+          if (!match) {
+            return false;
+          }
+          state.cpp11RawStringDelim = match[1];
+          state.tokenize = tokenRawString;
+          return tokenRawString(stream, state);
+        }
+        if (stream.match(/^(?:u8|u|U|L)/)) {
+          if (stream.match(
+            /^["']/,
+            /* eat */
+            false
+          )) {
+            return "string";
+          }
+          return false;
+        }
+        stream.next();
+        return false;
+      }
+      function cppLooksLikeConstructor(word) {
+        var lastTwo = /(\w+)::~?(\w+)$/.exec(word);
+        return lastTwo && lastTwo[1] == lastTwo[2];
+      }
+      function tokenAtString(stream, state) {
+        var next;
+        while ((next = stream.next()) != null) {
+          if (next == '"' && !stream.eat('"')) {
+            state.tokenize = null;
+            break;
+          }
+        }
+        return "string";
+      }
+      function tokenRawString(stream, state) {
+        var delim = state.cpp11RawStringDelim.replace(/[^\w\s]/g, "\\$&");
+        var match = stream.match(new RegExp(".*?\\)" + delim + '"'));
+        if (match)
+          state.tokenize = null;
+        else
+          stream.skipToEnd();
+        return "string";
+      }
+      function def(mimes, mode) {
+        if (typeof mimes == "string") mimes = [mimes];
+        var words2 = [];
+        function add(obj) {
+          if (obj) {
+            for (var prop in obj) if (obj.hasOwnProperty(prop))
+              words2.push(prop);
+          }
+        }
+        add(mode.keywords);
+        add(mode.types);
+        add(mode.builtin);
+        add(mode.atoms);
+        if (words2.length) {
+          mode.helperType = mimes[0];
+          CodeMirror2.registerHelper("hintWords", mimes[0], words2);
+        }
+        for (var i = 0; i < mimes.length; ++i)
+          CodeMirror2.defineMIME(mimes[i], mode);
+      }
+      def(["text/x-csrc", "text/x-c", "text/x-chdr"], {
+        name: "clike",
+        keywords: words(cKeywords),
+        types: cTypes,
+        blockKeywords: words(cBlockKeywords),
+        defKeywords: words(cDefKeywords),
+        typeFirstDefinitions: true,
+        atoms: words("NULL true false"),
+        isReservedIdentifier: cIsReservedIdentifier,
+        hooks: {
+          "#": cppHook,
+          "*": pointerHook
+        },
+        modeProps: { fold: ["brace", "include"] }
+      });
+      def(["text/x-c++src", "text/x-c++hdr"], {
+        name: "clike",
+        keywords: words(cKeywords + " " + cppKeywords),
+        types: cTypes,
+        blockKeywords: words(cBlockKeywords + " class try catch"),
+        defKeywords: words(cDefKeywords + " class namespace"),
+        typeFirstDefinitions: true,
+        atoms: words("true false NULL nullptr"),
+        dontIndentStatements: /^template$/,
+        isIdentifierChar: /[\w\$_~\xa1-\uffff]/,
+        isReservedIdentifier: cIsReservedIdentifier,
+        hooks: {
+          "#": cppHook,
+          "*": pointerHook,
+          "u": cpp11StringHook,
+          "U": cpp11StringHook,
+          "L": cpp11StringHook,
+          "R": cpp11StringHook,
+          "0": cpp14Literal,
+          "1": cpp14Literal,
+          "2": cpp14Literal,
+          "3": cpp14Literal,
+          "4": cpp14Literal,
+          "5": cpp14Literal,
+          "6": cpp14Literal,
+          "7": cpp14Literal,
+          "8": cpp14Literal,
+          "9": cpp14Literal,
+          token: function(stream, state, style) {
+            if (style == "variable" && stream.peek() == "(" && (state.prevToken == ";" || state.prevToken == null || state.prevToken == "}") && cppLooksLikeConstructor(stream.current()))
+              return "def";
+          }
+        },
+        namespaceSeparator: "::",
+        modeProps: { fold: ["brace", "include"] }
+      });
+      def("text/x-java", {
+        name: "clike",
+        keywords: words("abstract assert break case catch class const continue default do else enum extends final finally for goto if implements import instanceof interface native new package private protected public return static strictfp super switch synchronized this throw throws transient try volatile while @interface"),
+        types: words("var byte short int long float double boolean char void Boolean Byte Character Double Float Integer Long Number Object Short String StringBuffer StringBuilder Void"),
+        blockKeywords: words("catch class do else finally for if switch try while"),
+        defKeywords: words("class interface enum @interface"),
+        typeFirstDefinitions: true,
+        atoms: words("true false null"),
+        number: /^(?:0x[a-f\d_]+|0b[01_]+|(?:[\d_]+\.?\d*|\.\d+)(?:e[-+]?[\d_]+)?)(u|ll?|l|f)?/i,
+        hooks: {
+          "@": function(stream) {
+            if (stream.match("interface", false)) return false;
+            stream.eatWhile(/[\w\$_]/);
+            return "meta";
+          },
+          '"': function(stream, state) {
+            if (!stream.match(/""$/)) return false;
+            state.tokenize = tokenTripleString;
+            return state.tokenize(stream, state);
+          }
+        },
+        modeProps: { fold: ["brace", "import"] }
+      });
+      def("text/x-csharp", {
+        name: "clike",
+        keywords: words("abstract as async await base break case catch checked class const continue default delegate do else enum event explicit extern finally fixed for foreach goto if implicit in init interface internal is lock namespace new operator out override params private protected public readonly record ref required return sealed sizeof stackalloc static struct switch this throw try typeof unchecked unsafe using virtual void volatile while add alias ascending descending dynamic from get global group into join let orderby partial remove select set value var yield"),
+        types: words("Action Boolean Byte Char DateTime DateTimeOffset Decimal Double Func Guid Int16 Int32 Int64 Object SByte Single String Task TimeSpan UInt16 UInt32 UInt64 bool byte char decimal double short int long object sbyte float string ushort uint ulong"),
+        blockKeywords: words("catch class do else finally for foreach if struct switch try while"),
+        defKeywords: words("class interface namespace record struct var"),
+        typeFirstDefinitions: true,
+        atoms: words("true false null"),
+        hooks: {
+          "@": function(stream, state) {
+            if (stream.eat('"')) {
+              state.tokenize = tokenAtString;
+              return tokenAtString(stream, state);
+            }
+            stream.eatWhile(/[\w\$_]/);
+            return "meta";
+          }
+        }
+      });
+      function tokenTripleString(stream, state) {
+        var escaped = false;
+        while (!stream.eol()) {
+          if (!escaped && stream.match('"""')) {
+            state.tokenize = null;
+            break;
+          }
+          escaped = stream.next() == "\\" && !escaped;
+        }
+        return "string";
+      }
+      function tokenNestedComment(depth) {
+        return function(stream, state) {
+          var ch;
+          while (ch = stream.next()) {
+            if (ch == "*" && stream.eat("/")) {
+              if (depth == 1) {
+                state.tokenize = null;
+                break;
+              } else {
+                state.tokenize = tokenNestedComment(depth - 1);
+                return state.tokenize(stream, state);
+              }
+            } else if (ch == "/" && stream.eat("*")) {
+              state.tokenize = tokenNestedComment(depth + 1);
+              return state.tokenize(stream, state);
+            }
+          }
+          return "comment";
+        };
+      }
+      def("text/x-scala", {
+        name: "clike",
+        keywords: words(
+          /* scala */
+          "abstract case catch class def do else extends final finally for forSome if implicit import lazy match new null object override package private protected return sealed super this throw trait try type val var while with yield _ assert assume require print println printf readLine readBoolean readByte readShort readChar readInt readLong readFloat readDouble"
+        ),
+        types: words(
+          "AnyVal App Application Array BufferedIterator BigDecimal BigInt Char Console Either Enumeration Equiv Error Exception Fractional Function IndexedSeq Int Integral Iterable Iterator List Map Numeric Nil NotNull Option Ordered Ordering PartialFunction PartialOrdering Product Proxy Range Responder Seq Serializable Set Specializable Stream StringBuilder StringContext Symbol Throwable Traversable TraversableOnce Tuple Unit Vector Boolean Byte Character CharSequence Class ClassLoader Cloneable Comparable Compiler Double Exception Float Integer Long Math Number Object Package Pair Process Runtime Runnable SecurityManager Short StackTraceElement StrictMath String StringBuffer System Thread ThreadGroup ThreadLocal Throwable Triple Void"
+        ),
+        multiLineStrings: true,
+        blockKeywords: words("catch class enum do else finally for forSome if match switch try while"),
+        defKeywords: words("class enum def object package trait type val var"),
+        atoms: words("true false null"),
+        indentStatements: false,
+        indentSwitch: false,
+        isOperatorChar: /[+\-*&%=<>!?|\/#:@]/,
+        hooks: {
+          "@": function(stream) {
+            stream.eatWhile(/[\w\$_]/);
+            return "meta";
+          },
+          '"': function(stream, state) {
+            if (!stream.match('""')) return false;
+            state.tokenize = tokenTripleString;
+            return state.tokenize(stream, state);
+          },
+          "'": function(stream) {
+            if (stream.match(/^(\\[^'\s]+|[^\\'])'/)) return "string-2";
+            stream.eatWhile(/[\w\$_\xa1-\uffff]/);
+            return "atom";
+          },
+          "=": function(stream, state) {
+            var cx = state.context;
+            if (cx.type == "}" && cx.align && stream.eat(">")) {
+              state.context = new Context(cx.indented, cx.column, cx.type, cx.info, null, cx.prev);
+              return "operator";
+            } else {
+              return false;
+            }
+          },
+          "/": function(stream, state) {
+            if (!stream.eat("*")) return false;
+            state.tokenize = tokenNestedComment(1);
+            return state.tokenize(stream, state);
+          }
+        },
+        modeProps: { closeBrackets: { pairs: '()[]{}""', triples: '"' } }
+      });
+      function tokenKotlinString(tripleString) {
+        return function(stream, state) {
+          var escaped = false, next, end = false;
+          while (!stream.eol()) {
+            if (!tripleString && !escaped && stream.match('"')) {
+              end = true;
+              break;
+            }
+            if (tripleString && stream.match('"""')) {
+              end = true;
+              break;
+            }
+            next = stream.next();
+            if (!escaped && next == "$" && stream.match("{"))
+              stream.skipTo("}");
+            escaped = !escaped && next == "\\" && !tripleString;
+          }
+          if (end || !tripleString)
+            state.tokenize = null;
+          return "string";
+        };
+      }
+      def("text/x-kotlin", {
+        name: "clike",
+        keywords: words(
+          /*keywords*/
+          "package as typealias class interface this super val operator var fun for is in This throw return annotation break continue object if else while do try when !in !is as? file import where by get set abstract enum open inner override private public internal protected catch finally out final vararg reified dynamic companion constructor init sealed field property receiver param sparam lateinit data inline noinline tailrec external annotation crossinline const operator infix suspend actual expect setparam value"
+        ),
+        types: words(
+          /* package java.lang */
+          "Boolean Byte Character CharSequence Class ClassLoader Cloneable Comparable Compiler Double Exception Float Integer Long Math Number Object Package Pair Process Runtime Runnable SecurityManager Short StackTraceElement StrictMath String StringBuffer System Thread ThreadGroup ThreadLocal Throwable Triple Void Annotation Any BooleanArray ByteArray Char CharArray DeprecationLevel DoubleArray Enum FloatArray Function Int IntArray Lazy LazyThreadSafetyMode LongArray Nothing ShortArray Unit"
+        ),
+        intendSwitch: false,
+        indentStatements: false,
+        multiLineStrings: true,
+        number: /^(?:0x[a-f\d_]+|0b[01_]+|(?:[\d_]+(\.\d+)?|\.\d+)(?:e[-+]?[\d_]+)?)(u|ll?|l|f)?/i,
+        blockKeywords: words("catch class do else finally for if where try while enum"),
+        defKeywords: words("class val var object interface fun"),
+        atoms: words("true false null this"),
+        hooks: {
+          "@": function(stream) {
+            stream.eatWhile(/[\w\$_]/);
+            return "meta";
+          },
+          "*": function(_stream, state) {
+            return state.prevToken == "." ? "variable" : "operator";
+          },
+          '"': function(stream, state) {
+            state.tokenize = tokenKotlinString(stream.match('""'));
+            return state.tokenize(stream, state);
+          },
+          "/": function(stream, state) {
+            if (!stream.eat("*")) return false;
+            state.tokenize = tokenNestedComment(1);
+            return state.tokenize(stream, state);
+          },
+          indent: function(state, ctx, textAfter, indentUnit) {
+            var firstChar = textAfter && textAfter.charAt(0);
+            if ((state.prevToken == "}" || state.prevToken == ")") && textAfter == "")
+              return state.indented;
+            if (state.prevToken == "operator" && textAfter != "}" && state.context.type != "}" || state.prevToken == "variable" && firstChar == "." || (state.prevToken == "}" || state.prevToken == ")") && firstChar == ".")
+              return indentUnit * 2 + ctx.indented;
+            if (ctx.align && ctx.type == "}")
+              return ctx.indented + (state.context.type == (textAfter || "").charAt(0) ? 0 : indentUnit);
+          }
+        },
+        modeProps: { closeBrackets: { triples: '"' } }
+      });
+      def(["x-shader/x-vertex", "x-shader/x-fragment"], {
+        name: "clike",
+        keywords: words("sampler1D sampler2D sampler3D samplerCube sampler1DShadow sampler2DShadow const attribute uniform varying break continue discard return for while do if else struct in out inout"),
+        types: words("float int bool void vec2 vec3 vec4 ivec2 ivec3 ivec4 bvec2 bvec3 bvec4 mat2 mat3 mat4"),
+        blockKeywords: words("for while do if else struct"),
+        builtin: words("radians degrees sin cos tan asin acos atan pow exp log exp2 sqrt inversesqrt abs sign floor ceil fract mod min max clamp mix step smoothstep length distance dot cross normalize ftransform faceforward reflect refract matrixCompMult lessThan lessThanEqual greaterThan greaterThanEqual equal notEqual any all not texture1D texture1DProj texture1DLod texture1DProjLod texture2D texture2DProj texture2DLod texture2DProjLod texture3D texture3DProj texture3DLod texture3DProjLod textureCube textureCubeLod shadow1D shadow2D shadow1DProj shadow2DProj shadow1DLod shadow2DLod shadow1DProjLod shadow2DProjLod dFdx dFdy fwidth noise1 noise2 noise3 noise4"),
+        atoms: words("true false gl_FragColor gl_SecondaryColor gl_Normal gl_Vertex gl_MultiTexCoord0 gl_MultiTexCoord1 gl_MultiTexCoord2 gl_MultiTexCoord3 gl_MultiTexCoord4 gl_MultiTexCoord5 gl_MultiTexCoord6 gl_MultiTexCoord7 gl_FogCoord gl_PointCoord gl_Position gl_PointSize gl_ClipVertex gl_FrontColor gl_BackColor gl_FrontSecondaryColor gl_BackSecondaryColor gl_TexCoord gl_FogFragCoord gl_FragCoord gl_FrontFacing gl_FragData gl_FragDepth gl_ModelViewMatrix gl_ProjectionMatrix gl_ModelViewProjectionMatrix gl_TextureMatrix gl_NormalMatrix gl_ModelViewMatrixInverse gl_ProjectionMatrixInverse gl_ModelViewProjectionMatrixInverse gl_TextureMatrixTranspose gl_ModelViewMatrixInverseTranspose gl_ProjectionMatrixInverseTranspose gl_ModelViewProjectionMatrixInverseTranspose gl_TextureMatrixInverseTranspose gl_NormalScale gl_DepthRange gl_ClipPlane gl_Point gl_FrontMaterial gl_BackMaterial gl_LightSource gl_LightModel gl_FrontLightModelProduct gl_BackLightModelProduct gl_TextureColor gl_EyePlaneS gl_EyePlaneT gl_EyePlaneR gl_EyePlaneQ gl_FogParameters gl_MaxLights gl_MaxClipPlanes gl_MaxTextureUnits gl_MaxTextureCoords gl_MaxVertexAttribs gl_MaxVertexUniformComponents gl_MaxVaryingFloats gl_MaxVertexTextureImageUnits gl_MaxTextureImageUnits gl_MaxFragmentUniformComponents gl_MaxCombineTextureImageUnits gl_MaxDrawBuffers"),
+        indentSwitch: false,
+        hooks: { "#": cppHook },
+        modeProps: { fold: ["brace", "include"] }
+      });
+      def("text/x-nesc", {
+        name: "clike",
+        keywords: words(cKeywords + " as atomic async call command component components configuration event generic implementation includes interface module new norace nx_struct nx_union post provides signal task uses abstract extends"),
+        types: cTypes,
+        blockKeywords: words(cBlockKeywords),
+        atoms: words("null true false"),
+        hooks: { "#": cppHook },
+        modeProps: { fold: ["brace", "include"] }
+      });
+      def("text/x-objectivec", {
+        name: "clike",
+        keywords: words(cKeywords + " " + objCKeywords),
+        types: objCTypes,
+        builtin: words(objCBuiltins),
+        blockKeywords: words(cBlockKeywords + " @synthesize @try @catch @finally @autoreleasepool @synchronized"),
+        defKeywords: words(cDefKeywords + " @interface @implementation @protocol @class"),
+        dontIndentStatements: /^@.*$/,
+        typeFirstDefinitions: true,
+        atoms: words("YES NO NULL Nil nil true false nullptr"),
+        isReservedIdentifier: cIsReservedIdentifier,
+        hooks: {
+          "#": cppHook,
+          "*": pointerHook
+        },
+        modeProps: { fold: ["brace", "include"] }
+      });
+      def("text/x-objectivec++", {
+        name: "clike",
+        keywords: words(cKeywords + " " + objCKeywords + " " + cppKeywords),
+        types: objCTypes,
+        builtin: words(objCBuiltins),
+        blockKeywords: words(cBlockKeywords + " @synthesize @try @catch @finally @autoreleasepool @synchronized class try catch"),
+        defKeywords: words(cDefKeywords + " @interface @implementation @protocol @class class namespace"),
+        dontIndentStatements: /^@.*$|^template$/,
+        typeFirstDefinitions: true,
+        atoms: words("YES NO NULL Nil nil true false nullptr"),
+        isReservedIdentifier: cIsReservedIdentifier,
+        hooks: {
+          "#": cppHook,
+          "*": pointerHook,
+          "u": cpp11StringHook,
+          "U": cpp11StringHook,
+          "L": cpp11StringHook,
+          "R": cpp11StringHook,
+          "0": cpp14Literal,
+          "1": cpp14Literal,
+          "2": cpp14Literal,
+          "3": cpp14Literal,
+          "4": cpp14Literal,
+          "5": cpp14Literal,
+          "6": cpp14Literal,
+          "7": cpp14Literal,
+          "8": cpp14Literal,
+          "9": cpp14Literal,
+          token: function(stream, state, style) {
+            if (style == "variable" && stream.peek() == "(" && (state.prevToken == ";" || state.prevToken == null || state.prevToken == "}") && cppLooksLikeConstructor(stream.current()))
+              return "def";
+          }
+        },
+        namespaceSeparator: "::",
+        modeProps: { fold: ["brace", "include"] }
+      });
+      def("text/x-squirrel", {
+        name: "clike",
+        keywords: words("base break clone continue const default delete enum extends function in class foreach local resume return this throw typeof yield constructor instanceof static"),
+        types: cTypes,
+        blockKeywords: words("case catch class else for foreach if switch try while"),
+        defKeywords: words("function local class"),
+        typeFirstDefinitions: true,
+        atoms: words("true false null"),
+        hooks: { "#": cppHook },
+        modeProps: { fold: ["brace", "include"] }
+      });
+      var stringTokenizer = null;
+      function tokenCeylonString(type) {
+        return function(stream, state) {
+          var escaped = false, next, end = false;
+          while (!stream.eol()) {
+            if (!escaped && stream.match('"') && (type == "single" || stream.match('""'))) {
+              end = true;
+              break;
+            }
+            if (!escaped && stream.match("``")) {
+              stringTokenizer = tokenCeylonString(type);
+              end = true;
+              break;
+            }
+            next = stream.next();
+            escaped = type == "single" && !escaped && next == "\\";
+          }
+          if (end)
+            state.tokenize = null;
+          return "string";
+        };
+      }
+      def("text/x-ceylon", {
+        name: "clike",
+        keywords: words("abstracts alias assembly assert assign break case catch class continue dynamic else exists extends finally for function given if import in interface is let module new nonempty object of out outer package return satisfies super switch then this throw try value void while"),
+        types: function(word) {
+          var first = word.charAt(0);
+          return first === first.toUpperCase() && first !== first.toLowerCase();
+        },
+        blockKeywords: words("case catch class dynamic else finally for function if interface module new object switch try while"),
+        defKeywords: words("class dynamic function interface module object package value"),
+        builtin: words("abstract actual aliased annotation by default deprecated doc final formal late license native optional sealed see serializable shared suppressWarnings tagged throws variable"),
+        isPunctuationChar: /[\[\]{}\(\),;\:\.`]/,
+        isOperatorChar: /[+\-*&%=<>!?|^~:\/]/,
+        numberStart: /[\d#$]/,
+        number: /^(?:#[\da-fA-F_]+|\$[01_]+|[\d_]+[kMGTPmunpf]?|[\d_]+\.[\d_]+(?:[eE][-+]?\d+|[kMGTPmunpf]|)|)/i,
+        multiLineStrings: true,
+        typeFirstDefinitions: true,
+        atoms: words("true false null larger smaller equal empty finished"),
+        indentSwitch: false,
+        styleDefs: false,
+        hooks: {
+          "@": function(stream) {
+            stream.eatWhile(/[\w\$_]/);
+            return "meta";
+          },
+          '"': function(stream, state) {
+            state.tokenize = tokenCeylonString(stream.match('""') ? "triple" : "single");
+            return state.tokenize(stream, state);
+          },
+          "`": function(stream, state) {
+            if (!stringTokenizer || !stream.match("`")) return false;
+            state.tokenize = stringTokenizer;
+            stringTokenizer = null;
+            return state.tokenize(stream, state);
+          },
+          "'": function(stream) {
+            stream.eatWhile(/[\w\$_\xa1-\uffff]/);
+            return "atom";
+          },
+          token: function(_stream, state, style) {
+            if ((style == "variable" || style == "type") && state.prevToken == ".") {
+              return "variable-2";
+            }
+          }
+        },
+        modeProps: {
+          fold: ["brace", "import"],
+          closeBrackets: { triples: '"' }
+        }
+      });
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/php/php.js
+var require_php = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/php/php.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror(), require_htmlmixed(), require_clike());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror", "../htmlmixed/htmlmixed", "../clike/clike"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      function keywords(str) {
+        var obj = {}, words = str.split(" ");
+        for (var i = 0; i < words.length; ++i) obj[words[i]] = true;
+        return obj;
+      }
+      function matchSequence(list, end, escapes) {
+        if (list.length == 0) return phpString(end);
+        return function(stream, state) {
+          var patterns = list[0];
+          for (var i = 0; i < patterns.length; i++) if (stream.match(patterns[i][0])) {
+            state.tokenize = matchSequence(list.slice(1), end);
+            return patterns[i][1];
+          }
+          state.tokenize = phpString(end, escapes);
+          return "string";
+        };
+      }
+      function phpString(closing, escapes) {
+        return function(stream, state) {
+          return phpString_(stream, state, closing, escapes);
+        };
+      }
+      function phpString_(stream, state, closing, escapes) {
+        if (escapes !== false && stream.match("${", false) || stream.match("{$", false)) {
+          state.tokenize = null;
+          return "string";
+        }
+        if (escapes !== false && stream.match(/^\$[a-zA-Z_][a-zA-Z0-9_]*/)) {
+          if (stream.match("[", false)) {
+            state.tokenize = matchSequence([
+              [["[", null]],
+              [
+                [/\d[\w\.]*/, "number"],
+                [/\$[a-zA-Z_][a-zA-Z0-9_]*/, "variable-2"],
+                [/[\w\$]+/, "variable"]
+              ],
+              [["]", null]]
+            ], closing, escapes);
+          }
+          if (stream.match(/^->\w/, false)) {
+            state.tokenize = matchSequence([
+              [["->", null]],
+              [[/[\w]+/, "variable"]]
+            ], closing, escapes);
+          }
+          return "variable-2";
+        }
+        var escaped = false;
+        while (!stream.eol() && (escaped || escapes === false || !stream.match("{$", false) && !stream.match(/^(\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{)/, false))) {
+          if (!escaped && stream.match(closing)) {
+            state.tokenize = null;
+            state.tokStack.pop();
+            state.tokStack.pop();
+            break;
+          }
+          escaped = stream.next() == "\\" && !escaped;
+        }
+        return "string";
+      }
+      var phpKeywords = "abstract and array as break case catch class clone const continue declare default do else elseif enddeclare endfor endforeach endif endswitch endwhile enum extends final for foreach function global goto if implements interface instanceof namespace new or private protected public static switch throw trait try use var while xor die echo empty exit eval include include_once isset list require require_once return print unset __halt_compiler self static parent yield insteadof finally readonly match";
+      var phpAtoms = "true false null TRUE FALSE NULL __CLASS__ __DIR__ __FILE__ __LINE__ __METHOD__ __FUNCTION__ __NAMESPACE__ __TRAIT__";
+      var phpBuiltin = "func_num_args func_get_arg func_get_args strlen strcmp strncmp strcasecmp strncasecmp each error_reporting define defined trigger_error user_error set_error_handler restore_error_handler get_declared_classes get_loaded_extensions extension_loaded get_extension_funcs debug_backtrace constant bin2hex hex2bin sleep usleep time mktime gmmktime strftime gmstrftime strtotime date gmdate getdate localtime checkdate flush wordwrap htmlspecialchars htmlentities html_entity_decode md5 md5_file crc32 getimagesize image_type_to_mime_type phpinfo phpversion phpcredits strnatcmp strnatcasecmp substr_count strspn strcspn strtok strtoupper strtolower strpos strrpos strrev hebrev hebrevc nl2br basename dirname pathinfo stripslashes stripcslashes strstr stristr strrchr str_shuffle str_word_count strcoll substr substr_replace quotemeta ucfirst ucwords strtr addslashes addcslashes rtrim str_replace str_repeat count_chars chunk_split trim ltrim strip_tags similar_text explode implode setlocale localeconv parse_str str_pad chop strchr sprintf printf vprintf vsprintf sscanf fscanf parse_url urlencode urldecode rawurlencode rawurldecode readlink linkinfo link unlink exec system escapeshellcmd escapeshellarg passthru shell_exec proc_open proc_close rand srand getrandmax mt_rand mt_srand mt_getrandmax base64_decode base64_encode abs ceil floor round is_finite is_nan is_infinite bindec hexdec octdec decbin decoct dechex base_convert number_format fmod ip2long long2ip getenv putenv getopt microtime gettimeofday getrusage uniqid quoted_printable_decode set_time_limit get_cfg_var magic_quotes_runtime set_magic_quotes_runtime get_magic_quotes_gpc get_magic_quotes_runtime import_request_variables error_log serialize unserialize memory_get_usage memory_get_peak_usage var_dump var_export debug_zval_dump print_r highlight_file show_source highlight_string ini_get ini_get_all ini_set ini_alter ini_restore get_include_path set_include_path restore_include_path setcookie header headers_sent connection_aborted connection_status ignore_user_abort parse_ini_file is_uploaded_file move_uploaded_file intval floatval doubleval strval gettype settype is_null is_resource is_bool is_long is_float is_int is_integer is_double is_real is_numeric is_string is_array is_object is_scalar ereg ereg_replace eregi eregi_replace split spliti join sql_regcase dl pclose popen readfile rewind rmdir umask fclose feof fgetc fgets fgetss fread fopen fpassthru ftruncate fstat fseek ftell fflush fwrite fputs mkdir rename copy tempnam tmpfile file file_get_contents file_put_contents stream_select stream_context_create stream_context_set_params stream_context_set_option stream_context_get_options stream_filter_prepend stream_filter_append fgetcsv flock get_meta_tags stream_set_write_buffer set_file_buffer set_socket_blocking stream_set_blocking socket_set_blocking stream_get_meta_data stream_register_wrapper stream_wrapper_register stream_set_timeout socket_set_timeout socket_get_status realpath fnmatch fsockopen pfsockopen pack unpack get_browser crypt opendir closedir chdir getcwd rewinddir readdir dir glob fileatime filectime filegroup fileinode filemtime fileowner fileperms filesize filetype file_exists is_writable is_writeable is_readable is_executable is_file is_dir is_link stat lstat chown touch clearstatcache mail ob_start ob_flush ob_clean ob_end_flush ob_end_clean ob_get_flush ob_get_clean ob_get_length ob_get_level ob_get_status ob_get_contents ob_implicit_flush ob_list_handlers ksort krsort natsort natcasesort asort arsort sort rsort usort uasort uksort shuffle array_walk count end prev next reset current key min max in_array array_search extract compact array_fill range array_multisort array_push array_pop array_shift array_unshift array_splice array_slice array_merge array_merge_recursive array_keys array_values array_count_values array_reverse array_reduce array_pad array_flip array_change_key_case array_rand array_unique array_intersect array_intersect_assoc array_diff array_diff_assoc array_sum array_filter array_map array_chunk array_key_exists array_intersect_key array_combine array_column pos sizeof key_exists assert assert_options version_compare ftok str_rot13 aggregate session_name session_module_name session_save_path session_id session_regenerate_id session_decode session_register session_unregister session_is_registered session_encode session_start session_destroy session_unset session_set_save_handler session_cache_limiter session_cache_expire session_set_cookie_params session_get_cookie_params session_write_close preg_match preg_match_all preg_replace preg_replace_callback preg_split preg_quote preg_grep overload ctype_alnum ctype_alpha ctype_cntrl ctype_digit ctype_lower ctype_graph ctype_print ctype_punct ctype_space ctype_upper ctype_xdigit virtual apache_request_headers apache_note apache_lookup_uri apache_child_terminate apache_setenv apache_response_headers apache_get_version getallheaders mysql_connect mysql_pconnect mysql_close mysql_select_db mysql_create_db mysql_drop_db mysql_query mysql_unbuffered_query mysql_db_query mysql_list_dbs mysql_list_tables mysql_list_fields mysql_list_processes mysql_error mysql_errno mysql_affected_rows mysql_insert_id mysql_result mysql_num_rows mysql_num_fields mysql_fetch_row mysql_fetch_array mysql_fetch_assoc mysql_fetch_object mysql_data_seek mysql_fetch_lengths mysql_fetch_field mysql_field_seek mysql_free_result mysql_field_name mysql_field_table mysql_field_len mysql_field_type mysql_field_flags mysql_escape_string mysql_real_escape_string mysql_stat mysql_thread_id mysql_client_encoding mysql_get_client_info mysql_get_host_info mysql_get_proto_info mysql_get_server_info mysql_info mysql mysql_fieldname mysql_fieldtable mysql_fieldlen mysql_fieldtype mysql_fieldflags mysql_selectdb mysql_createdb mysql_dropdb mysql_freeresult mysql_numfields mysql_numrows mysql_listdbs mysql_listtables mysql_listfields mysql_db_name mysql_dbname mysql_tablename mysql_table_name pg_connect pg_pconnect pg_close pg_connection_status pg_connection_busy pg_connection_reset pg_host pg_dbname pg_port pg_tty pg_options pg_ping pg_query pg_send_query pg_cancel_query pg_fetch_result pg_fetch_row pg_fetch_assoc pg_fetch_array pg_fetch_object pg_fetch_all pg_affected_rows pg_get_result pg_result_seek pg_result_status pg_free_result pg_last_oid pg_num_rows pg_num_fields pg_field_name pg_field_num pg_field_size pg_field_type pg_field_prtlen pg_field_is_null pg_get_notify pg_get_pid pg_result_error pg_last_error pg_last_notice pg_put_line pg_end_copy pg_copy_to pg_copy_from pg_trace pg_untrace pg_lo_create pg_lo_unlink pg_lo_open pg_lo_close pg_lo_read pg_lo_write pg_lo_read_all pg_lo_import pg_lo_export pg_lo_seek pg_lo_tell pg_escape_string pg_escape_bytea pg_unescape_bytea pg_client_encoding pg_set_client_encoding pg_meta_data pg_convert pg_insert pg_update pg_delete pg_select pg_exec pg_getlastoid pg_cmdtuples pg_errormessage pg_numrows pg_numfields pg_fieldname pg_fieldsize pg_fieldtype pg_fieldnum pg_fieldprtlen pg_fieldisnull pg_freeresult pg_result pg_loreadall pg_locreate pg_lounlink pg_loopen pg_loclose pg_loread pg_lowrite pg_loimport pg_loexport http_response_code get_declared_traits getimagesizefromstring socket_import_stream stream_set_chunk_size trait_exists header_register_callback class_uses session_status session_register_shutdown echo print global static exit array empty eval isset unset die include require include_once require_once json_decode json_encode json_last_error json_last_error_msg curl_close curl_copy_handle curl_errno curl_error curl_escape curl_exec curl_file_create curl_getinfo curl_init curl_multi_add_handle curl_multi_close curl_multi_exec curl_multi_getcontent curl_multi_info_read curl_multi_init curl_multi_remove_handle curl_multi_select curl_multi_setopt curl_multi_strerror curl_pause curl_reset curl_setopt_array curl_setopt curl_share_close curl_share_init curl_share_setopt curl_strerror curl_unescape curl_version mysqli_affected_rows mysqli_autocommit mysqli_change_user mysqli_character_set_name mysqli_close mysqli_commit mysqli_connect_errno mysqli_connect_error mysqli_connect mysqli_data_seek mysqli_debug mysqli_dump_debug_info mysqli_errno mysqli_error_list mysqli_error mysqli_fetch_all mysqli_fetch_array mysqli_fetch_assoc mysqli_fetch_field_direct mysqli_fetch_field mysqli_fetch_fields mysqli_fetch_lengths mysqli_fetch_object mysqli_fetch_row mysqli_field_count mysqli_field_seek mysqli_field_tell mysqli_free_result mysqli_get_charset mysqli_get_client_info mysqli_get_client_stats mysqli_get_client_version mysqli_get_connection_stats mysqli_get_host_info mysqli_get_proto_info mysqli_get_server_info mysqli_get_server_version mysqli_info mysqli_init mysqli_insert_id mysqli_kill mysqli_more_results mysqli_multi_query mysqli_next_result mysqli_num_fields mysqli_num_rows mysqli_options mysqli_ping mysqli_prepare mysqli_query mysqli_real_connect mysqli_real_escape_string mysqli_real_query mysqli_reap_async_query mysqli_refresh mysqli_rollback mysqli_select_db mysqli_set_charset mysqli_set_local_infile_default mysqli_set_local_infile_handler mysqli_sqlstate mysqli_ssl_set mysqli_stat mysqli_stmt_init mysqli_store_result mysqli_thread_id mysqli_thread_safe mysqli_use_result mysqli_warning_count";
+      CodeMirror2.registerHelper("hintWords", "php", [phpKeywords, phpAtoms, phpBuiltin].join(" ").split(" "));
+      CodeMirror2.registerHelper("wordChars", "php", /[\w$]/);
+      var phpConfig = {
+        name: "clike",
+        helperType: "php",
+        keywords: keywords(phpKeywords),
+        blockKeywords: keywords("catch do else elseif for foreach if switch try while finally"),
+        defKeywords: keywords("class enum function interface namespace trait"),
+        atoms: keywords(phpAtoms),
+        builtin: keywords(phpBuiltin),
+        multiLineStrings: true,
+        hooks: {
+          "$": function(stream) {
+            stream.eatWhile(/[\w\$_]/);
+            return "variable-2";
+          },
+          "<": function(stream, state) {
+            var before;
+            if (before = stream.match(/^<<\s*/)) {
+              var quoted = stream.eat(/['"]/);
+              stream.eatWhile(/[\w\.]/);
+              var delim = stream.current().slice(before[0].length + (quoted ? 2 : 1));
+              if (quoted) stream.eat(quoted);
+              if (delim) {
+                (state.tokStack || (state.tokStack = [])).push(delim, 0);
+                state.tokenize = phpString(delim, quoted != "'");
+                return "string";
+              }
+            }
+            return false;
+          },
+          "#": function(stream) {
+            while (!stream.eol() && !stream.match("?>", false)) stream.next();
+            return "comment";
+          },
+          "/": function(stream) {
+            if (stream.eat("/")) {
+              while (!stream.eol() && !stream.match("?>", false)) stream.next();
+              return "comment";
+            }
+            return false;
+          },
+          '"': function(_stream, state) {
+            (state.tokStack || (state.tokStack = [])).push('"', 0);
+            state.tokenize = phpString('"');
+            return "string";
+          },
+          "{": function(_stream, state) {
+            if (state.tokStack && state.tokStack.length)
+              state.tokStack[state.tokStack.length - 1]++;
+            return false;
+          },
+          "}": function(_stream, state) {
+            if (state.tokStack && state.tokStack.length > 0 && !--state.tokStack[state.tokStack.length - 1]) {
+              state.tokenize = phpString(state.tokStack[state.tokStack.length - 2]);
+            }
+            return false;
+          }
+        }
+      };
+      CodeMirror2.defineMode("php", function(config, parserConfig) {
+        var htmlMode = CodeMirror2.getMode(config, parserConfig && parserConfig.htmlMode || "text/html");
+        var phpMode = CodeMirror2.getMode(config, phpConfig);
+        function dispatch(stream, state) {
+          var isPHP = state.curMode == phpMode;
+          if (stream.sol() && state.pending && state.pending != '"' && state.pending != "'") state.pending = null;
+          if (!isPHP) {
+            if (stream.match(/^<\?\w*/)) {
+              state.curMode = phpMode;
+              if (!state.php) state.php = CodeMirror2.startState(phpMode, htmlMode.indent(state.html, "", ""));
+              state.curState = state.php;
+              return "meta";
+            }
+            if (state.pending == '"' || state.pending == "'") {
+              while (!stream.eol() && stream.next() != state.pending) {
+              }
+              var style = "string";
+            } else if (state.pending && stream.pos < state.pending.end) {
+              stream.pos = state.pending.end;
+              var style = state.pending.style;
+            } else {
+              var style = htmlMode.token(stream, state.curState);
+            }
+            if (state.pending) state.pending = null;
+            var cur = stream.current(), openPHP = cur.search(/<\?/), m;
+            if (openPHP != -1) {
+              if (style == "string" && (m = cur.match(/[\'\"]$/)) && !/\?>/.test(cur)) state.pending = m[0];
+              else state.pending = { end: stream.pos, style };
+              stream.backUp(cur.length - openPHP);
+            }
+            return style;
+          } else if (isPHP && state.php.tokenize == null && stream.match("?>")) {
+            state.curMode = htmlMode;
+            state.curState = state.html;
+            if (!state.php.context.prev) state.php = null;
+            return "meta";
+          } else {
+            return phpMode.token(stream, state.curState);
+          }
+        }
+        return {
+          startState: function() {
+            var html = CodeMirror2.startState(htmlMode);
+            var php = parserConfig.startOpen ? CodeMirror2.startState(phpMode) : null;
+            return {
+              html,
+              php,
+              curMode: parserConfig.startOpen ? phpMode : htmlMode,
+              curState: parserConfig.startOpen ? php : html,
+              pending: null
+            };
+          },
+          copyState: function(state) {
+            var html = state.html, htmlNew = CodeMirror2.copyState(htmlMode, html), php = state.php, phpNew = php && CodeMirror2.copyState(phpMode, php), cur;
+            if (state.curMode == htmlMode) cur = htmlNew;
+            else cur = phpNew;
+            return {
+              html: htmlNew,
+              php: phpNew,
+              curMode: state.curMode,
+              curState: cur,
+              pending: state.pending
+            };
+          },
+          token: dispatch,
+          indent: function(state, textAfter, line) {
+            if (state.curMode != phpMode && /^\s*<\//.test(textAfter) || state.curMode == phpMode && /^\?>/.test(textAfter))
+              return htmlMode.indent(state.html, textAfter, line);
+            return state.curMode.indent(state.curState, textAfter, line);
+          },
+          blockCommentStart: "/*",
+          blockCommentEnd: "*/",
+          lineComment: "//",
+          innerMode: function(state) {
+            return { state: state.curState, mode: state.curMode };
+          }
+        };
+      }, "htmlmixed", "clike");
+      CodeMirror2.defineMIME("application/x-httpd-php", "php");
+      CodeMirror2.defineMIME("application/x-httpd-php-open", { name: "php", startOpen: true });
+      CodeMirror2.defineMIME("text/x-php", phpConfig);
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/lua/lua.js
+var require_lua = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/lua/lua.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.defineMode("lua", function(config, parserConfig) {
+        var indentUnit = config.indentUnit;
+        function prefixRE(words) {
+          return new RegExp("^(?:" + words.join("|") + ")", "i");
+        }
+        function wordRE(words) {
+          return new RegExp("^(?:" + words.join("|") + ")$", "i");
+        }
+        var specials = wordRE(parserConfig.specials || []);
+        var builtins = wordRE([
+          "_G",
+          "_VERSION",
+          "assert",
+          "collectgarbage",
+          "dofile",
+          "error",
+          "getfenv",
+          "getmetatable",
+          "ipairs",
+          "load",
+          "loadfile",
+          "loadstring",
+          "module",
+          "next",
+          "pairs",
+          "pcall",
+          "print",
+          "rawequal",
+          "rawget",
+          "rawset",
+          "require",
+          "select",
+          "setfenv",
+          "setmetatable",
+          "tonumber",
+          "tostring",
+          "type",
+          "unpack",
+          "xpcall",
+          "coroutine.create",
+          "coroutine.resume",
+          "coroutine.running",
+          "coroutine.status",
+          "coroutine.wrap",
+          "coroutine.yield",
+          "debug.debug",
+          "debug.getfenv",
+          "debug.gethook",
+          "debug.getinfo",
+          "debug.getlocal",
+          "debug.getmetatable",
+          "debug.getregistry",
+          "debug.getupvalue",
+          "debug.setfenv",
+          "debug.sethook",
+          "debug.setlocal",
+          "debug.setmetatable",
+          "debug.setupvalue",
+          "debug.traceback",
+          "close",
+          "flush",
+          "lines",
+          "read",
+          "seek",
+          "setvbuf",
+          "write",
+          "io.close",
+          "io.flush",
+          "io.input",
+          "io.lines",
+          "io.open",
+          "io.output",
+          "io.popen",
+          "io.read",
+          "io.stderr",
+          "io.stdin",
+          "io.stdout",
+          "io.tmpfile",
+          "io.type",
+          "io.write",
+          "math.abs",
+          "math.acos",
+          "math.asin",
+          "math.atan",
+          "math.atan2",
+          "math.ceil",
+          "math.cos",
+          "math.cosh",
+          "math.deg",
+          "math.exp",
+          "math.floor",
+          "math.fmod",
+          "math.frexp",
+          "math.huge",
+          "math.ldexp",
+          "math.log",
+          "math.log10",
+          "math.max",
+          "math.min",
+          "math.modf",
+          "math.pi",
+          "math.pow",
+          "math.rad",
+          "math.random",
+          "math.randomseed",
+          "math.sin",
+          "math.sinh",
+          "math.sqrt",
+          "math.tan",
+          "math.tanh",
+          "os.clock",
+          "os.date",
+          "os.difftime",
+          "os.execute",
+          "os.exit",
+          "os.getenv",
+          "os.remove",
+          "os.rename",
+          "os.setlocale",
+          "os.time",
+          "os.tmpname",
+          "package.cpath",
+          "package.loaded",
+          "package.loaders",
+          "package.loadlib",
+          "package.path",
+          "package.preload",
+          "package.seeall",
+          "string.byte",
+          "string.char",
+          "string.dump",
+          "string.find",
+          "string.format",
+          "string.gmatch",
+          "string.gsub",
+          "string.len",
+          "string.lower",
+          "string.match",
+          "string.rep",
+          "string.reverse",
+          "string.sub",
+          "string.upper",
+          "table.concat",
+          "table.insert",
+          "table.maxn",
+          "table.remove",
+          "table.sort"
+        ]);
+        var keywords = wordRE([
+          "and",
+          "break",
+          "elseif",
+          "false",
+          "nil",
+          "not",
+          "or",
+          "return",
+          "true",
+          "function",
+          "end",
+          "if",
+          "then",
+          "else",
+          "do",
+          "while",
+          "repeat",
+          "until",
+          "for",
+          "in",
+          "local"
+        ]);
+        var indentTokens = wordRE(["function", "if", "repeat", "do", "\\(", "{"]);
+        var dedentTokens = wordRE(["end", "until", "\\)", "}"]);
+        var dedentPartial = prefixRE(["end", "until", "\\)", "}", "else", "elseif"]);
+        function readBracket(stream) {
+          var level = 0;
+          while (stream.eat("=")) ++level;
+          stream.eat("[");
+          return level;
+        }
+        function normal(stream, state) {
+          var ch = stream.next();
+          if (ch == "-" && stream.eat("-")) {
+            if (stream.eat("[") && stream.eat("["))
+              return (state.cur = bracketed(readBracket(stream), "comment"))(stream, state);
+            stream.skipToEnd();
+            return "comment";
+          }
+          if (ch == '"' || ch == "'")
+            return (state.cur = string(ch))(stream, state);
+          if (ch == "[" && /[\[=]/.test(stream.peek()))
+            return (state.cur = bracketed(readBracket(stream), "string"))(stream, state);
+          if (/\d/.test(ch)) {
+            stream.eatWhile(/[\w.%]/);
+            return "number";
+          }
+          if (/[\w_]/.test(ch)) {
+            stream.eatWhile(/[\w\\\-_.]/);
+            return "variable";
+          }
+          return null;
+        }
+        function bracketed(level, style) {
+          return function(stream, state) {
+            var curlev = null, ch;
+            while ((ch = stream.next()) != null) {
+              if (curlev == null) {
+                if (ch == "]") curlev = 0;
+              } else if (ch == "=") ++curlev;
+              else if (ch == "]" && curlev == level) {
+                state.cur = normal;
+                break;
+              } else curlev = null;
+            }
+            return style;
+          };
+        }
+        function string(quote) {
+          return function(stream, state) {
+            var escaped = false, ch;
+            while ((ch = stream.next()) != null) {
+              if (ch == quote && !escaped) break;
+              escaped = !escaped && ch == "\\";
+            }
+            if (!escaped) state.cur = normal;
+            return "string";
+          };
+        }
+        return {
+          startState: function(basecol) {
+            return { basecol: basecol || 0, indentDepth: 0, cur: normal };
+          },
+          token: function(stream, state) {
+            if (stream.eatSpace()) return null;
+            var style = state.cur(stream, state);
+            var word = stream.current();
+            if (style == "variable") {
+              if (keywords.test(word)) style = "keyword";
+              else if (builtins.test(word)) style = "builtin";
+              else if (specials.test(word)) style = "variable-2";
+            }
+            if (style != "comment" && style != "string") {
+              if (indentTokens.test(word)) ++state.indentDepth;
+              else if (dedentTokens.test(word)) --state.indentDepth;
+            }
+            return style;
+          },
+          indent: function(state, textAfter) {
+            var closing = dedentPartial.test(textAfter);
+            return state.basecol + indentUnit * (state.indentDepth - (closing ? 1 : 0));
+          },
+          electricInput: /^\s*(?:end|until|else|\)|\})$/,
+          lineComment: "--",
+          blockCommentStart: "--[[",
+          blockCommentEnd: "]]"
+        };
+      });
+      CodeMirror2.defineMIME("text/x-lua", "lua");
+    });
+  }
+});
+
+// node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/r/r.js
+var require_r = __commonJS({
+  "node_modules/.pnpm/codemirror@5.65.20/node_modules/codemirror/mode/r/r.js"(exports, module) {
+    (function(mod) {
+      if (typeof exports == "object" && typeof module == "object")
+        mod(require_codemirror());
+      else if (typeof define == "function" && define.amd)
+        define(["../../lib/codemirror"], mod);
+      else
+        mod(CodeMirror);
+    })(function(CodeMirror2) {
+      "use strict";
+      CodeMirror2.registerHelper("wordChars", "r", /[\w.]/);
+      CodeMirror2.defineMode("r", function(config) {
+        function wordObj(words) {
+          var res = {};
+          for (var i = 0; i < words.length; ++i) res[words[i]] = true;
+          return res;
+        }
+        var commonAtoms = ["NULL", "NA", "Inf", "NaN", "NA_integer_", "NA_real_", "NA_complex_", "NA_character_", "TRUE", "FALSE"];
+        var commonBuiltins = ["list", "quote", "bquote", "eval", "return", "call", "parse", "deparse"];
+        var commonKeywords = ["if", "else", "repeat", "while", "function", "for", "in", "next", "break"];
+        var commonBlockKeywords = ["if", "else", "repeat", "while", "function", "for"];
+        CodeMirror2.registerHelper("hintWords", "r", commonAtoms.concat(commonBuiltins, commonKeywords));
+        var atoms = wordObj(commonAtoms);
+        var builtins = wordObj(commonBuiltins);
+        var keywords = wordObj(commonKeywords);
+        var blockkeywords = wordObj(commonBlockKeywords);
+        var opChars = /[+\-*\/^<>=!&|~$:]/;
+        var curPunc;
+        function tokenBase(stream, state) {
+          curPunc = null;
+          var ch = stream.next();
+          if (ch == "#") {
+            stream.skipToEnd();
+            return "comment";
+          } else if (ch == "0" && stream.eat("x")) {
+            stream.eatWhile(/[\da-f]/i);
+            return "number";
+          } else if (ch == "." && stream.eat(/\d/)) {
+            stream.match(/\d*(?:e[+\-]?\d+)?/);
+            return "number";
+          } else if (/\d/.test(ch)) {
+            stream.match(/\d*(?:\.\d+)?(?:e[+\-]\d+)?L?/);
+            return "number";
+          } else if (ch == "'" || ch == '"') {
+            state.tokenize = tokenString(ch);
+            return "string";
+          } else if (ch == "`") {
+            stream.match(/[^`]+`/);
+            return "variable-3";
+          } else if (ch == "." && stream.match(/.(?:[.]|\d+)/)) {
+            return "keyword";
+          } else if (/[a-zA-Z\.]/.test(ch)) {
+            stream.eatWhile(/[\w\.]/);
+            var word = stream.current();
+            if (atoms.propertyIsEnumerable(word)) return "atom";
+            if (keywords.propertyIsEnumerable(word)) {
+              if (blockkeywords.propertyIsEnumerable(word) && !stream.match(/\s*if(\s+|$)/, false))
+                curPunc = "block";
+              return "keyword";
+            }
+            if (builtins.propertyIsEnumerable(word)) return "builtin";
+            return "variable";
+          } else if (ch == "%") {
+            if (stream.skipTo("%")) stream.next();
+            return "operator variable-2";
+          } else if (ch == "<" && stream.eat("-") || ch == "<" && stream.match("<-") || ch == "-" && stream.match(/>>?/)) {
+            return "operator arrow";
+          } else if (ch == "=" && state.ctx.argList) {
+            return "arg-is";
+          } else if (opChars.test(ch)) {
+            if (ch == "$") return "operator dollar";
+            stream.eatWhile(opChars);
+            return "operator";
+          } else if (/[\(\){}\[\];]/.test(ch)) {
+            curPunc = ch;
+            if (ch == ";") return "semi";
+            return null;
+          } else {
+            return null;
+          }
+        }
+        function tokenString(quote) {
+          return function(stream, state) {
+            if (stream.eat("\\")) {
+              var ch = stream.next();
+              if (ch == "x") stream.match(/^[a-f0-9]{2}/i);
+              else if ((ch == "u" || ch == "U") && stream.eat("{") && stream.skipTo("}")) stream.next();
+              else if (ch == "u") stream.match(/^[a-f0-9]{4}/i);
+              else if (ch == "U") stream.match(/^[a-f0-9]{8}/i);
+              else if (/[0-7]/.test(ch)) stream.match(/^[0-7]{1,2}/);
+              return "string-2";
+            } else {
+              var next;
+              while ((next = stream.next()) != null) {
+                if (next == quote) {
+                  state.tokenize = tokenBase;
+                  break;
+                }
+                if (next == "\\") {
+                  stream.backUp(1);
+                  break;
+                }
+              }
+              return "string";
+            }
+          };
+        }
+        var ALIGN_YES = 1, ALIGN_NO = 2, BRACELESS = 4;
+        function push(state, type, stream) {
+          state.ctx = {
+            type,
+            indent: state.indent,
+            flags: 0,
+            column: stream.column(),
+            prev: state.ctx
+          };
+        }
+        function setFlag(state, flag) {
+          var ctx = state.ctx;
+          state.ctx = {
+            type: ctx.type,
+            indent: ctx.indent,
+            flags: ctx.flags | flag,
+            column: ctx.column,
+            prev: ctx.prev
+          };
+        }
+        function pop(state) {
+          state.indent = state.ctx.indent;
+          state.ctx = state.ctx.prev;
+        }
+        return {
+          startState: function() {
+            return {
+              tokenize: tokenBase,
+              ctx: {
+                type: "top",
+                indent: -config.indentUnit,
+                flags: ALIGN_NO
+              },
+              indent: 0,
+              afterIdent: false
+            };
+          },
+          token: function(stream, state) {
+            if (stream.sol()) {
+              if ((state.ctx.flags & 3) == 0) state.ctx.flags |= ALIGN_NO;
+              if (state.ctx.flags & BRACELESS) pop(state);
+              state.indent = stream.indentation();
+            }
+            if (stream.eatSpace()) return null;
+            var style = state.tokenize(stream, state);
+            if (style != "comment" && (state.ctx.flags & ALIGN_NO) == 0) setFlag(state, ALIGN_YES);
+            if ((curPunc == ";" || curPunc == "{" || curPunc == "}") && state.ctx.type == "block") pop(state);
+            if (curPunc == "{") push(state, "}", stream);
+            else if (curPunc == "(") {
+              push(state, ")", stream);
+              if (state.afterIdent) state.ctx.argList = true;
+            } else if (curPunc == "[") push(state, "]", stream);
+            else if (curPunc == "block") push(state, "block", stream);
+            else if (curPunc == state.ctx.type) pop(state);
+            else if (state.ctx.type == "block" && style != "comment") setFlag(state, BRACELESS);
+            state.afterIdent = style == "variable" || style == "keyword";
+            return style;
+          },
+          indent: function(state, textAfter) {
+            if (state.tokenize != tokenBase) return 0;
+            var firstChar = textAfter && textAfter.charAt(0), ctx = state.ctx, closing = firstChar == ctx.type;
+            if (ctx.flags & BRACELESS) ctx = ctx.prev;
+            if (ctx.type == "block") return ctx.indent + (firstChar == "{" ? 0 : config.indentUnit);
+            else if (ctx.flags & ALIGN_YES) return ctx.column + (closing ? 0 : 1);
+            else return ctx.indent + (closing ? 0 : config.indentUnit);
+          },
+          lineComment: "#"
+        };
+      });
+      CodeMirror2.defineMIME("text/x-rsrc", "r");
     });
   }
 });
 
 // src/webview-src/main.ts
 var import_easymde = __toESM(require_easymde());
+var import_gfm = __toESM(require_gfm());
 var import_python = __toESM(require_python());
-var CodeMirror2 = __toESM(require_codemirror());
 var import_javascript = __toESM(require_javascript());
 var import_markdown = __toESM(require_markdown());
+var import_meta = __toESM(require_meta());
+var import_python2 = __toESM(require_python());
+var import_xml = __toESM(require_xml());
+var import_htmlmixed = __toESM(require_htmlmixed());
+var import_css = __toESM(require_css());
+var import_shell = __toESM(require_shell());
+var import_sql = __toESM(require_sql());
+var import_yaml = __toESM(require_yaml());
+var import_properties = __toESM(require_properties());
+var import_toml = __toESM(require_toml());
+var import_rust = __toESM(require_rust());
+var import_go = __toESM(require_go());
+var import_php = __toESM(require_php());
+var import_clike = __toESM(require_clike());
+var import_lua = __toESM(require_lua());
+var import_r = __toESM(require_r());
 var vscode = acquireVsCodeApi();
 var isUpdatingFromExtension = false;
 var textarea = document.getElementById("markdown-editor");
 var easyMDE = new import_easymde.default({
   element: textarea,
+  mode: {
+    name: "gfm",
+    fencedCodeBlockHighlighting: true
+  },
   toolbar: false,
   status: false,
   spellChecker: false,
   maxHeight: "none"
 });
-var debounceTimeout;
-easyMDE.codemirror.on("beforeChange", (instance, changeObj) => {
-  if (changeObj.origin !== "+input") {
-    return;
+function highlightCodeBlocks(cm) {
+  const doc = cm.getDoc();
+  const totalLines = doc.lineCount();
+  for (let i2 = 0; i2 < totalLines; i2++) {
+    const handle = doc.getLineHandle(i2);
+    if (handle) cm.removeLineClass(handle, "wrap", "cm-code-block");
   }
-  const fenceRegex = /^```(\w*)$/;
-  const match = changeObj.text[0].match(fenceRegex);
-  if (match) {
-    changeObj.cancel();
-    const openingFence = match[0];
-    const closingFence = "```";
-    const fullBlock = `${openingFence}
-
-${closingFence}`;
-    instance.replaceRange(fullBlock, changeObj.from, changeObj.to);
-    const newCursorPos = {
-      line: changeObj.from.line + 1,
-      ch: 0
-      // Place cursor at the beginning of the line
-    };
-    instance.setCursor(newCursorPos);
+  let i = 0;
+  while (i < totalLines) {
+    const lineText = doc.getLine(i).trim();
+    if (lineText.startsWith("```")) {
+      const language = lineText.slice(3).trim();
+      let j = i + 1;
+      while (j < totalLines && !doc.getLine(j).trim().startsWith("```")) {
+        j++;
+      }
+      for (let k = i + 1; k < j; k++) {
+        const handle = doc.getLineHandle(k);
+        if (handle) cm.addLineClass(handle, "wrap", "cm-code-block");
+      }
+      i = j + 1;
+    } else {
+      i++;
+    }
   }
-});
+}
+highlightCodeBlocks(easyMDE.codemirror);
+var highlightTimeout;
 easyMDE.codemirror.on("change", () => {
-  if (isUpdatingFromExtension) {
-    return;
-  }
-  if (debounceTimeout) {
-    clearTimeout(debounceTimeout);
-  }
+  if (highlightTimeout) clearTimeout(highlightTimeout);
+  highlightTimeout = setTimeout(() => highlightCodeBlocks(easyMDE.codemirror), 100);
+});
+var debounceTimeout;
+easyMDE.codemirror.on("change", () => {
+  if (isUpdatingFromExtension) return;
+  if (debounceTimeout) clearTimeout(debounceTimeout);
   debounceTimeout = setTimeout(() => {
-    console.log("Debounced: Sending update to VS Code");
     vscode.postMessage({ type: "edit", text: easyMDE.value() });
   }, 250);
 });
@@ -19946,35 +24745,7 @@ window.addEventListener("message", (event) => {
       easyMDE.value(message.text);
       easyMDE.codemirror.setCursor(cursor);
       isUpdatingFromExtension = false;
+      highlightCodeBlocks(easyMDE.codemirror);
     }
   }
-});
-var cm = easyMDE.codemirror;
-function highlightFencedBlocks() {
-  const totalLines = cm.lineCount();
-  let insideFencedBlock = false;
-  let blockLanguage = null;
-  for (let i = 0; i < totalLines; i++) {
-    const lineText = cm.getLine(i);
-    const match = lineText.match(/^```(\w+)?/);
-    if (match) {
-      insideFencedBlock = !insideFencedBlock;
-      blockLanguage = insideFencedBlock ? match[1] || null : null;
-      cm.addLineClass(i, "text", "cm-formatting cm-formatting-code-block");
-      continue;
-    }
-    if (insideFencedBlock && blockLanguage) {
-      const mode = CodeMirror2.getMode({}, blockLanguage);
-      const state = CodeMirror2.startState(mode);
-      const stream = new CodeMirror2.StringStream(lineText);
-      while (!stream.eol()) {
-        mode.token(stream, state);
-      }
-      cm.addLineClass(i, "text", `cm-${blockLanguage}`);
-    }
-  }
-}
-highlightFencedBlocks();
-cm.on("change", () => {
-  highlightFencedBlocks();
 });
