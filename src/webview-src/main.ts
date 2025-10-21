@@ -1,90 +1,70 @@
-import EasyMDE from 'easymde';
-import 'codemirror/mode/gfm/gfm';
-import { highlightCodeBlocks } from '../modules/highlightCodeBlocks';   
+import { EditorState } from '@codemirror/state';
+import { EditorView, keymap, lineNumbers, highlightActiveLineGutter } from '@codemirror/view';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
+import { markdownHighlighting } from '../slate-plugins/markdownHighlighting';
+import { oneDark } from '@codemirror/theme-one-dark';
+import { languages } from '@codemirror/language-data';
+import { imagePlugin } from '../slate-plugins/imagePlugin';
 
-// languages
-import 'codemirror/mode/python/python';
-import 'codemirror/mode/javascript/javascript';
-import 'codemirror/mode/markdown/markdown';
-import 'codemirror/mode/meta'; // auto detecting languages
-import 'codemirror/mode/xml/xml';
-import 'codemirror/mode/htmlmixed/htmlmixed';
-import 'codemirror/mode/css/css';
-import 'codemirror/mode/shell/shell';
-import 'codemirror/mode/sql/sql';
-import 'codemirror/mode/yaml/yaml';
-import 'codemirror/mode/properties/properties';
-import 'codemirror/mode/toml/toml';
-import 'codemirror/mode/rust/rust';
-import 'codemirror/mode/go/go';
-import 'codemirror/mode/php/php';
-import 'codemirror/mode/clike/clike';
-import 'codemirror/mode/lua/lua';
-import 'codemirror/mode/r/r';
-
-// VS Code webview setup
+// VS Code webview API
 declare const acquireVsCodeApi: () => {
     postMessage(message: any): void;
-    getState(): any;
-    setState(newState: any): void;
 };
 const vscode = acquireVsCodeApi();
+
+// A flag to prevent sending updates back to the extension while an update is coming from the extension
 let isUpdatingFromExtension = false;
 
-// Editor setup
-const textarea = document.getElementById('markdown-editor') as HTMLTextAreaElement;
-const easyMDE = new EasyMDE({
-    element: textarea,
-    mode: {
-        name: 'gfm',
-        fencedCodeBlockHighlighting: true
-    },
-    toolbar: false,
-    status: false,
-    spellChecker: false,
-    maxHeight: "none",
-    autoDownloadFontAwesome: false,
-    previewImagesInEditor: true,
-    renderingConfig: {
-        codeSyntaxHighlighting: true,
-    },
-    placeholder: "Type here...",
-} as any);
-
-// Initial highlight
-highlightCodeBlocks(easyMDE.codemirror);
-
-// Update highlights on every change (debounced for performance)
-let highlightTimeout: NodeJS.Timeout | undefined;
-easyMDE.codemirror.on('change', () => {
-    if (highlightTimeout) clearTimeout(highlightTimeout);
-    highlightTimeout = setTimeout(() => highlightCodeBlocks(easyMDE.codemirror), 100);
+// Create the CodeMirror 6 editor
+const editor = new EditorView({
+    state: EditorState.create({
+        doc: '', // Initial content is empty, will be populated by a message from the extension
+        extensions: [
+            // lineNumbers(),
+            // highlightActiveLineGutter(),
+            history(),
+            keymap.of([...defaultKeymap, ...historyKeymap]),
+            markdown({
+                base: markdownLanguage,
+                codeLanguages: languages, // This enables syntax highlighting inside fenced code blocks
+                addKeymap: true,
+            }),
+            oneDark, // Add a theme (you can create your own or use others)
+            // This is the listener that sends changes back to the VS Code extension
+            EditorView.updateListener.of((update) => {
+                if (update.docChanged && !isUpdatingFromExtension) {
+                    const newText = update.state.doc.toString();
+                    vscode.postMessage({ type: 'edit', text: newText });
+                }
+            }),
+            // Make the editor take up the full height
+            EditorView.theme({
+                "&": {height: "100vh"},
+                ".cm-scroller": {overflow: "auto"}
+            }),
+            
+            // Cusotm slate plugins
+            imagePlugin,
+            markdownHighlighting,
+        ],
+    }),
+    parent: document.body, // Attach the editor directly to the body
 });
 
-// --- Post changes to VS Code ---
-let debounceTimeout: NodeJS.Timeout | undefined;
-easyMDE.codemirror.on("change", () => {
-    if (isUpdatingFromExtension) return;
 
-    if (debounceTimeout) clearTimeout(debounceTimeout);
-
-    debounceTimeout = setTimeout(() => {
-        vscode.postMessage({ type: 'edit', text: easyMDE.value() });
-    }, 250);
-});
-
-// --- Receive updates from VS Code ---
-window.addEventListener('message', event => {
+// Listen for messages from the VS Code extension
+window.addEventListener('message', (event) => {
     const message = event.data;
     if (message.type === 'update') {
-        const receivedText = message.text.replace(/\r\n/g, '\n');
-        const currentText = easyMDE.value().replace(/\r\n/g, '\n');
+        const receivedText = message.text;
+        const currentText = editor.state.doc.toString();
 
         if (receivedText !== currentText) {
             isUpdatingFromExtension = true;
-            const cursor = easyMDE.codemirror.getCursor();
-            easyMDE.value(message.text);
-            easyMDE.codemirror.setCursor(cursor, undefined, { scroll: false }); // suppress jumps
+            editor.dispatch({
+                changes: { from: 0, to: currentText.length, insert: receivedText },
+            });
             isUpdatingFromExtension = false;
         }
     }

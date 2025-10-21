@@ -1,84 +1,78 @@
-/* --- General Editor Styles --- */
-body {
-  background-color: var(--vscode-editor-background);
-  color: var(--vscode-editor-foreground);
-  padding: 2rem;
-  font-size: large;
-  font-family: var(--vscode-editor-font-family);
+/* --- Base Editor Styling --- */
+.cm-editor {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
-.EasyMDEContainer {
-  max-width: 50vw;
+.cm-content {
+  padding: 2em;
+  max-width: 800px;
   margin: 0 auto;
 }
 
-.CodeMirror {
-  background-color: var(--vscode-editor-background) !important;
-  color: var(--vscode-editor-foreground);
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
+/* --- Markdown Element Styling (using our stable classes) --- */
+
+.cm-h1, .cm-h2, .cm-h3, .cm-h4, .cm-h5, .cm-h6 {
+  font-weight: bold;
+  line-height: 1.25;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
 }
 
-.editor-toolbar, .editor-statusbar {
-  display: none !important;
+.cm-h1 { font-size: 2em; }
+.cm-h2 { font-size: 1.6em; }
+.cm-h3 { font-size: 1.4em; }
+
+.cm-strong {
+  font-weight: bold;
 }
 
-.CodeMirror-cursor {
-  border-left: 1px solid var(--vscode-editorCursor-foreground) !important;
-}
-
-/* ====== Fenced Code Block Styling ====== */
-
-/* Style lines with ``` */
-.CodeMirror-line:has(span.cm-formatting-code-block.cm-comment) {
-  /* Apply the dark background to the whole line */
-  background-color: #161616;
-  color: #999; 
+.cm-em {
   font-style: italic;
 }
 
-/* Lines inside a fenced code block */
-.CodeMirror .cm-code-block {
-  background: #161616;  
-  display: block; /* ensures full line width */
+.cm-quote {
+  color: #57606a;
+  border-left: 4px solid #d0d7de;
+  padding-left: 1em;
+  margin-left: 0;
 }
 
-/* Syntax highlighting for code tokens */
-/* Obsidian-inspired CodeMirror theme */
-.CodeMirror .cm-keyword { color: #c792ea; }    
-.CodeMirror .cm-number { color: #f78c6c; }   
-.CodeMirror .cm-string { color: #c3e88d; }    
-.CodeMirror .cm-comment { color: #546e7a; font-style: italic; } 
-.CodeMirror .cm-builtin { color: #ffcb6b; }    
-.CodeMirror .cm-operator { color: #89ddff; }  
-.CodeMirror .cm-variable { color: #82aaff; }   
-.CodeMirror .cm-def { color: #ffcb6b; }        
-.CodeMirror .cm-bracket { color: #89ddff; }  
-.CodeMirror .cm-tag { color: #f07178; }       
-.CodeMirror .cm-attribute { color: #ffcb6b; } 
-/* it may be worth using the new cm-code-block type for these */
+.cm-strikethrough {
+  text-decoration: line-through;
+}
 
-
-/* Changing horizontal rules to lines for visual clarity */
 .cm-hr {
-  color: rgba(0, 0, 0, 0); 
+  color: transparent;
+  display: block;
+  text-align: center;
   position: relative;
-  display: inline-block; 
-  width: 100%; 
+  font-size: 4px; /* Give it some height */
 }
-
 .cm-hr::after {
-  content: ''; 
+  content: '';
   position: absolute;
+  left: 10%;
+  right: 10%;
   top: 50%;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #aaaaaa; 
-  transform: translateY(-50%);
-  
+  height: 1px;
+  background: #d0d7de;
 }
 
+/* --- Code Styling --- */
+.cm-inline-code,
+.cm-content .cm-line[style*="--code-block"] {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 0.9em;
+}
 
+.cm-inline-code {
+  background-color: rgba(175, 184, 193, 0.2);
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+}
 
+.cm-meta {
+  color: #888 !important;
+}

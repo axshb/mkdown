@@ -9,6 +9,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 class SlateEditorProvider implements vscode.CustomTextEditorProvider {
 
+    private isUpdatingFromWebview = false;
+
     public static register(context: vscode.ExtensionContext): vscode.Disposable {
         const provider = new SlateEditorProvider(context);
         const providerRegistration = vscode.window.registerCustomEditorProvider(
@@ -29,22 +31,28 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
         _token: vscode.CancellationToken
     ): Promise<void> {
 
-        // Webview options setup
         webviewPanel.webview.options = {
             enableScripts: true,
-            // Restrict the webview to only loading resources from our extension's 'media' and 'node_modules' directories
             localResourceRoots: [
-                vscode.Uri.joinPath(this.context.extensionUri, 'node_modules'),
+                // Only media is needed now, since we bundle node_modules with esbuild
                 vscode.Uri.joinPath(this.context.extensionUri, 'media')
             ]
         };
 
-        // Set the initial HTML content
-        webviewPanel.webview.html = this.getWebviewContent(webviewPanel.webview, document.getText());
+        // Set the webview's initial html content
+        webviewPanel.webview.html = this.getWebviewContent(webviewPanel.webview);
+
+        // -- THIS IS THE NEW PART --
+        // Send the initial document content to the webview.
+        // We do this now instead of embedding it in the HTML to avoid escaping issues.
+        webviewPanel.webview.postMessage({
+            type: 'update',
+            text: document.getText(),
+        });
 
         // Two-way communication setup
         const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
-            if (e.document.uri.toString() === document.uri.toString()) {
+            if (e.document.uri.toString() === document.uri.toString() && !this.isUpdatingFromWebview) {
                 webviewPanel.webview.postMessage({
                     type: 'update',
                     text: document.getText(),
@@ -73,35 +81,32 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
     /**
      * Gelper function to apply changes from the webview to the VS Code document.
      */
-    private updateTextDocument(document: vscode.TextDocument, text: string) {
-        const edit = new vscode.WorkspaceEdit();
-        // Replace the entire content of the document with the new text from the webview
-        edit.replace(
-            document.uri,
-            new vscode.Range(0, 0, document.lineCount, 0),
-            text
-        );
-        return vscode.workspace.applyEdit(edit);
+    private async updateTextDocument(document: vscode.TextDocument, text: string) {
+        // Set the flag to true before the edit
+        this.isUpdatingFromWebview = true;
+        try {
+            const edit = new vscode.WorkspaceEdit();
+            edit.replace(
+                document.uri,
+                new vscode.Range(0, 0, document.lineCount, 0),
+                text
+            );
+            await vscode.workspace.applyEdit(edit);
+        } finally {
+            // ALWAYS reset the flag to false, even if the edit fails
+            this.isUpdatingFromWebview = false;
+        }
     }
 
     /**
      * Generate the HTML content for the webview.
      */
-    private getWebviewContent(webview: vscode.Webview, initialContent: string): string {
-        // Only need URIs for the CSS and the single bundled script
-        const easyMDECssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'node_modules', 'easymde', 'dist', 'easymde.min.css'));
-        const customCssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'style.css'));
+    private getWebviewContent(webview: vscode.Webview): string {
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'webview.dist.js')); 
-    
+        const customCssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'style.css'));
         const nonce = getNonce();
     
-        const escapedInitialContent = initialContent
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    
+        // UPDATED HTML:
         return `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -110,19 +115,15 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
                 default-src 'none';
                 style-src ${webview.cspSource} 'unsafe-inline';
                 script-src 'nonce-${nonce}';
-                img-src ${webview.cspSource} https:;
                 font-src ${webview.cspSource};
+                img-src ${webview.cspSource} https: data:;
             ">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-            <link href="${easyMDECssUri}" rel="stylesheet">
             <link href="${customCssUri}" rel="stylesheet">
-    
             <title>Slate Editor</title>
         </head>
         <body>
-            <textarea id="markdown-editor">${escapedInitialContent}</textarea>
-    
+            <div id="editor"></div>
             <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>`;
