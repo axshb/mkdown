@@ -1,0 +1,41 @@
+/* media/style.css */
+
+body {
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    padding: 2rem;
+    /* Add a little bit of font smoothing */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: large;
+  }
+  
+  /* 
+    Style the main EasyMDE container to have "readable line length".
+    This is the core of the clean, centered look.
+  */
+  .EasyMDEContainer {
+    max-width: 66vw;
+    margin: 0 auto;
+  }
+  
+  /* 
+    This is the key to the minimalist "writing on a page" feel.
+    We remove all borders and outlines from the editor itself.
+  */
+  .CodeMirror, .CodeMirror-focused {
+    background-color: var(--vscode-editor-background) !important;
+    color: var(--vscode-editor-foreground) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important; /* Remove any focus shadows */
+  }
+  
+  .editor-toolbar, .editor-statusbar {
+    display: none !important; /* We can also disable them in JS, but this is a guarantee */
+  }
+  
+  /* Make sure the cursor color is visible and respects the theme */
+  .CodeMirror-cursor {
+    border-left: 1px solid var(--vscode-editorCursor-foreground) !important;
+  }
