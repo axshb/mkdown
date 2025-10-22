@@ -22,8 +22,10 @@ import { lintKeymap } from "@codemirror/lint"
 import { indentWithTab } from "@codemirror/commands"
 import { markdown } from "@codemirror/lang-markdown"
 import {languages,} from "@codemirror/language-data"
+
 import { slateTheme, centeredLayout } from '../slate-plugins/slateTheme';
 import { fenceBlockBackground } from "../slate-plugins/codeBlockPlugin";
+import { dialogueHighlighter } from "../slate-plugins/quotedTextHighlight";
 
 // Standard VS Code Webview API boilerplate
 declare const acquireVsCodeApi: () => {
@@ -71,6 +73,7 @@ const editor = new EditorView({
             imagePlugin,
             centeredLayout, 
             fenceBlockBackground,
+            dialogueHighlighter,
 
             // Listener to send document changes to the VS Code extension
             EditorView.updateListener.of((update) => {

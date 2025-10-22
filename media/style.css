@@ -13,3 +13,7 @@ html, body, #editor {
   z-index: 0;
 }
 
+.cm-dialogue {
+  color: #FF6A13;
+}
+
