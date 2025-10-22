@@ -13,3 +13,10 @@ html, body, #editor {
   z-index: 0;
 }
 
+/* TEMPORARY FIX */
+/* NO HEADER STYLING IN MARKDOWN CODE BLOCKS */
+.cm-codeBlock .ͼ10, .cm-codeBlock .ͼ11, .cm-codeBlock .ͼ12 {
+  font-size: 18px;
+  color: indianred;
+}
+
