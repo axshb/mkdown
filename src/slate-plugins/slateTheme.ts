@@ -34,7 +34,9 @@ export const slateTheme = HighlightStyle.define([
   // CENTERED LAYOUT (READABLE LINE LENGTHS)
   export const centeredLayout = EditorView.theme({
     "&": {
-      maxWidth: "50vw",      
+      maxWidth: "1200px",   // Fixed max-width for larger screens
+      minWidth: "400px",
+      width: "100%",  
       margin: "0 auto",       
       padding: "1em 2em",   
       lineHeight: "1.6", 
