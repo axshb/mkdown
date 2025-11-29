@@ -6,10 +6,10 @@
   "engines": {
     "vscode": "^1.98.0"
   },
-  "publisher": "archiebhl",
+  "publisher": "axshb",
   "repository": {
     "type": "git",
-    "url": "https://github.com/archiebhl/slate-markdown.git"
+    "url": "https://github.com/axshb/slate-markdown.git"
   },
   "categories": [
     "Other"
