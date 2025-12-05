@@ -1,57 +1,49 @@
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
-    // Register our custom editor provider
-    context.subscriptions.push(
-        SlateEditorProvider.register(context)
-    );
+    // register provider
+    context.subscriptions.push(SlateEditorProvider.register(context));
 }
 
+// boilerplate, mostly
+// major reference: https://vogella.com/blog/multiple-webviews-single-extension/
 class SlateEditorProvider implements vscode.CustomTextEditorProvider {
 
+    private static readonly viewType = 'mkdown.editor';
     private isUpdatingFromWebview = false;
-
-    public static register(context: vscode.ExtensionContext): vscode.Disposable {
-        const provider = new SlateEditorProvider(context);
-        const providerRegistration = vscode.window.registerCustomEditorProvider(
-            'slate-markdown.editor', // This must match the viewType in package.json
-            provider
-        );
-        return providerRegistration;
-    }
 
     constructor(private readonly context: vscode.ExtensionContext) { }
 
-    /**
-     * Core method, called by VS Code when a user opens a file with the editor.
-     */
+    public static register(context: vscode.ExtensionContext): vscode.Disposable {
+        return vscode.window.registerCustomEditorProvider(
+            SlateEditorProvider.viewType,
+            new SlateEditorProvider(context)
+        );
+    }
+
     public async resolveCustomTextEditor(
         document: vscode.TextDocument,
         webviewPanel: vscode.WebviewPanel,
         _token: vscode.CancellationToken
     ): Promise<void> {
 
+        // set webview options
         webviewPanel.webview.options = {
             enableScripts: true,
-            localResourceRoots: [
-                // Only media is needed now, since we bundle node_modules with esbuild
-                vscode.Uri.joinPath(this.context.extensionUri, 'media')
-            ]
+            localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media')]
         };
 
-        // Set the webview's initial html content
+        // load html content
         webviewPanel.webview.html = this.getWebviewContent(webviewPanel.webview);
 
-        // -- THIS IS THE NEW PART --
-        // Send the initial document content to the webview.
-        // We do this now instead of embedding it in the HTML to avoid escaping issues.
+        // sync initial content
         webviewPanel.webview.postMessage({
             type: 'update',
             text: document.getText(),
         });
 
-        // Two-way communication setup
-        const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
+        // sync host changes to webview
+        const subscription = vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.uri.toString() === document.uri.toString() && !this.isUpdatingFromWebview) {
                 webviewPanel.webview.postMessage({
                     type: 'update',
@@ -60,12 +52,12 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
             }
         });
 
-        // When the webview panel is disposed, clean up the subscription
+        // cleanup on close
         webviewPanel.onDidDispose(() => {
-            changeDocumentSubscription.dispose();
+            subscription.dispose();
         });
 
-        // Receive messages from the webview
+        // handle webview messages
         webviewPanel.webview.onDidReceiveMessage(e => {
             switch (e.type) {
                 case 'edit':
@@ -78,55 +70,54 @@ class SlateEditorProvider implements vscode.CustomTextEditorProvider {
         });
     }
 
-    /**
-     * Gelper function to apply changes from the webview to the VS Code document.
-     */
     private async updateTextDocument(document: vscode.TextDocument, text: string) {
-        // Set the flag to true before the edit
+        // prevent infinite loop
         this.isUpdatingFromWebview = true;
         try {
             const edit = new vscode.WorkspaceEdit();
+
+            // replace entire document
             edit.replace(
                 document.uri,
                 new vscode.Range(0, 0, document.lineCount, 0),
                 text
             );
+
             await vscode.workspace.applyEdit(edit);
         } finally {
-            // ALWAYS reset the flag to false, even if the edit fails
+            // release lock
             this.isUpdatingFromWebview = false;
         }
     }
 
-    /**
-     * Generate the HTML content for the webview.
-     */
     private getWebviewContent(webview: vscode.Webview): string {
-        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'webview.dist.js')); 
-        const customCssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'style.css'));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'webview.dist.js'));
+        const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'style.css'));
         const nonce = getNonce();
-    
-        // UPDATED HTML:
-        return `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy" content="
-                default-src 'none';
-                style-src ${webview.cspSource} 'unsafe-inline';
-                script-src 'nonce-${nonce}';
-                font-src ${webview.cspSource};
-                img-src ${webview.cspSource} https: data:;
-            ">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="${customCssUri}" rel="stylesheet">
-            <title>Slate Editor</title>
-        </head>
-        <body>
-            <div id="editor"></div>
-            <script nonce="${nonce}" src="${scriptUri}"></script>
-        </body>
-        </html>`;
+
+        // generate secure html
+        return `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta http-equiv="Content-Security-Policy" content="
+                    default-src 'none';
+                    style-src ${webview.cspSource} 'unsafe-inline';
+                    script-src 'nonce-${nonce}';
+                    font-src ${webview.cspSource};
+                    img-src ${webview.cspSource} https: data:;
+                ">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link href="${cssUri}" rel="stylesheet">
+                <title>Slate Editor</title>
+            </head>
+            <body>
+                <div id="editor"></div>
+                <script nonce="${nonce}" src="${scriptUri}"></script>
+            </body>
+            </html>
+        `;
     }
 }
 

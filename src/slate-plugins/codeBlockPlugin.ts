@@ -1,8 +1,8 @@
-import {EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet} from "@codemirror/view";
-import {syntaxTree} from "@codemirror/language";
-import {RangeSetBuilder} from "@codemirror/state";
+import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from "@codemirror/view";
+import { syntaxTree } from "@codemirror/language";
+import { RangeSetBuilder } from "@codemirror/state";
 
-// ViewPlugin to add background to fenced code block lines
+// to add background to fenced code block lines
 export const fenceBlockBackground = ViewPlugin.fromClass(class {
   decorations: DecorationSet;
 
@@ -29,7 +29,7 @@ export const fenceBlockBackground = ViewPlugin.fromClass(class {
           for (let lineNumber = fromLine.number; lineNumber <= toLine.number; lineNumber++) {
             const line = view.state.doc.line(lineNumber);
 
-            // Apply a line decoration to every line inside the fenced code block
+            // apply a line decoration to every line inside the fenced code block
             builder.add(line.from, line.from, Decoration.line({
               attributes: { class: "cm-codeBlock" }
             }));

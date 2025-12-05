@@ -1,6 +1,6 @@
 {
-  "name": "slate-markdown",
-  "displayName": "Slate Markdown",
+  "name": "mkdown",
+  "displayName": "mkdown Markdown Editor",
   "description": "A WYSIWYG Markdown Editor for VSCode.",
   "version": "0.0.1",
   "engines": {
@@ -9,7 +9,7 @@
   "publisher": "axshb",
   "repository": {
     "type": "git",
-    "url": "https://github.com/axshb/slate-markdown.git"
+    "url": "https://github.com/axshb/mkdown.git"
   },
   "categories": [
     "Other"
@@ -21,8 +21,8 @@
   "contributes": {
     "customEditors": [
       {
-        "viewType": "slate-markdown.editor",
-        "displayName": "Slate Markdown Editor",
+        "viewType": "mkdown.editor",
+        "displayName": "mkdown Markdown Editor",
         "selector": [
           {
             "filenamePattern": "*.md"
@@ -43,7 +43,7 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "build:webview": "esbuild ./src/webview-src/main.ts --bundle --outfile=media/webview.dist.js --format=iife",
-    "vscode-package": "npx @vscode/vsce package --out slate-markdown.vsix --no-dependencies"
+    "vscode-package": "npx @vscode/vsce package --out mkdown.vsix --no-dependencies"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -76,6 +76,7 @@
     "@codemirror/state": "^6.5.2",
     "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.38.6",
+    "@fsegurai/codemirror-theme-bundle": "^6.3.0",
     "@lezer/highlight": "^1.2.2",
     "@lezer/markdown": "^1.5.1",
     "@uiw/codemirror-theme-vscode": "^4.25.2",

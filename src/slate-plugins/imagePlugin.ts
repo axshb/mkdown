@@ -1,7 +1,7 @@
 import { EditorView, WidgetType, Decoration } from "@codemirror/view";
 import { ViewPlugin, ViewUpdate, DecorationSet } from "@codemirror/view";
 
-// A "widget" that will be our <img> tag.
+// widget will be the <img> tag.
 class ImageWidget extends WidgetType {
     constructor(readonly url: string) {
         super();
@@ -11,17 +11,17 @@ class ImageWidget extends WidgetType {
         const img = document.createElement("img");
         img.src = this.url;
         img.style.maxWidth = "100%";
-        img.style.display = "block"; // Make it take its own line
+        img.style.display = "block"; // make it take its own line
         return img;
     }
 
-    // Images don't have a text equivalent, so we ignore events.
+    // ignore events, apparently?
     ignoreEvent() {
         return true;
     }
 }
 
-// The main plugin that finds image syntax and applies the widget decoration.
+// finds image syntax and applies the widget decoration.
 export const imagePlugin = ViewPlugin.fromClass(class {
     decorations: DecorationSet;
 
@@ -37,10 +37,10 @@ export const imagePlugin = ViewPlugin.fromClass(class {
 
     findImages(view: EditorView) {
         const widgets: any[] = [];
-        // A simple regex to find ![alt](url)
+        // regex to find ![alt](url)
         const imageRegex = /!\[.*?\]\((.*?)\)/g;
 
-        // Iterate over the visible part of the document
+        // iterate over the visible part of the document
         for (const { from, to } of view.visibleRanges) {
             const text = view.state.doc.sliceString(from, to);
             let match;
@@ -48,15 +48,15 @@ export const imagePlugin = ViewPlugin.fromClass(class {
                 const url = match[1];
                 const start = from + match.index;
                 const end = start + match[0].length;
-                
-                // Insert image widget to the line below the matched text
+
+                // insert image widget to the line below the matched text
                 const line = view.state.doc.lineAt(start);
                 const deco = Decoration.widget({
                     widget: new ImageWidget(url),
-                    side: 1, // Insert after the position
+                    side: 1, // insert after the pos
                 });
                 widgets.push(deco.range(line.to));
-                
+
             }
         }
         return Decoration.set(widgets);

@@ -1,81 +1,118 @@
 import { imagePlugin } from '../slate-plugins/imagePlugin';
-import {EditorState} from "@codemirror/state"
+import { EditorState } from "@codemirror/state"
 import {
-  EditorView, keymap, drawSelection, 
-  dropCursor, rectangularSelection, crosshairCursor
+    EditorView, keymap, drawSelection,
+    dropCursor, rectangularSelection, crosshairCursor
 } from "@codemirror/view"
 import {
-  syntaxHighlighting, indentOnInput,
-  bracketMatching, foldKeymap
+    syntaxHighlighting, indentOnInput,
+    bracketMatching, foldKeymap,
+    defaultHighlightStyle
 } from "@codemirror/language"
 import {
-  defaultKeymap, history, historyKeymap
+    defaultKeymap, history, historyKeymap
 } from "@codemirror/commands"
 import {
-  searchKeymap, highlightSelectionMatches
+    searchKeymap, highlightSelectionMatches
 } from "@codemirror/search"
 import {
-  autocompletion, completionKeymap, closeBrackets,
-  closeBracketsKeymap
+    autocompletion, completionKeymap, closeBrackets,
+    closeBracketsKeymap
 } from "@codemirror/autocomplete"
 import { lintKeymap } from "@codemirror/lint"
 import { indentWithTab } from "@codemirror/commands"
 import { markdown } from "@codemirror/lang-markdown"
-import {languages,} from "@codemirror/language-data"
+import { languages, } from "@codemirror/language-data"
 
-import { slateTheme, centeredLayout } from '../slate-plugins/slateTheme';
+import { centeredLayout } from '../slate-plugins/centeredLayout';
+import { markdownStyling } from '../slate-plugins/markdownStyling';
 import { fenceBlockBackground } from "../slate-plugins/codeBlockPlugin";
 import { dialogueHighlighter } from "../slate-plugins/quotedTextHighlight";
 
-// Standard VS Code Webview API boilerplate
+// for some reason the bundle import doens't work
+import {
+    abcdef, abcdefMergeStyles, applyMergeRevertStyles,
+    abyss, abyssMergeStyles,
+    androidStudio, androidStudioMergeStyles,
+    andromeda, andromedaMergeStyles,
+    basicDark, basicDarkMergeStyles,
+    basicLight, basicLightMergeStyles,
+    catppuccinMocha, catppuccinMochaMergeStyles,
+    cobalt2, cobalt2MergeStyles,
+    forest, forestMergeStyles,
+    githubDark, githubDarkMergeStyles,
+    githubLight, githubLightMergeStyles,
+    gruvboxDark, gruvboxDarkMergeStyles,
+    gruvboxLight, gruvboxLightMergeStyles,
+    highContrastDark, highContrastDarkMergeStyles,
+    highContrastLight, highContrastLightMergeStyles,
+    materialDark, materialDarkMergeStyles,
+    materialLight, materialLightMergeStyles,
+    monokai, monokaiMergeStyles,
+    nord, nordMergeStyles,
+    palenight, palenightMergeStyles,
+    solarizedDark, solarizedDarkMergeStyles,
+    solarizedLight, solarizedLightMergeStyles,
+    synthwave84, synthwave84MergeStyles,
+    tokyoNightDay, tokyoNightDayMergeStyles,
+    tokyoNightStorm, tokyoNightStormMergeStyles,
+    volcano, volcanoMergeStyles,
+    vsCodeDark, vsCodeDarkMergeStyles,
+    vsCodeLight, vsCodeLightMergeStyles,
+} from '@fsegurai/codemirror-theme-bundle';
+
+
 declare const acquireVsCodeApi: () => {
     postMessage(message: any): void;
 };
 const vscode = acquireVsCodeApi();
 let isUpdatingFromExtension = false;
 
-// Initialize the CodeMirror 6 editor
+// initialize cm6
 const editor = new EditorView({
     state: EditorState.create({
         doc: '',
         extensions: [
 
-            /* === CODEMIRROR BUILT IN EXTENSIONS === */
-            history(), // Undo/redo history
+            // built in cm6 extensions
+            history(), // undo/redo history
             drawSelection(),
             dropCursor(),
-            EditorState.allowMultipleSelections.of(true), // Allow multiple cursors/selections
+            EditorState.allowMultipleSelections.of(true),
             indentOnInput(),
-            syntaxHighlighting(slateTheme), // Theme (default: defaultHighlightStyle)
-            bracketMatching(), // Highlight matching brackets near cursor
+            syntaxHighlighting(markdownStyling), // theme (default: defaultHighlightStyle)
+            bracketMatching(),
             closeBrackets(),
             autocompletion(),
             rectangularSelection(),
             crosshairCursor(),
             highlightSelectionMatches(),
-            EditorView.lineWrapping, 
+            EditorView.lineWrapping,
             keymap.of([
-            ...closeBracketsKeymap,
-            ...defaultKeymap,
-            ...searchKeymap,
-            ...historyKeymap,
-            ...foldKeymap,
-            ...completionKeymap,
-            ...lintKeymap,
-            indentWithTab
+                ...closeBracketsKeymap,
+                ...defaultKeymap,
+                ...searchKeymap,
+                ...historyKeymap,
+                ...foldKeymap,
+                ...completionKeymap,
+                ...lintKeymap,
+                indentWithTab
             ]),
             markdown({
                 pasteURLAsLink: true,
                 codeLanguages: languages,
             }),
-           
-            /* === CUSTOM SLATE PLUGINS === */ 
+
+            // theme
+            vsCodeDark,
+
+            // custom plugins
             imagePlugin,
-            centeredLayout, 
+            centeredLayout,
             fenceBlockBackground,
             dialogueHighlighter,
 
-            // Listener to send document changes to the VS Code extension
+            // listener to send document changes to the vscode extension
             EditorView.updateListener.of((update) => {
                 if (update.docChanged && !isUpdatingFromExtension) {
                     const newText = update.state.doc.toString();
@@ -87,7 +124,7 @@ const editor = new EditorView({
     parent: document.querySelector('#editor') as HTMLElement,
 });
 
-// Listener to receive document updates from the VS Code extension
+// listener to receive document updates from the vscode extension
 window.addEventListener('message', (event) => {
     const message = event.data;
     if (message.type === 'update') {
