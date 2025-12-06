@@ -161,7 +161,14 @@ export const livePreview = ViewPlugin.fromClass(
             }
 
             if (node.name === "HeaderMark") {
-              builder.add(node.from, node.to, Decoration.replace({}));
+
+              const afterMark = state.sliceDoc(node.to, node.to + 1);
+              let replacementEnd = node.to;
+              if (afterMark === " ") {
+                replacementEnd = node.to + 1;
+              }
+              builder.add(node.from, replacementEnd, Decoration.replace({}));
+
             } else if (node.name === "EmphasisMark") {
               builder.add(node.from, node.to, Decoration.replace({}));
             } else if (node.name === "CodeMark") {
