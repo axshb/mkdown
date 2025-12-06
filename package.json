@@ -19,6 +19,7 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "vscode-package": "npx @vscode/vsce package --out mkdown.vsix --no-dependencies",
     "customEditors": [
       {
         "viewType": "mkdown.editor",
@@ -30,16 +31,69 @@
         ],
         "priority": "option"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "mkdown",
+      "properties": {
+        "mkdown.theme": {
+          "type": "string",
+          "enum": [
+            "vsCodeDark",
+            "vsCodeLight",
+            "githubDark",
+            "githubLight",
+            "solarizedDark",
+            "solarizedLight"
+          ],
+          "default": "vsCodeDark",
+          "description": "Theme for the markdown editor."
+        },
+        "mkdown.font.size": {
+          "type": "number",
+          "default": 16,
+          "description": "Font size in pixels."
+        },
+        "mkdown.font.family": {
+          "type": "string",
+          "enum": [
+            "sans-serif",
+            "serif",
+            "monospace",
+            "Arial",
+            "Helvetica",
+            "Verdana",
+            "Courier New",
+            "Georgia",
+            "Times New Roman",
+            "Consolas",
+            "Trebuchet MS"
+          ],
+          "default": "sans-serif",
+          "description": "Font family for the editor."
+        },
+        "mkdown.colors.italics": {
+          "type": "string",
+          "format": "color-hex",
+          "default": "#808080CC",
+          "description": "CSS color for italics and emphasized text."
+        },
+        "mkdown.colors.quote": {
+          "type": "string",
+          "format": "color-hex",
+          "default": "#f08400",
+          "description": "CSS color for quoted text."
+        }
+      }
+    }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run package",
-    "compile": "webpack && pnpm run build:webview",
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack && npm run build:webview",
     "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
+    "package": "npm run build:webview && webpack --mode production --devtool hidden-source-map",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
     "build:webview": "esbuild ./src/webview-src/main.ts --bundle --outfile=media/webview.dist.js --format=iife",
@@ -62,7 +116,6 @@
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "...": "link:...",
     "@babel/runtime": "^7.28.4",
     "@codemirror/autocomplete": "^6.19.0",
     "@codemirror/commands": "^6.9.0",
@@ -80,6 +133,7 @@
     "@lezer/highlight": "^1.2.2",
     "@lezer/markdown": "^1.5.1",
     "@uiw/codemirror-theme-vscode": "^4.25.2",
-    "codemirror": "^6.0.2"
+    "codemirror": "^6.0.2",
+    "isomorphic-dompurify": "^1.0.0"
   }
 }
