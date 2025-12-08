@@ -26,5 +26,5 @@
 3. `npm install`
 4. `npm run compile`
 5. Run with your method of choice. On VS Code, Press `F5` and run the extension for testing.
-6. Compile the .vsix with `npm run package.`
+6. Compile the .vsix with `npm run vscode-package.`
 
