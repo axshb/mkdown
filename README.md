@@ -5,7 +5,7 @@
 * Styled WYSIWYG markdown, including headings, bold, italics, lists, etc.
 * In-line image embeddings.
 * Preset and custom theme configuration via VS Code's settings
-* Live preview of HTML
+* HTML live preview.
 
 ### Showcase
 * Due to significant updates, a new showcase is still pending. 
